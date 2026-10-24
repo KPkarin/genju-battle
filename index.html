@@ -2587,8 +2587,140 @@ function statPct(key, v){
 const learnable = s => NEUTRAL.concat(BY_TYPE[s.t], BY_TYPE[s.aff])
   .filter(k => !MOVES[k].own || MOVES[k].t === s.t);
 
-function drawSprite(cv, id, view="front"){
-  const sp = (view === "back" ? BACK_SPRITES : SPRITES)[id];
+/* ================= idle pixel animation ================= */
+// The four native-grid poses are cosmetic; they never consume battle RNG.
+const IDLE_PROFILES = {
+  "homura":{"period":2200,"front":{"bodyY":18,"footY":27,"appendages":[{"part":"flame-tail-tip","rect":[1,12,7,21],"delta":[1,-1]}]},"back":{"bodyY":16,"footY":27,"appendages":[{"part":"flame-tail-tip","rect":[2,11,9,20],"delta":[1,-1]}]}},
+  "youcho":{"period":2700,"front":{"bodyY":17,"footY":26,"appendages":[{"part":"dorsal-flame-tips","rect":[9,3,20,9],"delta":[0,-1]}]},"back":{"bodyY":15,"footY":27,"appendages":[{"part":"dorsal-flame-tips","rect":[9,3,23,10],"delta":[0,-1]}]}},
+  "iwaushi":{"period":3200,"rigid":true,"front":{"bodyY":17,"footY":27,"appendages":[]},"back":{"bodyY":15,"footY":27,"appendages":[{"part":"tail-tuft","rect":[15,23,19,28],"delta":[1,0]}]}},
+  "saikaku":{"period":3000,"rigid":true,"front":{"bodyY":17,"footY":26,"appendages":[]},"back":{"bodyY":15,"footY":27,"appendages":[{"part":"tail-tip","rect":[2,18,7,24],"delta":[1,0]}]}},
+  "doryu":{"period":2600,"front":{"bodyY":16,"footY":27,"appendages":[]},"back":{"bodyY":15,"footY":28,"appendages":[]}},
+  "sarou":{"period":2300,"front":{"bodyY":18,"footY":27,"appendages":[{"part":"tail-plume","rect":[1,16,8,24],"delta":[1,-1]}]},"back":{"bodyY":17,"footY":27,"appendages":[{"part":"tail-plume","rect":[2,15,10,23],"delta":[1,-1]}]}},
+  "shiogame":{"period":3300,"rigid":true,"front":{"bodyY":20,"footY":27,"bodyRect":[8,16,24,27],"appendages":[]},"back":{"bodyY":16,"footY":27,"bodyRect":[5,8,27,27],"appendages":[{"part":"far-head","rect":[22,5,29,10],"delta":[0,-1]}]}},
+  "soukou":{"period":2400,"floating":true,"front":{"bodyY":14,"footY":24,"appendages":[{"part":"crescent-tail","rect":[26,7,30,22],"delta":[-1,0]}]},"back":{"bodyY":13,"footY":25,"appendages":[{"part":"near-tail-flukes","rect":[2,20,10,30],"delta":[1,0]}]}},
+  "rainen":{"period":2800,"floating":true,"front":{"bodyY":16,"footY":25,"appendages":[{"part":"left-whisker-tip","rect":[2,10,5,17],"delta":[1,0]},{"part":"right-whisker-tip","rect":[27,10,29,17],"delta":[-1,0]}]},"back":{"bodyY":14,"footY":25,"appendages":[{"part":"right-whisker-tip","rect":[28,16,30,22],"delta":[-1,0]}]}},
+  "fuen":{"period":1800,"floating":true,"front":{"bodyY":15,"footY":27,"bodyRect":[11,8,21,26],"appendages":[{"part":"left-wing-tip","rect":[2,3,10,15],"delta":[0,1]},{"part":"right-wing-tip","rect":[23,3,29,15],"delta":[0,1]}]},"back":{"bodyY":15,"footY":27,"bodyRect":[11,6,22,26],"appendages":[{"part":"left-wing-tip","rect":[2,4,10,15],"delta":[0,1]},{"part":"right-wing-tip","rect":[23,3,29,15],"delta":[0,1]}]}},
+  "ungei":{"period":3400,"floating":true,"front":{"bodyY":15,"footY":25,"appendages":[{"part":"tail-flukes","rect":[26,7,30,22],"delta":[-1,0]},{"part":"cloud-spout","rect":[10,2,21,6],"delta":[0,-1]}]},"back":{"bodyY":14,"footY":26,"appendages":[{"part":"near-tail-flukes","rect":[2,19,10,30],"delta":[1,0]},{"part":"cloud-spout","rect":[20,1,28,5],"delta":[0,1]}]}},
+  "raitachi":{"period":2000,"front":{"bodyY":16,"footY":26,"appendages":[{"part":"tail-tip","rect":[2,11,7,22],"delta":[1,0]}]},"back":{"bodyY":17,"footY":28,"appendages":[{"part":"tail-tip","rect":[3,9,8,22],"delta":[1,0]}]}},
+  "kokejyu":{"period":2900,"front":{"bodyY":17,"footY":26,"appendages":[{"part":"left-leaf-ear","rect":[2,9,6,14],"delta":[1,0]}]},"back":{"bodyY":16,"footY":27,"appendages":[{"part":"left-leaf-ear","rect":[3,9,7,15],"delta":[1,0]}]}},
+  "tsutazaru":{"period":2100,"front":{"bodyY":17,"footY":27,"appendages":[{"part":"vine-tail-tip","rect":[1,11,6,24],"delta":[1,0]}]},"back":{"bodyY":17,"footY":27,"appendages":[{"part":"vine-tail-tip","rect":[2,12,8,24],"delta":[1,0]}]}},
+  "fukurou":{"period":2600,"front":{"bodyY":18,"footY":27,"appendages":[{"part":"left-wing-lower-feathers","rect":[3,18,7,25],"delta":[1,0]},{"part":"right-wing-lower-feathers","rect":[26,18,29,25],"delta":[-1,0]}]},"back":{"bodyY":18,"footY":27,"appendages":[{"part":"left-wing-lower-feathers","rect":[4,19,9,26],"delta":[1,0]},{"part":"right-wing-lower-feathers","rect":[23,19,28,26],"delta":[-1,0]}]}},
+  "yoigumo":{"period":3000,"anchorLegs":true,"front":{"bodyY":15,"footY":26,"bodyRect":[9,6,23,25],"appendages":[]},"back":{"bodyY":15,"footY":27,"bodyRect":[8,5,24,27],"appendages":[]}},
+  "mubaku":{"period":3000,"front":{"bodyY":18,"footY":27,"appendages":[{"part":"trunk-tip","rect":[5,18,12,23],"delta":[0,1]}]},"back":{"bodyY":17,"footY":27,"appendages":[{"part":"short-tail-tip","rect":[6,23,11,27],"delta":[1,0]}]}},
+  "oborogi":{"period":2400,"front":{"bodyY":18,"footY":27,"appendages":[{"part":"spirit-tail-plume","rect":[2,12,9,24],"delta":[1,0]}]},"back":{"bodyY":17,"footY":27,"appendages":[{"part":"spirit-tail-plume","rect":[2,13,10,26],"delta":[1,0]}]}},
+};
+const idleFrameCache = new Map();
+function getIdleFrame(id, view="front", phase=0){
+  const base = (view === "back" ? BACK_SPRITES : SPRITES)[id];
+  phase = ((phase % 4) + 4) % 4;
+  if(phase === 0) return base;
+  const key = `${id}:${view}:${phase}`;
+  if(idleFrameCache.has(key)) return idleFrameCache.get(key);
+  const profile = IDLE_PROFILES[id][view];
+  const {bodyY,footY} = profile;
+  const bounds = profile.bodyRect || [1,2,30,footY-1];
+  const rows = base.px.map(row=>row.split(""));
+  // Head and shoulders rise before the lower chest; the planted feet stay put.
+  // In the release pose the head settles first while the chest finishes exhaling.
+  for(let y=Math.max(2,bounds[1]);y<Math.min(footY,bounds[3]+1);y++){
+    let lift;
+    if(phase === 3){
+      lift = y>=bodyY-2 && y<footY-3 ? 1 : 0;
+    } else {
+      const shoulder = bodyY + (phase===1 ? -4 : 1);
+      lift = y<=shoulder ? 1 : Math.round((footY-y)/(footY-shoulder));
+    }
+    lift = Math.min(lift, y-2);
+    const sy = Math.min(footY-1,y+lift);
+    for(let x=bounds[0];x<=bounds[2];x++) rows[y][x]=base.px[sy][x];
+  }
+  // Only the free tips sway, one beat behind the chest, instead of moving the canvas.
+  if(phase>=2){
+    for(const part of profile.appendages){
+      const [x0,y0,x1,y1]=part.rect, [dx,dy]=part.delta;
+      const pixels=[], anchors=[];
+      const top=Math.max(2,y0), bottom=Math.min(footY-1,y1);
+      const inside=(x,y)=>x>=x0 && x<=x1 && y>=top && y<=bottom;
+      for(let y=Math.max(2,y0);y<=Math.min(footY-1,y1);y++){
+        for(let x=x0;x<=x1;x++){
+          if(rows[y][x]!=="."){
+            const pixel=[x,y,rows[y][x]];
+            pixels.push(pixel);
+            if([[x-1,y],[x+1,y],[x,y-1],[x,y+1]].some(([nx,ny])=>
+              !inside(nx,ny) && rows[ny]?.[nx] && rows[ny][nx]!=="."
+            )) anchors.push(pixel);
+            rows[y][x]=".";
+          }
+        }
+      }
+      for(const [x,y,color] of pixels){
+        const tx=Math.max(1,Math.min(30,x+dx));
+        const ty=Math.max(2,Math.min(footY-1,y+dy));
+        rows[ty][tx]=color;
+      }
+      // Keep the attachment connected when a tip moves away from its root.
+      for(const [x,y,color] of anchors) if(rows[y][x]===".") rows[y][x]=color;
+    }
+  }
+  const frame={pal:base.pal,px:rows.map(row=>row.join(""))};
+  idleFrameCache.set(key,frame);
+  return frame;
+}
+
+const idleMotionPreference = typeof window.matchMedia === "function"
+  ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+const IdleAnimation = {
+  running:false, handle:null, epoch:null, last:new Map(),
+  canRun(){
+    return typeof requestAnimationFrame === "function"
+      && !document.hidden && !idleMotionPreference?.matches
+      && B && !B.over && $("#scBattle").classList.contains("on");
+  },
+  invalidate(){ this.last.clear(); },
+  start(){
+    if(this.running) return;
+    if(!this.canRun()) return;
+    this.running=true; this.epoch=null; this.invalidate();
+    this.handle=requestAnimationFrame(now=>this.tick(now));
+  },
+  stop(reset=true){
+    const wasRunning=this.running;
+    if(this.handle!==null && typeof cancelAnimationFrame === "function") cancelAnimationFrame(this.handle);
+    this.handle=null; this.running=false; this.invalidate();
+    if(reset && wasRunning && B){
+      const mine=MY(), foe=OP();
+      if(mine) drawSprite($("#spYou"),mine.id,"back");
+      if(foe) drawSprite($("#spFoe"),foe.id);
+    }
+  },
+  tick(now){
+    if(!this.running) return;
+    this.handle=null;
+    if(!this.canRun()){ this.stop(); return; }
+    if(this.epoch===null) this.epoch=now;
+    for(const [canvas,unit,view] of [[$("#spYou"),MY(),"back"],[$("#spFoe"),OP(),"front"]]){
+      const paused=unit.dead || unit.hp<=0 || ["enter","lunge","hit","faint"].some(c=>canvas.classList.contains(c));
+      if(paused){ this.last.delete(canvas); continue; }
+      const offset=[...unit.id].reduce((n,c)=>n+c.charCodeAt(0),0)*13+(view==="back"?170:0);
+      const cycle=((now-this.epoch+offset)%IDLE_PROFILES[unit.id].period)/IDLE_PROFILES[unit.id].period;
+      const phase=cycle<.3?0:cycle<.48?1:cycle<.7?2:cycle<.86?3:0;
+      const key=`${unit.id}:${view}:${phase}`;
+      if(this.last.get(canvas)!==key){ drawSprite(canvas,unit.id,view,phase); this.last.set(canvas,key); }
+    }
+    this.handle=requestAnimationFrame(time=>this.tick(time));
+  }
+};
+function syncIdleAnimation(){
+  if(IdleAnimation.canRun()) IdleAnimation.start();
+  else IdleAnimation.stop();
+}
+if(typeof document.addEventListener === "function") document.addEventListener("visibilitychange",syncIdleAnimation);
+if(idleMotionPreference?.addEventListener) idleMotionPreference.addEventListener("change",syncIdleAnimation);
+else if(idleMotionPreference?.addListener) idleMotionPreference.addListener(syncIdleAnimation);
+
+
+function drawSprite(cv, id, view="front", phase=0){
+  const sp = getIdleFrame(id, view, phase);
   const h = sp.px.length, w = sp.px[0].length;
   if(cv.width !== w) cv.width = w;
   if(cv.height !== h) cv.height = h;
@@ -3053,6 +3185,7 @@ const sleep = ms => new Promise(r=>setTimeout(r,ms));
 function paint(enter){
   const y = MY(), f = OP();
   drawSprite($("#spYou"), y.id, "back"); drawSprite($("#spFoe"), f.id);
+  IdleAnimation.invalidate();
   if(enter){
     [[y.side,y],[f.side,f]].forEach(([s,u])=>{
       if(u.dead) return;                       // 伏せたままの枠は登場させない
@@ -4136,6 +4269,7 @@ async function endTurn(){
 
 function finish(winner){
   B.over = true; B.busy = true;
+  IdleAnimation.stop();
   const win = winner === ME;
   $("#resTitle").textContent = win ? "勝利" : "敗北";
   $("#resTitle").className = "big " + (win?"win":"lose");
@@ -4195,6 +4329,7 @@ const NET = {
 };
 
 function netLost(msg){
+  IdleAnimation.stop();
   if(B && !B.over){ B.over = true; B.busy = true; }
   clearWaiting();
   lobbyStatus(msg, true);
@@ -4281,6 +4416,7 @@ function show(id){
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
   document.getElementById(id).classList.add("on");
   window.scrollTo(0,0);
+  syncIdleAnimation();
 }
 const passOk = () => /^[A-Za-z0-9]{3,24}$/.test($("#passIn").value.trim());
 function syncLobby(){
@@ -4313,3 +4449,4 @@ renderAll();
 </script>
 </body>
 </html>
+
