@@ -41,6 +41,14 @@ h1{
   font-weight:700;
 }
 .sub{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--dim);margin-bottom:14px}
+.bgm-controls{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin:0 0 5px;font-size:11px}
+.bgm-controls button{padding:5px 9px;font-size:11px}
+.bgm-volume{display:flex;align-items:center;gap:6px;color:var(--dim)}
+.bgm-volume input{width:100px;accent-color:var(--gold)}
+.bgm-volume output{min-width:4ch;text-align:right}
+.bgm-credit{font-size:10px;color:var(--dim);margin-bottom:12px}
+.bgm-credit a{color:var(--gold);text-underline-offset:2px}
+#bgmStatus{margin:3px 0 8px}
 .screen{display:none}
 .screen.on{display:block}
 
@@ -376,6 +384,13 @@ summary{cursor:pointer;font-size:12px;color:var(--dim);font-family:var(--mono);l
 
 <h1>幻獣闘記</h1>
 <div class="sub">BATTLE ENGINE PROTOTYPE / 3 vs 3</div>
+<div class="bgm-controls" aria-label="戦闘BGMの設定">
+  <button type="button" id="btnBgm" aria-pressed="true">BGM：ON</button>
+  <label class="bgm-volume">音量 <input id="bgmVolume" type="range" min="0" max="100" value="30" aria-label="BGM音量"><output id="bgmVolumeValue" for="bgmVolume">30%</output></label>
+  <button type="button" id="btnBgmPlay" hidden>再生</button>
+</div>
+<p class="hint" id="bgmStatus" role="status" aria-live="polite" hidden></p>
+<div class="bgm-credit">BGM「イクスゲイナー」／ <a href="https://musmus.main.jp/" target="_blank" rel="noopener noreferrer">MusMus</a></div>
 
 <!-- ============ BUILD ============ -->
 <div id="scBuild" class="screen on">
@@ -2740,7 +2755,7 @@ function syncIdleAnimation(){
   else IdleAnimation.stop();
   StatusPreview.sync();
 }
-if(typeof document.addEventListener === "function") document.addEventListener("visibilitychange",syncIdleAnimation);
+if(typeof document.addEventListener === "function") document.addEventListener("visibilitychange",()=>{ syncIdleAnimation(); BattleMusic.onVisibility(); });
 if(idleMotionPreference?.addEventListener) idleMotionPreference.addEventListener("change",syncIdleAnimation);
 else if(idleMotionPreference?.addListener) idleMotionPreference.addListener(syncIdleAnimation);
 
@@ -3029,6 +3044,161 @@ const StatusPreview = {
       if(color){ctx.fillStyle=color;ctx.fillRect(64+x*2,32+y*2,2,2);}
     }
     drawStatusEffect(ctx,this.key,animate?Math.floor(now/140)%8:0,{x:64,y:32,w:64,h:64},false);
+  }
+};
+
+
+/* ================= battle music ================= */
+const BATTLE_BGM_INFO = {
+  src:"assets/audio/MusMus-BGM-170.ogg",title:"イクスゲイナー",artist:"MusMus",
+  sampleRate:44100,loopStartSamples:663639,loopEndSamples:8540173
+};
+const BattleMusic = {
+  enabled:true,volume:.3,context:null,gain:null,buffer:null,source:null,
+  wanted:false,offset:0,startedAt:0,generation:0,loading:false,loadPromise:null,error:"",
+  preferenceKey:"genju_battle_audio_v1",
+  init(){
+    try{
+      const prefs=JSON.parse(localStorage.getItem(this.preferenceKey)||"null");
+      if(prefs && typeof prefs.enabled==="boolean") this.enabled=prefs.enabled;
+      if(prefs && typeof prefs.volume==="number" && Number.isFinite(prefs.volume)) this.volume=Math.max(0,Math.min(1,prefs.volume));
+    }catch(e){}
+    $("#btnBgm").onclick=()=>{ this.setEnabled(!this.enabled); if(this.enabled) void this.unlock(); };
+    $("#btnBgmPlay").onclick=()=>{ void this.unlock(); };
+    $("#bgmVolume").oninput=event=>{
+      this.setVolume(Number(event.target.value)/100);
+      if(this.enabled && this.wanted) void this.unlock();
+    };
+    if(typeof window.addEventListener==="function"){
+      window.addEventListener("pagehide",()=>this.pause());
+      window.addEventListener("pageshow",()=>this.onVisibility());
+    }
+    this.render();
+  },
+  save(){
+    try{ localStorage.setItem(this.preferenceKey,JSON.stringify({enabled:this.enabled,volume:this.volume})); }catch(e){}
+  },
+  async unlock(){
+    if(!this.enabled) return false;
+    try{
+      if(!this.context){
+        const AudioContextType=window.AudioContext || window.webkitAudioContext;
+        if(!AudioContextType) throw new Error("Audio unavailable");
+        this.context=new AudioContextType();
+        this.context.onstatechange=()=>this.render();
+        this.gain=this.context.createGain();
+        this.gain.gain.value=this.volume;
+        this.gain.connect(this.context.destination);
+      }
+      this.error="";
+      // Called directly from click handlers, before network waits can lose the gesture.
+      const resume=this.context.state==="running" ? Promise.resolve() : this.context.resume();
+      await Promise.all([resume,this.load()]);
+      await this.maybePlay(); this.render();
+      return true;
+    }catch(e){
+      this.error="BGMを再生できませんでした。「再生」で再試行できます。";
+      this.render(); return false;
+    }
+  },
+  async load(){
+    if(this.buffer) return this.buffer;
+    if(this.loadPromise) return this.loadPromise;
+    this.loading=true; this.render();
+    this.loadPromise=(async()=>{
+      try{
+        const response=await fetch(BATTLE_BGM_INFO.src,{cache:"force-cache"});
+        if(!response.ok) throw new Error("BGM load failed");
+        const bytes=await response.arrayBuffer();
+        const buffer=await this.context.decodeAudioData(bytes);
+        const end=BATTLE_BGM_INFO.loopEndSamples/BATTLE_BGM_INFO.sampleRate;
+        if(!buffer || !Number.isFinite(buffer.duration) || buffer.duration<end) throw new Error("BGM loop exceeds audio duration");
+        this.buffer=buffer; return buffer;
+      }finally{
+        this.loading=false; this.loadPromise=null; this.render();
+      }
+    })();
+    return this.loadPromise;
+  },
+  async maybePlay(){
+    if(!this.wanted || !this.enabled || document.hidden || !this.context || this.source) return;
+    const generation=this.generation;
+    let source=null;
+    try{
+      const buffer=await this.load();
+      if(generation!==this.generation || !this.wanted || !this.enabled || document.hidden || this.source || this.context.state!=="running") return;
+      source=this.context.createBufferSource();
+      source.buffer=buffer; source.loop=true;
+      // Vorbis tags count samples at 44100 Hz, even when AudioContext uses 48000 Hz.
+      source.loopStart=BATTLE_BGM_INFO.loopStartSamples/BATTLE_BGM_INFO.sampleRate;
+      source.loopEnd=BATTLE_BGM_INFO.loopEndSamples/BATTLE_BGM_INFO.sampleRate;
+      source.connect(this.gain);
+      this.gain.gain.setTargetAtTime(this.volume,this.context.currentTime,.025);
+      source.onended=()=>{ if(this.source===source){this.source=null;this.render();} };
+      this.startedAt=this.context.currentTime;
+      source.start(0,this.offset);
+      this.source=source;
+      this.error=""; this.render();
+    }catch(e){
+      if(source && this.source!==source){
+        source.onended=null;
+        try{source.disconnect();}catch(cleanupError){}
+      }
+      this.error="BGMを読み込めませんでした。「再生」で再試行できます。";
+      this.render();
+    }
+  },
+  position(){
+    let position=this.offset+(this.source?Math.max(0,this.context.currentTime-this.startedAt):0);
+    const start=BATTLE_BGM_INFO.loopStartSamples/BATTLE_BGM_INFO.sampleRate;
+    const end=BATTLE_BGM_INFO.loopEndSamples/BATTLE_BGM_INFO.sampleRate;
+    if(position>=end) position=start+(position-start)%(end-start);
+    return position;
+  },
+  pause(){
+    this.generation++;
+    if(this.source){
+      this.offset=this.position();
+      const source=this.source; this.source=null; source.onended=null;
+      try{source.stop();}catch(e){}
+      try{source.disconnect();}catch(e){}
+    }
+    this.render();
+  },
+  stop(){ this.wanted=false; this.pause(); this.offset=0; this.render(); },
+  setBattleActive(active){
+    if(!active){this.stop();return;}
+    if(!this.wanted){this.offset=0;this.generation++;}
+    this.wanted=true; void this.maybePlay(); this.render();
+  },
+  setEnabled(enabled){
+    this.enabled=!!enabled; this.save();
+    if(!this.enabled) this.pause();
+    else if(this.wanted) void this.maybePlay();
+    this.render();
+  },
+  setVolume(volume){
+    if(!Number.isFinite(volume)) return;
+    this.volume=Math.max(0,Math.min(1,volume));
+    if(this.gain) this.gain.gain.setTargetAtTime(this.volume,this.context.currentTime,.025);
+    this.save(); this.render();
+  },
+  onVisibility(){
+    if(document.hidden) this.pause();
+    else if(this.wanted && this.enabled) void this.unlock();
+  },
+  render(){
+    const button=$("#btnBgm"),retry=$("#btnBgmPlay"),status=$("#bgmStatus");
+    if(button){button.textContent=this.enabled?"BGM：ON":"BGM：OFF";button.setAttribute?.("aria-pressed",String(this.enabled));}
+    const volume=$("#bgmVolume"),value=$("#bgmVolumeValue");
+    if(volume) volume.value=String(Math.round(this.volume*100));
+    if(value) value.textContent=Math.round(this.volume*100)+"%";
+    const needsGesture=this.wanted && this.enabled && !this.loading && (!this.context || this.context.state!=="running" || !!this.error);
+    if(retry) retry.hidden=!needsGesture;
+    if(status){
+      status.textContent=this.enabled && this.wanted ? (this.loading?"BGMを読み込み中…":this.error || (needsGesture?"「再生」を押すとBGMが始まります。":"")) : "";
+      status.hidden=!status.textContent;
+    }
   }
 };
 
@@ -4574,6 +4744,7 @@ async function endTurn(){
 
 function finish(winner){
   B.over = true; B.busy = true;
+  BattleMusic.stop();
   IdleAnimation.stop();
   const win = winner === ME;
   $("#resTitle").textContent = win ? "勝利" : "敗北";
@@ -4634,6 +4805,7 @@ const NET = {
 };
 
 function netLost(msg){
+  BattleMusic.stop();
   IdleAnimation.stop();
   StatusEffects.clear();
   if(B && !B.over){ B.over = true; B.busy = true; }
@@ -4723,6 +4895,7 @@ function show(id){
   document.getElementById(id).classList.add("on");
   window.scrollTo(0,0);
   syncIdleAnimation();
+  BattleMusic.setBattleActive(id === "scBattle");
 }
 const passOk = () => /^[A-Za-z0-9]{3,24}$/.test($("#passIn").value.trim());
 function syncLobby(){
@@ -4734,18 +4907,18 @@ function syncLobby(){
   else if(!passOk()) lobbyStatus("合言葉を英数字3〜24文字で入れてください。");
 }
 $("#passIn").oninput = syncLobby;
-$("#btnHost").onclick = ()=> hostGame($("#passIn").value.trim());
-$("#btnJoin").onclick = ()=> joinGame($("#passIn").value.trim());
+$("#btnHost").onclick = ()=>{ void BattleMusic.unlock(); return hostGame($("#passIn").value.trim()); };
+$("#btnJoin").onclick = ()=>{ void BattleMusic.unlock(); return joinGame($("#passIn").value.trim()); };
 $("#btnCancelNet").onclick = ()=>{ NET.reset(); lobbyStatus("中止しました。"); };
 
-$("#btnStart").onclick = startBattle;
+$("#btnStart").onclick = ()=>{ void BattleMusic.unlock(); startBattle(); };
 $("#btnRand").onclick = ()=>{ party = randBuild(); renderAll(); };
 $("#btnClearDraft").onclick = ()=>{
   party = [];
   try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
   renderAll();
 };
-$("#btnAgain").onclick = startBattle;
+$("#btnAgain").onclick = ()=>{ void BattleMusic.unlock(); startBattle(); };
 $("#btnBack").onclick  = ()=>{ NET.reset(); ME = "you"; show("scBuild"); renderAll(); };
 
 drawField(document.getElementById("fieldCanvas"));
@@ -4753,6 +4926,7 @@ renderChart();
 party = loadDraft() || randBuild();
 renderAll();
 StatusPreview.init();
+BattleMusic.init();
 </script>
 </body>
 </html>
