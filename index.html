@@ -388,6 +388,23 @@ details{border:1px solid var(--line);border-radius:3px;padding:8px 10px;margin-t
 summary{cursor:pointer;font-size:12px;color:var(--dim);font-family:var(--mono);letter-spacing:.14em}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 @media (max-width:420px){.cmd{grid-template-columns:1fr}}
+/* Insert #moveCanvas after #statusCanvas and before the HUD elements. */
+#moveCanvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}
+canvas.actor.you.move-lunge{animation:move-lunge-you .52s steps(5)}
+canvas.actor.foe.move-lunge{animation:move-lunge-foe .52s steps(5)}
+canvas.actor.move-cast{animation:move-cast .52s steps(5)}
+canvas.actor.move-brace{animation:move-brace .52s steps(5)}
+canvas.actor.move-rise{animation:move-rise .58s steps(6)}
+canvas.actor.you.move-recoil{animation:move-recoil-you .52s steps(5)}
+canvas.actor.foe.move-recoil{animation:move-recoil-foe .52s steps(5)}
+@keyframes move-lunge-you{0%,100%{transform:none}20%{transform:translate(-4px,2px)}48%{transform:translate(38px,-18px) scale(1.04)}}
+@keyframes move-lunge-foe{0%,100%{transform:none}20%{transform:translate(4px,-2px)}48%{transform:translate(-38px,18px) scale(1.04)}}
+@keyframes move-cast{0%,100%{transform:none;filter:none}35%{transform:translateY(-5px) scale(1.03);filter:brightness(1.35)}65%{transform:scale(.98,1.04)}}
+@keyframes move-brace{0%,100%{transform:none}30%{transform:translateY(3px) scale(1.06,.93)}65%{transform:scale(1.02,.98)}}
+@keyframes move-rise{0%,100%{transform:none}40%{transform:translateY(-14px) scale(1.03)}70%{transform:translateY(-5px)}}
+@keyframes move-recoil-you{0%,100%{transform:none}25%{transform:translate(-10px,5px) scale(.97)}55%{transform:translate(17px,-8px)}}
+@keyframes move-recoil-foe{0%,100%{transform:none}25%{transform:translate(10px,-5px) scale(.97)}55%{transform:translate(-17px,8px)}}
+
 </style>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -401,7 +418,7 @@ summary{cursor:pointer;font-size:12px;color:var(--dim);font-family:var(--mono);l
   <button type="button" id="btnBgmPlay" hidden>再生</button>
 </div>
 <p class="hint" id="bgmStatus" role="status" aria-live="polite" hidden></p>
-<div class="bgm-credit">BGM「イクスゲイナー」／ <a href="https://musmus.main.jp/" target="_blank" rel="noopener noreferrer">MusMus</a></div>
+<div class="bgm-credit">BGM「イクスゲイナー」／ <a href="https://musmus.main.jp/" target="_blank" rel="noopener noreferrer">MusMus</a><br>勝利音「Jingle#24」／ <a href="https://www.senses-circuit.com/" target="_blank" rel="noopener noreferrer">BGM：hitoshi by Senses Circuit</a></div>
 
 <!-- ============ BUILD ============ -->
 <div id="scBuild" class="screen on">
@@ -465,6 +482,7 @@ summary{cursor:pointer;font-size:12px;color:var(--dim);font-family:var(--mono);l
     <canvas class="actor foe" id="spFoe" width="32" height="32"></canvas>
     <canvas class="actor you" id="spYou" width="32" height="32"></canvas>
     <canvas id="statusCanvas" width="384" height="216" aria-hidden="true"></canvas>
+    <canvas id="moveCanvas" width="384" height="216" aria-hidden="true"></canvas>
     <div class="hud foe">
       <div class="nm"><span id="foeName"></span><span id="foeTags"></span></div>
       <div class="bar"><i id="foeHp"></i></div>
@@ -2768,7 +2786,7 @@ const IdleAnimation = {
     if(!this.canRun()){ this.stop(); return; }
     if(this.epoch===null) this.epoch=now;
     for(const [canvas,unit,view] of [[$("#spYou"),MY(),"back"],[$("#spFoe"),OP(),"front"]]){
-      const paused=unit.dead || unit.hp<=0 || getStatusVisualKeys(unit).includes("freeze") || ["enter","lunge","hit","faint"].some(c=>canvas.classList.contains(c));
+      const paused=unit.dead || unit.hp<=0 || getStatusVisualKeys(unit).includes("freeze") || ["enter","lunge","hit","faint","move-lunge","move-cast","move-rise","move-brace","move-recoil"].some(c=>canvas.classList.contains(c));
       if(paused){ this.last.delete(canvas); continue; }
       const offset=[...unit.id].reduce((n,c)=>n+c.charCodeAt(0),0)*13+(view==="back"?170:0);
       const cycle=((now-this.epoch+offset)%IDLE_PROFILES[unit.id].period)/IDLE_PROFILES[unit.id].period;
@@ -2785,9 +2803,9 @@ function syncIdleAnimation(){
   else IdleAnimation.stop();
   StatusPreview.sync();
 }
-if(typeof document.addEventListener === "function") document.addEventListener("visibilitychange",()=>{ syncIdleAnimation(); BattleMusic.onVisibility(); });
-if(idleMotionPreference?.addEventListener) idleMotionPreference.addEventListener("change",syncIdleAnimation);
-else if(idleMotionPreference?.addListener) idleMotionPreference.addListener(syncIdleAnimation);
+if(typeof document.addEventListener === "function") document.addEventListener("visibilitychange",()=>{ syncIdleAnimation(); if(document.hidden) MoveMotion.stop(); BattleMusic.onVisibility(); });
+if(idleMotionPreference?.addEventListener) idleMotionPreference.addEventListener("change",()=>{MoveMotion.stop();syncIdleAnimation();});
+else if(idleMotionPreference?.addListener) idleMotionPreference.addListener(()=>{MoveMotion.stop();syncIdleAnimation();});
 
 
 function drawSprite(cv, id, view="front", phase=0){
@@ -2998,7 +3016,7 @@ const StatusEffects = {
     ];
     const frame=animate ? Math.floor(now/140)%8 : 0;
     const effects=entries.map(({unit,actor,box})=>{
-      const paused=unit.dead || unit.hp<=0 || ["enter","lunge","faint"].some(c=>actor.classList.contains(c));
+      const paused=unit.dead || unit.hp<=0 || ["enter","lunge","faint","move-lunge","move-cast","move-rise","move-brace","move-recoil"].some(c=>actor.classList.contains(c));
       const pulse=this.pulses.get(unit);
       return {id:unit.id,keys:paused?[]:getStatusVisualKeys(unit),box,
         burst:!!(animate && pulse && pulse.until>now),pulseKey:pulse?.key};
@@ -3100,7 +3118,7 @@ const BattleMusic = {
       if(this.enabled && this.wanted) void this.unlock();
     };
     if(typeof window.addEventListener==="function"){
-      window.addEventListener("pagehide",()=>this.pause());
+      window.addEventListener("pagehide",()=>{this.pause();VictoryAudio.pause();MoveMotion.stop();});
       window.addEventListener("pageshow",()=>this.onVisibility());
     }
     this.render();
@@ -3123,8 +3141,9 @@ const BattleMusic = {
       this.error="";
       // Called directly from click handlers, before network waits can lose the gesture.
       const resume=this.context.state==="running" ? Promise.resolve() : this.context.resume();
-      await Promise.all([resume,this.load()]);
-      await this.maybePlay(); this.render();
+      await Promise.all([resume,this.wanted || !VictoryAudio.wanted ? this.load() : Promise.resolve()]);
+      VictoryAudio.preload();
+      await this.maybePlay(); await VictoryAudio.maybePlay(); this.render();
       return true;
     }catch(e){
       this.error="BGMを再生できませんでした。「再生」で再試行できます。";
@@ -3203,8 +3222,8 @@ const BattleMusic = {
   },
   setEnabled(enabled){
     this.enabled=!!enabled; this.save();
-    if(!this.enabled) this.pause();
-    else if(this.wanted) void this.maybePlay();
+    if(!this.enabled){this.pause();VictoryAudio.pause();}
+    else {if(this.wanted) void this.maybePlay();if(VictoryAudio.wanted) void VictoryAudio.maybePlay();}
     this.render();
   },
   setVolume(volume){
@@ -3214,8 +3233,8 @@ const BattleMusic = {
     this.save(); this.render();
   },
   onVisibility(){
-    if(document.hidden) this.pause();
-    else if(this.wanted && this.enabled) void this.unlock();
+    if(document.hidden){this.pause();VictoryAudio.pause();}
+    else if((this.wanted || VictoryAudio.wanted) && this.enabled) void this.unlock();
   },
   render(){
     const button=$("#btnBgm"),retry=$("#btnBgmPlay"),status=$("#bgmStatus");
@@ -3223,13 +3242,81 @@ const BattleMusic = {
     const volume=$("#bgmVolume"),value=$("#bgmVolumeValue");
     if(volume) volume.value=String(Math.round(this.volume*100));
     if(value) value.textContent=Math.round(this.volume*100)+"%";
-    const needsGesture=this.wanted && this.enabled && !this.loading && (!this.context || this.context.state!=="running" || !!this.error);
+    const victory=VictoryAudio.wanted, wanted=this.wanted || victory;
+    const loading=victory?VictoryAudio.loading:this.loading, error=victory?VictoryAudio.error:this.error;
+    const label=victory?"勝利音":"BGM";
+    const needsGesture=wanted && this.enabled && !loading && (!this.context || this.context.state!=="running" || !!error);
     if(retry) retry.hidden=!needsGesture;
     if(status){
-      status.textContent=this.enabled && this.wanted ? (this.loading?"BGMを読み込み中…":this.error || (needsGesture?"「再生」を押すとBGMが始まります。":"")) : "";
+      status.textContent=this.enabled && wanted ? (loading?`${label}を読み込み中…`:error || (needsGesture?`「再生」を押すと${label}が始まります。`:"")) : "";
       status.hidden=!status.textContent;
     }
   }
+};
+
+
+const VICTORY_AUDIO_INFO = {
+  src:"assets/audio/j_24.mp3",title:"Jingle#24",credit:"BGM：hitoshi by Senses Circuit"
+};
+const VictoryAudio = {
+  buffer:null,source:null,loadPromise:null,loading:false,wanted:false,
+  offset:0,startedAt:0,generation:0,error:"",
+  render(){ BattleMusic.render(); },
+  async load(){
+    if(this.buffer) return this.buffer;
+    if(this.loadPromise) return this.loadPromise;
+    if(!BattleMusic.context) throw new Error("Audio not unlocked");
+    this.loading=true; this.render();
+    this.loadPromise=(async()=>{
+      try{
+        const response=await fetch(VICTORY_AUDIO_INFO.src,{cache:"force-cache"});
+        if(!response.ok) throw new Error("Victory audio load failed");
+        const buffer=await BattleMusic.context.decodeAudioData(await response.arrayBuffer());
+        if(!buffer || !Number.isFinite(buffer.duration) || buffer.duration<=0) throw new Error("Invalid victory audio");
+        this.buffer=buffer; return buffer;
+      }finally{ this.loading=false;this.loadPromise=null;this.render(); }
+    })();
+    return this.loadPromise;
+  },
+  preload(){ if(BattleMusic.enabled && BattleMusic.context) void this.load().catch(()=>{}); },
+  play(){ this.stop();this.wanted=true;void this.maybePlay();this.render(); },
+  async maybePlay(){
+    const music=BattleMusic;
+    if(!this.wanted || !music.enabled || document.hidden || !music.context || this.source) return;
+    const generation=this.generation;
+    let source=null;
+    try{
+      const buffer=await this.load();
+      if(generation!==this.generation || !this.wanted || !music.enabled || document.hidden || this.source || music.context.state!=="running") return;
+      if(this.offset>=buffer.duration){this.wanted=false;this.offset=0;this.render();return;}
+      source=music.context.createBufferSource();source.buffer=buffer;source.loop=false;source.connect(music.gain);
+      source.onended=()=>{
+        if(this.source!==source)return;
+        this.source=null;this.wanted=false;this.offset=0;
+        try{source.disconnect();}catch(e){}
+        this.render();
+      };
+      music.gain.gain.setTargetAtTime(music.volume,music.context.currentTime,.025);
+      this.startedAt=music.context.currentTime;source.start(0,this.offset);this.source=source;
+      this.error="";this.render();
+    }catch(e){
+      if(source && this.source!==source){source.onended=null;try{source.disconnect();}catch(cleanupError){}}
+      this.error="勝利音を再生できませんでした。「再生」で再試行できます。";this.render();
+    }
+  },
+  pause(){
+    this.generation++;
+    if(this.source){
+      const source=this.source;
+      this.offset=Math.min(this.buffer.duration,this.offset+Math.max(0,BattleMusic.context.currentTime-this.startedAt));
+      this.source=null;source.onended=null;
+      try{source.stop();}catch(e){}
+      try{source.disconnect();}catch(e){}
+    }
+    this.render();
+  },
+  stop(){ this.wanted=false;this.pause();this.offset=0;this.error="";this.render(); },
+  onVisibility(){if(document.hidden)this.pause();else if(this.wanted && BattleMusic.enabled)void BattleMusic.unlock();}
 };
 
 
@@ -3635,6 +3722,7 @@ function hurt(u, amount){
 let B = null;
 
 function beginBattle(youTeam, foeTeam, seed, meSide){
+  MoveMotion.stop();VictoryAudio.stop();
   setSeed(seed);
   ME = meSide;
   B = {
@@ -3887,14 +3975,16 @@ const FX_POS = {you:{x:26,y:62}, foe:{x:75,y:40}};
 
 function spark(side, type, n){
   const st = $("#stage"), f = FX[type] || FX.無, pos = FX_POS[screenPos(side)];
+  let visualSeed=(B?B.turn:0)+n+[...side+type].reduce((a,c)=>a+c.charCodeAt(0),0);
+  const rand=()=>{visualSeed=(Math.imul(visualSeed,1664525)+1013904223)>>>0;return visualSeed/4294967296;};
   for(let i=0;i<n;i++){
     const p = el("div","pt");
-    const a = rng()*Math.PI*2, d = 16 + rng()*30;
+    const a = rand()*Math.PI*2, d = 16 + rand()*30;
     p.style.setProperty("--dx", (Math.cos(a)*d).toFixed(1)+"px");
     p.style.setProperty("--dy", (Math.sin(a)*d + f.drift*14).toFixed(1)+"px");
     p.style.background = f.col[i % f.col.length];
     p.style.left = pos.x+"%"; p.style.top = pos.y+"%";
-    p.style.animationDelay = Math.floor(rng()*110)+"ms";
+    p.style.animationDelay = Math.floor(rand()*110)+"ms";
     st.appendChild(p);
     setTimeout(()=>p.remove(), 800);
   }
@@ -3938,36 +4028,261 @@ function lunge(side){
   setTimeout(()=>c.classList.remove("lunge"), 320);
 }
 
-/* 技を撃ったときの一連の演出。kind: attack / status / heal / miss */
-function playFx(u, target, m, kind){
-  const t = m.t, f = FX[t] || FX.無;
-  if(kind === "attack"){
-    lunge(u.side);
-    if(f.flash) screenFlash(f.flash);
-    if(f.shake) shakeStage();
-    if(f.bolt)  boltAt(target.side);
-    if(f.streak) streaks(target.side);
-    if(f.ring)  ringAt(target.side, f.ring);
-    setTimeout(()=> spark(target.side, t, m.p >= 100 ? 16 : m.p >= 70 ? 12 : 8), 130);
-  } else if(kind === "status"){
-    ringAt(u.side, f.col[0]);
-    spark(u.side, t, 7);
-  } else if(kind === "heal"){
-    const st = $("#stage"), pos = FX_POS[screenPos(u.side)];
-    for(let i=0;i<9;i++){
-      const p = el("div","pt heal");
-      p.style.left = (pos.x - 7 + rng()*14)+"%";
-      p.style.top  = (pos.y + 6)+"%";
-      p.style.animationDelay = Math.floor(rng()*220)+"ms";
-      st.appendChild(p); setTimeout(()=>p.remove(), 1000);
-    }
-  } else if(kind === "miss"){
-    lunge(u.side);
+/* Every move owns a gesture and a native-grid effect. This layer never uses battle RNG. */
+const MOVE_MOTION_PROFILES = {
+  firefang:{shape:"bite",actor:"lunge",scale:19,count:7,tilt:1},
+  waterfang:{shape:"bite",actor:"lunge",scale:22,count:5,tilt:-1},
+  thunderclaw:{shape:"claw",actor:"lunge",scale:27,count:3,tilt:1},
+  meditate:{shape:"aura",actor:"cast",scale:24,count:8,self:true},
+  barrier:{shape:"shield",actor:"brace",scale:33,count:3,self:true},
+  tackle:{shape:"impact",actor:"lunge",scale:18,count:7,tilt:1},
+  guard:{shape:"shield",actor:"brace",scale:27,count:2,self:true},
+  focus:{shape:"aura",actor:"brace",scale:19,count:6,self:true},
+  sand:{shape:"dust",actor:"cast",scale:14,count:18,tilt:1},
+  ambush:{shape:"slash",actor:"lunge",scale:32,count:2,tilt:-1},
+  startle:{shape:"voice",actor:"recoil",scale:27,count:3,tilt:1},
+  sub:{shape:"decoy",actor:"recoil",scale:23,count:4,self:true},
+  repose:{shape:"heal",actor:"brace",scale:22,count:7,self:true},
+  revenge:{shape:"impact",actor:"recoil",scale:30,count:12,tilt:-1},
+  ember:{shape:"fire",actor:"cast",scale:9,count:5,tilt:1},
+  flame:{shape:"fire",actor:"cast",scale:17,count:12,tilt:-1},
+  inferno:{shape:"fire",actor:"recoil",scale:27,count:17,tilt:1},
+  coal:{shape:"fire",actor:"cast",scale:12,count:4,tilt:2},
+  squirt:{shape:"jet",actor:"cast",scale:8,count:7,tilt:-1},
+  aqua:{shape:"wave",actor:"cast",scale:22,count:3,tilt:1},
+  tsunami:{shape:"wave",actor:"rise",scale:35,count:5,tilt:-1},
+  haze:{shape:"fog",actor:"cast",scale:34,count:6,both:true},
+  whirl:{shape:"spiral",actor:"cast",scale:27,count:5,tilt:1},
+  vine:{shape:"vine",actor:"lunge",scale:19,count:2,tilt:1},
+  seed:{shape:"seed",actor:"cast",scale:15,count:5,tilt:-1},
+  leaf:{shape:"leaf",actor:"lunge",scale:28,count:7,tilt:1},
+  photo:{shape:"heal",actor:"rise",scale:30,count:10,self:true},
+  parasite:{shape:"seed",actor:"cast",scale:10,count:3,tilt:2},
+  spark:{shape:"electric",actor:"cast",scale:17,count:5,tilt:-1},
+  sand2:{shape:"dust",actor:"cast",scale:24,count:16,ground:true,tilt:2},
+  bolt:{shape:"lightning",actor:"cast",scale:30,count:2,tilt:1},
+  thunder:{shape:"lightning",actor:"rise",scale:42,count:4,tilt:-1},
+  spikes:{shape:"rock",actor:"brace",scale:18,count:6,ground:true,tilt:2},
+  rock:{shape:"rock",actor:"cast",scale:14,count:1,tilt:1},
+  slide:{shape:"rock",actor:"brace",scale:19,count:7,tilt:-1},
+  edge:{shape:"crystal",actor:"lunge",scale:31,count:5,tilt:1},
+  gravel:{shape:"dust",actor:"cast",scale:20,count:10,tilt:-1},
+  quake:{shape:"crack",actor:"brace",scale:34,count:3,tilt:1},
+  rift:{shape:"crack",actor:"recoil",scale:44,count:5,tilt:-1},
+  root:{shape:"root",actor:"brace",scale:26,count:6,self:true},
+  gust:{shape:"wind",actor:"cast",scale:18,count:3,tilt:1},
+  blast:{shape:"wind",actor:"cast",scale:31,count:6,tilt:-1},
+  pivot:{shape:"wind",actor:"lunge",scale:25,count:4,tilt:2},
+  sweep:{shape:"wind",actor:"rise",scale:32,count:8,self:true},
+  dive:{shape:"slash",actor:"rise",scale:38,count:3,tilt:1},
+  soar:{shape:"wind",actor:"rise",scale:26,count:5,self:true},
+  phantom:{shape:"orb",actor:"cast",scale:14,count:3,tilt:1},
+  mirage:{shape:"slash",actor:"lunge",scale:33,count:4,tilt:-1},
+  lunacy:{shape:"moon",actor:"rise",scale:34,count:9,tilt:1},
+  swap:{shape:"swap",actor:"cast",scale:19,count:2,both:true},
+  perish:{shape:"song",actor:"cast",scale:33,count:6,both:true,tilt:-1},
+  encore:{shape:"voice",actor:"cast",scale:23,count:4,tilt:2},
+  disable:{shape:"seal",actor:"brace",scale:27,count:4,tilt:1},
+  bond:{shape:"chain",actor:"brace",scale:24,count:9,both:true},
+  taunt:{shape:"taunt",actor:"recoil",scale:21,count:5,tilt:-1},
+  touch:{shape:"claw",actor:"lunge",scale:22,count:2,tilt:-1},
+  devour:{shape:"bite",actor:"lunge",scale:31,count:9,tilt:2},
+  night:{shape:"night",actor:"cast",scale:35,count:7,tilt:-1}
+};
+const MOVE_MOTION_COLORS = {
+  炎:["#ff7c3e","#ffd66b","#ed4935"],水:["#63b9ed","#d6f5ff","#3677bd"],草:["#78ce84","#d3ec98","#36714c"],
+  雷:["#f3d955","#fffbd0","#d5a03d"],岩:["#bdb4a6","#f0e7cd","#746d69"],地:["#d49b5c","#f2d5a3","#785b3d"],
+  空:["#9ddce9","#f0fbff","#5c9cc2"],幻:["#e99ddd","#ffe1f6","#9967c8"],影:["#b28aea","#e5d5ff","#654298"],無:["#e9e5d8","#ffffff","#9ba8c9"]
+};
+/* Pure renderer: progress 0..1, from/to {x,y} on a 384x216 pixel canvas. */
+function drawMoveMotion(ctx,key,progress,from,to,kind="attack"){
+  const p=MOVE_MOTION_PROFILES[key],m=MOVES[key];
+  if(!p || !m || !Number.isFinite(progress)) return;
+  const t=Math.max(0,Math.min(1,progress));
+  if(t>=1) return;
+  const colors=MOVE_MOTION_COLORS[m.t] || MOVE_MOTION_COLORS.無;
+  const dir=to.x>=from.x?1:-1,side=p.tilt||1;
+  const aim=kind==="miss"?{x:to.x+dir*43,y:to.y-37}:to;
+  const center=p.self?from:aim;
+  const travel=Math.min(1,t/.36),impact=Math.max(0,(t-.22)/.78);
+  const size=p.scale,fade=Math.sin(Math.PI*t),hit=kind!=="miss" && t>.20;
+  const px=(x,y,w=2,h=w,c=0)=>{
+    const a=Math.max(0,Math.round(x)),b=Math.max(0,Math.round(y));
+    const right=Math.min(384,Math.round(x+w)),bottom=Math.min(216,Math.round(y+h));
+    if(right<=a || bottom<=b)return;
+    ctx.fillStyle=typeof c==="string"?c:colors[(c%3+3)%3];ctx.fillRect(a,b,right-a,bottom-b);
+  };
+  const line=(x1,y1,x2,y2,width=2,c=0)=>{
+    const steps=Math.max(1,Math.ceil(Math.max(Math.abs(x2-x1),Math.abs(y2-y1))/2));
+    for(let j=0;j<=steps;j++){const f=j/steps;px(x1+(x2-x1)*f,y1+(y2-y1)*f,width,width,c);}
+  };
+  const ring=(x,y,r,ry=r,c=0,offset=0)=>{
+    for(let j=0;j<24;j++){const a=j*Math.PI/12+offset;px(x+Math.cos(a)*r,y+Math.sin(a)*ry,2,2,c);}
+  };
+  const burst=(x,y,n,r)=>{
+    for(let j=0;j<n;j++){const a=j*Math.PI*2/n+side*.3,rr=r*(.3+impact);line(x+Math.cos(a)*rr*.55,y+Math.sin(a)*rr*.55,x+Math.cos(a)*rr,y+Math.sin(a)*rr,2,j%2);}
+  };
+  const pos=f=>({x:from.x+(aim.x-from.x)*f,y:from.y+(aim.y-from.y)*f});
+  const moving=pos(travel),cx=center.x,cy=center.y;
+  switch(p.shape){
+    case "impact":
+      for(let j=0;j<5;j++){const q=pos(Math.max(0,travel-j*.06));line(q.x-dir*12,q.y+9+j*3,q.x-dir*4,q.y+5+j*3,2,j%3);}
+      if(hit)burst(cx,cy,p.count,size*fade);break;
+    case "bite":{
+      if(!hit)break;
+      const gap=(1-Math.sin(Math.PI*impact))*(size*.65)+2;
+      for(let jaw of [-1,1]){line(cx-size,cy+jaw*gap,cx+size,cy+jaw*gap,3,0);
+        for(let j=0;j<p.count;j++){const x=cx-size+j*size*2/(p.count-1);line(x,cy+jaw*gap,x+dir*3,cy+jaw*(gap-8),3,j%2);}}
+      if(impact>.45)burst(cx,cy,6,size*.8);break;}
+    case "slash":case "claw":{
+      if(!hit)break;
+      const span=size*Math.min(1,impact*3),sgn=p.shape==="claw"?side:side*(impact<.5?1:-1);
+      for(let j=0;j<p.count;j++){const shift=(j-(p.count-1)/2)*7;
+        line(cx-span*dir+shift,cy-span*sgn,cx+span*dir+shift,cy+span*sgn,3,j%2);
+        line(cx-span*dir+shift+3,cy-span*sgn,cx+span*dir+shift+3,cy+span*sgn,1,1);}
+      break;}
+    case "fire":case "jet":{
+      for(let j=0;j<p.count;j++){const f=Math.max(0,travel-j*.035),q=pos(f),spread=size*(.25+f*.75);
+        const dy=Math.sin(j*2.3+t*18)*spread,ww=p.shape==="jet"?5:3+j%4;
+        px(q.x-dir*j*.4,q.y+dy,ww,p.shape==="jet"?3:6+j%3,j%3);
+        if(p.shape==="fire")px(q.x-dir*4,q.y+dy-4,3,4,1);}
+      if(hit)burst(cx,cy,p.shape==="jet"?5:7,size*fade);break;}
+    case "wave":{
+      const q=pos(travel);
+      for(let j=0;j<p.count;j++)for(let a=-size;a<=size;a+=3){
+        const x=q.x-dir*j*7+Math.sin(a/size*Math.PI)*7;
+        px(x,q.y+a,5,3,(j+Math.floor((a+size)/9))%3);}
+      if(hit)for(let j=0;j<7;j++)px(cx+Math.sin(j*2)*size,cy-size*impact-j*2,3,6,j%2);break;}
+    case "vine":{
+      const end=pos(travel);
+      for(let k=0;k<p.count;k++)for(let j=0;j<=30*travel;j++){
+        const f=j/30,x=from.x+(aim.x-from.x)*f,y=from.y+(aim.y-from.y)*f+Math.sin(f*8+t*5+k*2)*size*.4;
+        px(x,y+k*5,3,3,k%2);if(j%6===0)line(x,y+k*5,x-dir*6,y+k*5-6,2,1);}
+      if(hit)ring(end.x,end.y,size*.65,size*.3,0,t*5);break;}
+    case "seed":case "dust":case "leaf":{
+      for(let j=0;j<p.count;j++){const f=Math.max(0,Math.min(1,travel-j*.04)),q=pos(f);
+        const y=q.y+(p.ground?20:-Math.sin(f*Math.PI)*size)+(j-(p.count-1)/2)*3;
+        const x=q.x+Math.sin(j*2)*size*.25;
+        if(p.shape==="leaf"){line(x-6,y+Math.sin(t*18+j)*5,x+6,y-Math.sin(t*18+j)*5,3,j%3);px(x,y-2,3,5,1);}
+        else px(x,y,p.shape==="seed"?5:2+j%3,p.shape==="seed"?5:2,j%3);}
+      if(hit && p.shape==="seed")burst(cx,cy,p.count+3,size*fade);break;}
+    case "lightning":{
+      if(t<.12)break;
+      for(let k=0;k<p.count;k++){
+        let x=cx+(k-(p.count-1)/2)*13,y=cy-size;
+        for(let j=0;j<7;j++){const nx=x+(j%2?8:-7)*side,ny=y+size/3;line(x,y,nx,ny,3,(j+Math.floor(t*12))%2);x=nx;y=ny;}}
+      if(hit)burst(cx,cy,7,size*.7*fade);break;}
+    case "electric":
+      for(let k=0;k<p.count;k++){const a=k*Math.PI*2/p.count+t*2,x=moving.x+Math.cos(a)*size,y=moving.y+Math.sin(a)*size;
+        line(x,y,x+dir*4,y-6,2,k%2);line(x+dir*4,y-6,x-dir*3,y-10,2,1);}
+      break;
+    case "rock":case "crystal":{
+      for(let j=0;j<p.count;j++){const x=cx+(j-(p.count-1)/2)*11,fall=p.ground?(1-travel)*size:-(1-travel)*(size+45),y=cy+fall+14;
+        const r=p.shape==="crystal"?size*.3:size*.35;
+        for(let row=0;row<r*2;row+=2){const half=p.shape==="crystal"?Math.max(1,row*.45):Math.min(r,row+3,r*2-row+3);px(x-half,y+row-r,half*2,2,j%3);}
+        px(x-2,y-r+3,3,r,1);}
+      if(hit && !p.ground)burst(cx,cy+15,8,size*fade);break;}
+    case "crack":{
+      if(t<.12)break;
+      const ground=cy+23;
+      for(let k=0;k<p.count;k++){let x=cx+(k-(p.count-1)/2)*10,y=ground;
+        for(let j=0;j<7*travel;j++){const nx=x+dir*(j%2?8:-5),ny=y-4;line(x,y,nx,ny,3,k%3);x=nx;y=ny;}}
+      for(let j=0;j<9;j++)px(cx+Math.sin(j*3)*size,ground-Math.sin(Math.PI*t)*(7+j),3,4,j%3);break;}
+    case "wind":{
+      const q=p.self?from:moving;
+      for(let k=0;k<p.count;k++){const y=q.y+(k-(p.count-1)/2)*7;
+        for(let j=0;j<9;j++)px(q.x+dir*(j*3-size*.5),y+Math.sin(j*.5+t*8+k)*5,4,2,k%2);}
+      break;}
+    case "spiral":case "chain":
+      for(let k=0;k<p.count;k++){const a=k*Math.PI*2/p.count+t*7,r=size*(1-t*.5),x=cx+Math.cos(a)*r,y=cy+Math.sin(a)*r*.6;
+        ring(x,y,p.shape==="chain"?4:2,3,k%2);}
+      if(p.both)ring(from.x,from.y,size*.65,size*.35,2,t*3);break;
+    case "orb":{
+      for(let k=0;k<p.count;k++)ring(moving.x,moving.y,size*(k+1)/p.count,size*(k+1)/p.count,k%3,t*2);
+      if(hit)burst(cx,cy,7,size*fade);break;}
+    case "moon":{
+      if(!hit)break;
+      const r=size*fade;
+      for(let j=-r;j<r;j+=2){const half=Math.sqrt(Math.max(0,r*r-j*j));px(cx-half,cy+j,Math.max(2,half*.55),2,1);}
+      for(let k=0;k<p.count;k++){const a=k*Math.PI*2/p.count+t;px(cx+Math.cos(a)*size,cy+Math.sin(a)*size,2,2,k%3);}break;}
+    case "night":{
+      if(!hit)break;
+      ring(cx,cy,size*fade,size*.65*fade,2,t);
+      for(let x of [-10,10]){line(cx+x-4,cy-3,cx+x+4,cy+2,3,1);px(cx+x,cy,2,4,0);}
+      for(let j=0;j<p.count;j++)px(cx+Math.sin(j*3+t*4)*size,cy+Math.cos(j*2+t*3)*size*.8,3,3,j%3);break;}
+    case "shield":{
+      const r=size*(.75+fade*.25);
+      for(let k=0;k<p.count;k++){const rr=r-k*6;line(cx-rr*.6,cy-rr,cx+rr*.6,cy-rr,2,k%2);line(cx-rr*.6,cy-rr,cx-rr*.6,cy+rr*.4,2,k%2);line(cx+rr*.6,cy-rr,cx+rr*.6,cy+rr*.4,2,k%2);line(cx-rr*.6,cy+rr*.4,cx,cy+rr,2,k%2);line(cx+rr*.6,cy+rr*.4,cx,cy+rr,2,k%2);}
+      break;}
+    case "aura":case "heal":
+      for(let j=0;j<p.count;j++){const x=cx+Math.sin(j*2.4)*size,y=cy+size-((t*size*2+j*7)%(size*2));
+        if(p.shape==="heal"){px(x-3,y,8,2,1);px(x,y-3,2,8,0);}else line(x,y,x,y-9,2,j%3);}
+      ring(cx,cy+20,size*.8,size*.22,0,t);break;
+    case "root":
+      for(let j=0;j<p.count;j++){const x=cx+(j-(p.count-1)/2)*7,y=cy+26;line(x,y,x+Math.sin(j)*7,y-size*travel,3,j%3);line(x,y,x+side*7,y+4,2,1);}
+      break;
+    case "fog":
+      for(let j=0;j<p.count;j++){const y=cy+(j-(p.count-1)/2)*8,x=cx-size+Math.sin(j+t*4)*10;px(x,y,size*2,3+j%3,j%2);if(p.both)px(from.x-size,y+(from.y-cy),size*2,3,1);}
+      break;
+    case "voice":
+      for(let j=0;j<p.count;j++){const r=size*(.3+((t+j*.18)%.8));for(let k=-5;k<=5;k++){const a=k*.15;px(moving.x+dir*Math.cos(a)*r,moving.y+Math.sin(a)*r,2,3,j%2);}}
+      break;
+    case "song":
+      for(let j=0;j<p.count;j++){const q=pos((t+j/p.count)%1),y=q.y+Math.sin(t*5+j)*size*.5;px(q.x,y,5,3,j%2);line(q.x+4,y,q.x+4,y-11,2,1);line(q.x+4,y-11,q.x+9,y-9,2,j%2);}
+      break;
+    case "swap":{
+      const a=pos(t),b=pos(1-t);ring(a.x,a.y-Math.sin(t*Math.PI)*size,7,7,0,t);ring(b.x,b.y+Math.sin(t*Math.PI)*size,5,5,1,-t);break;}
+    case "seal":
+      ring(cx,cy,size*fade,size*fade,0,t);line(cx-12,cy-12,cx+12,cy+12,3,1);line(cx+12,cy-12,cx-12,cy+12,3,1);break;
+    case "taunt":
+      for(let j=0;j<p.count;j++){const a=j*Math.PI*2/p.count;line(cx+Math.cos(a)*size*.5,cy+Math.sin(a)*size*.5,cx+Math.cos(a)*size*fade,cy+Math.sin(a)*size*fade,3,j%2);}
+      px(cx-2,cy-13,4,12,1);px(cx-2,cy+4,4,4,1);break;
+    case "decoy":
+      ring(cx,cy+17,size,size*.3,0,t);px(cx-12,cy-8,24,23,2);px(cx-9,cy-14,7,9,0);px(cx+3,cy-14,7,9,0);px(cx-6,cy-3,3,3,1);px(cx+4,cy-3,3,3,1);break;
   }
 }
+const MoveMotion = {
+  frame:null,timer:null,active:null,
+  stop(){
+    if(this.frame!==null && typeof cancelAnimationFrame==="function")cancelAnimationFrame(this.frame);
+    if(this.timer!==null)clearTimeout(this.timer);
+    this.frame=this.timer=null;this.active=null;
+    for(const id of ["spYou","spFoe"]){const actor=document.getElementById(id);if(actor)actor.classList.remove("move-lunge","move-cast","move-rise","move-brace","move-recoil");}
+    const canvas=document.getElementById("moveCanvas");if(canvas)canvas.getContext("2d").clearRect(0,0,384,216);
+  },
+  play(u,target,m,kind="attack"){
+    this.stop();
+    const key=Object.keys(MOVES).find(k=>MOVES[k]===m),profile=MOVE_MOTION_PROFILES[key];
+    const canvas=document.getElementById("moveCanvas");
+    if(!profile || !canvas || document.hidden || !document.getElementById("scBattle")?.classList.contains("on"))return;
+    const points={you:{x:100,y:130},foe:{x:288,y:83}};
+    const from=points[screenPos(u.side)],to=points[screenPos(target.side)];
+    const ctx=canvas.getContext("2d");ctx.imageSmoothingEnabled=false;
+    const reduced=!!idleMotionPreference?.matches;
+    if(!reduced)sprite(u.side).classList.add("move-"+profile.actor);
+    const active={key,from,to,kind,started:visualNow(),duration:620};this.active=active;
+    const paint=progress=>{ctx.clearRect(0,0,384,216);drawMoveMotion(ctx,key,progress,from,to,kind);};
+    if(reduced || typeof requestAnimationFrame!=="function"){
+      paint(.48);this.timer=setTimeout(()=>this.stop(),350);return;
+    }
+    const tick=now=>{
+      this.frame=null;
+      if(this.active!==active)return;
+      if(document.hidden || !document.getElementById("scBattle")?.classList.contains("on")){this.stop();return;}
+      const progress=(now-active.started)/active.duration;
+      if(progress>=1){this.stop();return;}
+      paint(Math.max(0,progress));this.frame=requestAnimationFrame(tick);
+    };
+    paint(0);this.frame=requestAnimationFrame(tick);
+  }
+};
+
+
+/* 技ごとの動作と描画。kind: attack / status / heal / miss */
+function playFx(u,target,m,kind){ MoveMotion.play(u,target,m,kind); }
 
 function flash(side){
-  const c = side==="you" ? $("#spYou") : $("#spFoe");
+  const c = sprite(side);
   c.classList.add("hit"); setTimeout(()=>c.classList.remove("hit"),620);
 }
 
@@ -4787,8 +5102,11 @@ async function endTurn(){
 function finish(winner){
   B.over = true; B.busy = true;
   BattleMusic.stop();
+  VictoryAudio.stop();
+  MoveMotion.stop();
   IdleAnimation.stop();
   const win = winner === ME;
+  if(win) VictoryAudio.play();
   $("#resTitle").textContent = win ? "勝利" : "敗北";
   $("#resTitle").className = "big " + (win?"win":"lose");
   const left = myTeam().filter(u=>!u.dead).length;
@@ -4835,7 +5153,7 @@ const NET = {
     if(msg.t === "pick")  return this.deliver("pick:"+msg.seq, msg.i);
     if(msg.t === "team")  return this.deliver("team", msg);
     if(msg.t === "start") return this.deliver("start", msg);
-    if(msg.t === "bye"){ this.on = false; this.abortAll(); netLost("相手が退出しました。"); }
+    if(msg.t === "bye"){ this.on = false; this.abortAll(); reportPeerDeparture("相手が退出しました。"); }
   },
 
   reset(){
@@ -4846,8 +5164,15 @@ const NET = {
   }
 };
 
+function reportPeerDeparture(message){
+  // The other player may leave after the outcome; the local victory jingle can finish.
+  if(B && B.over && ($("#scBattle").classList.contains("on") || $("#scResult").classList.contains("on"))) return;
+  netLost(message);
+}
 function netLost(msg){
   BattleMusic.stop();
+  VictoryAudio.stop();
+  MoveMotion.stop();
   IdleAnimation.stop();
   StatusEffects.clear();
   if(B && !B.over){ B.over = true; B.busy = true; }
@@ -4866,7 +5191,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "physical-special-v1";
+const BATTLE_RULES_VERSION = "physical-special-motion-v2";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});
@@ -4901,7 +5226,7 @@ async function hostGame(pass){
   NET.peer.on("connection", conn => {
     NET.conn = conn;
     conn.on("data", m => NET.onData(m));
-    conn.on("close", () => { NET.on = false; NET.abortAll(); netLost("接続が切れました。"); });
+    conn.on("close", () => { NET.on = false; NET.abortAll(); reportPeerDeparture("接続が切れました。"); });
     conn.on("open", async () => {
       lobbyStatus("接続しました。構築を交換しています…");
       const raw = await NET.wait("team");
@@ -4926,7 +5251,7 @@ async function joinGame(pass){
     const conn = NET.peer.connect(PEER_PREFIX + pass, {reliable:true});
     NET.conn = conn;
     conn.on("data", m => NET.onData(m));
-    conn.on("close", () => { NET.on = false; NET.abortAll(); netLost("接続が切れました。"); });
+    conn.on("close", () => { NET.on = false; NET.abortAll(); reportPeerDeparture("接続が切れました。"); });
     conn.on("open", async () => {
       lobbyStatus("接続しました。構築を交換しています…");
       NET.send({t:"team", rulesVersion:BATTLE_RULES_VERSION, team:teamPayload()});
@@ -4947,6 +5272,8 @@ function show(id){
   document.getElementById(id).classList.add("on");
   window.scrollTo(0,0);
   syncIdleAnimation();
+  if(id !== "scBattle") MoveMotion.stop();
+  if(id !== "scResult") VictoryAudio.stop();
   BattleMusic.setBattleActive(id === "scBattle");
 }
 const passOk = () => /^[A-Za-z0-9]{3,24}$/.test($("#passIn").value.trim());

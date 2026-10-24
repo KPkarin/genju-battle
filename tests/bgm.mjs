@@ -81,7 +81,7 @@ assert.equal(w.audio.requests.length,0,'page load does not download audio');
 const writesBefore=w.writes.length, draftBefore=w.storage.get('genju_battle_draft_v1');
 w.run('setSeed(246813579)');
 await w.run('BattleMusic.unlock()');w.run('BattleMusic.setBattleActive(true)');await settle();
-assert.equal(w.audio.requests.length,1,'one cached download');
+assert.equal(w.audio.requests.filter(path=>path.endsWith('MusMus-BGM-170.ogg')).length,1,'one cached battle music download');
 assert.equal(w.audio.contexts.length,1,'one reusable context');
 assert.equal(w.audio.active.size,1,'battle has one source');
 let playing=[...w.audio.active][0];
@@ -123,7 +123,8 @@ assert.equal(game.run('B.over'),false,'AI battle starts normally');
 assert.ok(game.audio.contexts[0]?.resumeCalls>0,'AI button unlocks audio');
 assert.equal(game.audio.active.size,1,'AI battle plays BGM');
 game.run("finish('you')");await settle();
-assert.equal(game.audio.active.size,0,'battle finish stops BGM immediately');
+assert.equal(game.run('BattleMusic.source'),null,'battle finish stops looping BGM immediately');
+assert.ok([...game.audio.active].every(source=>!source.loop),'only a one-shot result sound may remain');
 await game.click('#btnAgain');
 assert.equal(game.audio.active.size,1,'rematch starts BGM');
 assert.equal([...game.audio.active][0].starts[0][1]??0,0,'rematch restarts the introduction');
@@ -145,7 +146,7 @@ console.log('PASS actual AI/rematch/host/join controls, finish, disconnect, and 
 
 const race=world({deferredFetch:true});
 race.run('void BattleMusic.unlock(); BattleMusic.setBattleActive(true)');await settle();
-assert.equal(race.audio.requests.length,1,'concurrent unlock/start shares the load');
+assert.equal(race.audio.requests.filter(path=>path.endsWith('MusMus-BGM-170.ogg')).length,1,'concurrent unlock/start shares the battle track load');
 race.run('BattleMusic.stop()');race.resolveFetch();await settle();
 assert.equal(race.audio.sources.length,0,'late loading cannot start BGM after battle stops');
 const failure=world({failFetch:true});
