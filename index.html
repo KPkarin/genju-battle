@@ -218,6 +218,12 @@ select{
   border:1px solid var(--line);border-radius:3px;overflow:hidden;margin-bottom:8px;
 }
 #fieldCanvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}
+#statusCanvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}
+.status-preview-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.status-preview-tabs button{padding:6px 9px;font-size:12px}
+.status-preview-tabs button.on{border-color:var(--gold);color:var(--gold);background:#292436}
+#statusDemo{display:block;width:min(100%,384px);height:auto;margin:0 auto;border:1px solid var(--line);image-rendering:pixelated}
+.status-preview-note{margin:10px 0 0;color:var(--dim);font-size:11px}
 canvas.actor{position:absolute;height:auto;image-rendering:pixelated}
 canvas.actor.foe{width:23%;left:62.5%;bottom:46%}
 canvas.actor.you{width:29%;left:11.5%;bottom:14%}
@@ -335,6 +341,10 @@ canvas.actor.foe.lunge{animation:lgF .3s ease-out}
 .st-tag{font-family:var(--mono);font-size:9px;color:#f4d75e;border:1px solid #6d5a13;padding:0 3px;border-radius:2px}
 .st-麻痺{color:#f4d75e;border-color:#6d5a13}
 .st-やけど{color:#ff9450;border-color:#7a3416}
+.st-火傷{color:#ff9450;border-color:#7a3416}
+.st-凍結,.st-氷結,.st-こおり{color:#a8edf5;border-color:#36708a}
+.st-眠り,.st-ねむり,.st-睡眠{color:#b8b7ed;border-color:#58528e}
+.st-混乱,.st-こんらん{color:#efb9e0;border-color:#8b4d84}
 .st-寄生{color:#7ed08a;border-color:#245c33}
 .st-拘束{color:#66b6ee;border-color:#1b4b73}
 .st-幻{color:#f09ad8;border-color:#6b2a58}
@@ -400,6 +410,18 @@ summary{cursor:pointer;font-size:12px;color:var(--dim);font-family:var(--mono);l
     <div id="chartBox" style="margin-top:8px;overflow-x:auto"></div>
     <p class="hint">縦が攻撃側、横が受け側。<b>影</b>だけは自分自身に2倍が入る高リスク型。</p>
   </details>
+  <details id="statusPreview">
+    <summary>状態異常の演出見本</summary>
+    <div class="status-preview-tabs" aria-label="状態異常の演出を選ぶ">
+      <button type="button" data-status-preview="paralysis" aria-pressed="true">麻痺</button>
+      <button type="button" data-status-preview="burn" aria-pressed="false">火傷</button>
+      <button type="button" data-status-preview="freeze" aria-pressed="false">凍結（予定）</button>
+      <button type="button" data-status-preview="sleep" aria-pressed="false">眠り（予定）</button>
+      <button type="button" data-status-preview="confusion" aria-pressed="false">混乱（予定）</button>
+    </div>
+    <canvas id="statusDemo" width="192" height="112" role="img" aria-label="朧狐の状態異常の演出見本"></canvas>
+    <p class="status-preview-note" id="statusCaption" aria-live="polite"></p>
+  </details>
 </div>
 
 <!-- ============ BATTLE ============ -->
@@ -408,6 +430,7 @@ summary{cursor:pointer;font-size:12px;color:var(--dim);font-family:var(--mono);l
     <canvas id="fieldCanvas" width="384" height="216" aria-hidden="true"></canvas>
     <canvas class="actor foe" id="spFoe" width="32" height="32"></canvas>
     <canvas class="actor you" id="spYou" width="32" height="32"></canvas>
+    <canvas id="statusCanvas" width="384" height="216" aria-hidden="true"></canvas>
     <div class="hud foe">
       <div class="nm"><span id="foeName"></span><span id="foeTags"></span></div>
       <div class="bar"><i id="foeHp"></i></div>
@@ -2692,6 +2715,7 @@ const IdleAnimation = {
       if(mine) drawSprite($("#spYou"),mine.id,"back");
       if(foe) drawSprite($("#spFoe"),foe.id);
     }
+    StatusEffects.sync();
   },
   tick(now){
     if(!this.running) return;
@@ -2699,7 +2723,7 @@ const IdleAnimation = {
     if(!this.canRun()){ this.stop(); return; }
     if(this.epoch===null) this.epoch=now;
     for(const [canvas,unit,view] of [[$("#spYou"),MY(),"back"],[$("#spFoe"),OP(),"front"]]){
-      const paused=unit.dead || unit.hp<=0 || ["enter","lunge","hit","faint"].some(c=>canvas.classList.contains(c));
+      const paused=unit.dead || unit.hp<=0 || getStatusVisualKeys(unit).includes("freeze") || ["enter","lunge","hit","faint"].some(c=>canvas.classList.contains(c));
       if(paused){ this.last.delete(canvas); continue; }
       const offset=[...unit.id].reduce((n,c)=>n+c.charCodeAt(0),0)*13+(view==="back"?170:0);
       const cycle=((now-this.epoch+offset)%IDLE_PROFILES[unit.id].period)/IDLE_PROFILES[unit.id].period;
@@ -2707,12 +2731,14 @@ const IdleAnimation = {
       const key=`${unit.id}:${view}:${phase}`;
       if(this.last.get(canvas)!==key){ drawSprite(canvas,unit.id,view,phase); this.last.set(canvas,key); }
     }
+    StatusEffects.render(now,true);
     this.handle=requestAnimationFrame(time=>this.tick(time));
   }
 };
 function syncIdleAnimation(){
   if(IdleAnimation.canRun()) IdleAnimation.start();
   else IdleAnimation.stop();
+  StatusPreview.sync();
 }
 if(typeof document.addEventListener === "function") document.addEventListener("visibilitychange",syncIdleAnimation);
 if(idleMotionPreference?.addEventListener) idleMotionPreference.addEventListener("change",syncIdleAnimation);
@@ -2732,6 +2758,280 @@ function drawSprite(cv, id, view="front", phase=0){
     if(c){ ctx.fillStyle = c; ctx.fillRect(x,y,1,1); }
   }
 }
+
+/* Cosmetic status effects on the same native pixel grid as the creatures.
+   Pure drawing only: no timers, random numbers, game state, or canvas clearing. */
+function drawStatusEffect(ctx, key, frame, box, burst=false){
+  if(!ctx || !box || !Number.isFinite(box.x+box.y+box.w+box.h) || box.w<=0 || box.h<=0) return;
+  const f=Number.isFinite(frame)?((Math.floor(frame)%8)+8)%8:0;
+  const sx=box.w/32, sy=box.h/32;
+  const rect=(x,y,w,h,color)=>{
+    const x0=Math.round(box.x+x*sx), y0=Math.round(box.y+y*sy);
+    const x1=Math.round(box.x+(x+w)*sx), y1=Math.round(box.y+(y+h)*sy);
+    ctx.fillStyle=color;
+    ctx.fillRect(x0,y0,Math.max(1,x1-x0),Math.max(1,y1-y0));
+  };
+  const line=(points,color,width=1)=>{
+    for(let i=1;i<points.length;i++){
+      let [x,y]=points[i-1]; const [ex,ey]=points[i];
+      const dx=Math.abs(ex-x),dy=-Math.abs(ey-y),ix=x<ex?1:-1,iy=y<ey?1:-1;
+      let error=dx+dy;
+      for(;;){
+        rect(x,y,width,width,color);
+        if(x===ex && y===ey) break;
+        const twice=2*error;
+        if(twice>=dy){error+=dy;x+=ix;}
+        if(twice<=dx){error+=dx;y+=iy;}
+      }
+    }
+  };
+  const poly=(points,color)=>{
+    const ymin=Math.min(...points.map(p=>p[1])),ymax=Math.max(...points.map(p=>p[1]));
+    for(let y=ymin;y<=ymax;y++){
+      const cuts=[];
+      for(let i=0;i<points.length;i++){
+        const a=points[i], b=points[(i+1)%points.length];
+        if((a[1]<=y+.5 && b[1]>y+.5)||(b[1]<=y+.5 && a[1]>y+.5))
+          cuts.push(a[0]+(y+.5-a[1])*(b[0]-a[0])/(b[1]-a[1]));
+      }
+      cuts.sort((a,b)=>a-b);
+      for(let i=0;i+1<cuts.length;i+=2){
+        const left=Math.ceil(cuts[i]), right=Math.floor(cuts[i+1]);
+        if(right>=left) rect(left,y,right-left+1,1,color);
+      }
+    }
+  };
+  const glint=(x,y,color,size=1)=>{
+    rect(x,y-size,1,size*2+1,color);
+    rect(x-size,y,size*2+1,1,color);
+    rect(x,y,1,1,'#fff9e8');
+  };
+  const outline=(points,color)=>line(points.concat([points[0]]),color);
+
+  if(key==='paralysis'){
+    // Two broken zigzags hug the sides; alternate charge and little sparks.
+    const shift=[0,1,0,-1,0,1,0,-1][f];
+    const left=[[-3+shift,8],[0+shift,12],[-3+shift,16],[1+shift,20],[-1+shift,23]];
+    const right=[[33-shift,5],[30-shift,10],[34-shift,13],[30-shift,17],[33-shift,21]];
+    line(left,'#c18b323d',2);line(right,'#c18b323d',2);
+    line(left,f<4||burst?'#ffe56b':'#f7bf65a0');
+    line(right,f>=4||burst?'#ffe56b':'#f7bf65a0');
+    const sparkY=[3,6,10,13,16,13,9,5][f];
+    glint(f%2===0?-2:34,sparkY,'#fff2a2');
+    rect(5+(f%3),-1,1,2,'#ffe56b');rect(26-(f%3),1,2,1,'#ffe56b');
+    if(burst){
+      glint(2,25,'#fff2a2');glint(30,25,'#fff2a2');
+      line([[10,-4],[13,-2],[11,1]],'#fff0a2');
+    }
+    return;
+  }
+
+  if(key==='burn'){
+    const flame=(cx,bottom,height,lean)=>{
+      const edge=[[cx-3,bottom],[cx-4,bottom-3],[cx-2,bottom-height+3],
+        [cx-1+lean,bottom-height],[cx+1,bottom-height+4],[cx+2+lean,bottom-height+2],
+        [cx+3,bottom-2],[cx+2,bottom],[cx-3,bottom]];
+      poly(edge,'#e05c37c9');outline(edge,'#b6402ca8');
+      poly([[cx-2,bottom-1],[cx-2,bottom-4],[cx,bottom-height+3],[cx+1,bottom-4],[cx+2,bottom-1]],'#ffb94fe8');
+      rect(cx-1,bottom-3,2,3,'#ffe49ae8');
+    };
+    const flicker=[0,1,2,1,0,2,1,0][f];
+    flame(2,30,7+flicker,f%2);
+    flame(29,31,8+((f+2)%3),-(f%2));
+    for(let i=0;i<(burst?6:3);i++){
+      const t=(f+i*3)%8, x=i%2===0?(-1+(i%3)):(31+(i%3));
+      const y=23-t*2;
+      rect(x+(t%2),y,1,i%2===0?2:1,t<4?'#ffdb8dea':'#e77d50b3');
+    }
+    if(burst) flame(16,32,6+flicker,0);
+    return;
+  }
+
+  if(key==='freeze'){
+    // Transparent ice stays below the face. White facets outline its edges.
+    const left=[[0,31],[-2,26],[-1,21],[1,23],[3,18],[5,24],[6,31]];
+    const right=[[26,31],[26,25],[28,21],[29,17],[31,23],[33,21],[34,27],[32,31]];
+    poly(left,'#70bedb55');poly(right,'#70bedb55');
+    outline(left,'#b7eeefb3');outline(right,'#b7eeefb3');
+    line([[0,29],[2,25],[3,20],[4,28]],'#daf9f0b3');
+    line([[28,29],[30,25],[29,19]],'#daf9f0b3');
+    poly([[11,31],[13,27],[15,30],[17,26],[20,31]],'#9ad8e43d');
+    line([[12,30],[13,28],[15,31]],'#d4f5f099');
+    const positions=[[-3,8],[34,12],[3,16],[30,6],[-2,15],[33,4],[5,4],[27,13]];
+    const p=positions[f],q=positions[(f+3)%8];
+    glint(p[0],p[1],'#e0fdff',1);glint(q[0],q[1],'#8acde2b3',1);
+    if(burst){
+      poly([[-2,27],[-3,18],[0,15],[2,22],[3,29]],'#b9eaf047');
+      poly([[30,28],[32,17],[34,15],[35,24],[33,30]],'#b9eaf047');
+      glint(7,0,'#e0fdff',2);glint(28,-1,'#e0fdff',2);
+    }
+    return;
+  }
+
+  if(key==='sleep'){
+    // Tiny hand-pixelled Z glyphs drift above the head without covering eyes.
+    const z=(x,y,size,color)=>{
+      rect(x,y,size,1,color);rect(x,y+size-1,size,1,color);
+      for(let i=1;i<size-1;i++)rect(x+size-i-1,y+i,1,1,color);
+    };
+    const drift=[0,0,1,1,2,2,1,1][f];
+    z(10+Math.floor(f/4),-5-drift,5,'#cbd6f5');
+    z(21+(f%2),-3-drift,4,'#aebfe6dc');
+    z(29+(f%2),-drift,3,'#94acd8b8');
+    const bx=3+(f%2),by=3-drift,r=burst||f===3||f===4?2:1;
+    line([[bx-r,by],[bx-r,by-r],[bx,by-r-1],[bx+r,by-r],[bx+r,by],[bx,by+1],[bx-r,by]],'#c4ddf3b3');
+    rect(bx-r,by-r,1,1,'#f5fbffe8');
+    if(burst){z(-3,-3-drift,3,'#dce7ffdc');rect(7,-2,1,1,'#c4ddf3b3');}
+    return;
+  }
+
+  if(key==='confusion'){
+    // Three stars orbit over the crown on an eight-step pixel ellipse.
+    const orbit=[[-13,0],[-9,-3],[0,-4],[9,-3],[13,0],[9,3],[0,4],[-9,3]];
+    const colors=['#f9d777','#e5a3d8','#9bd8e7'];
+    for(let i=0;i<3;i++){
+      const t=(f+[0,3,5][i])%8,p=orbit[t],trail=orbit[(t+7)%8];
+      const x=16+p[0],y=-1+p[1]-(burst?1:0);
+      rect(16+trail[0],-1+trail[1],1,1,colors[i]+'70');
+      rect(x,y-2,1,5,colors[i]);rect(x-2,y,5,1,colors[i]);
+      rect(x-1,y-1,3,3,colors[i]);rect(x,y,1,1,'#fff8d7');
+      if(burst){rect(x-3,y-1,1,1,colors[i]+'a8');rect(x+3,y+1,1,1,colors[i]+'a8');}
+    }
+    rect(14,-1,1,1,'#b3a0d299');rect(17,0,2,1,'#b3a0d299');
+  }
+}
+
+
+/* ================= status effect controller ================= */
+const STATUS_VISUALS = {
+  paralysis:{label:"麻痺",caption:"小さな放電が体の周囲を走ります。動けないターンには放電が強まります。"},
+  burn:{label:"火傷",caption:"炎と火の粉が立ちのぼります。火傷ダメージを受けたときに炎が強まります。"},
+  freeze:{label:"凍結",caption:"氷の結晶と白いきらめき。今後の実装に向けた演出の見本です。"},
+  sleep:{label:"眠り",caption:"眠りの泡と浮かぶZ。今後の実装に向けた演出の見本です。"},
+  confusion:{label:"混乱",caption:"頭上を回る星。今後の実装に向けた演出の見本です。"}
+};
+const STATUS_VISUAL_ALIASES = {
+  "麻痺":"paralysis","まひ":"paralysis","やけど":"burn","火傷":"burn",
+  "凍結":"freeze","こおり":"freeze","氷結":"freeze",
+  "眠り":"sleep","ねむり":"sleep","睡眠":"sleep","混乱":"confusion","こんらん":"confusion"
+};
+const visualStatusKey = status => STATUS_VISUALS[status] ? status : STATUS_VISUAL_ALIASES[status];
+function getStatusVisualKeys(unit){
+  if(!unit) return [];
+  const keys=[], primary=visualStatusKey(unit.status);
+  if(primary) keys.push(primary);
+  if(unit.confusionTurns>0 && !keys.includes("confusion")) keys.push("confusion");
+  return keys;
+}
+const visualNow = () => typeof performance!=="undefined" && typeof performance.now==="function" ? performance.now() : 0;
+const StatusEffects = {
+  pulses:new WeakMap(), signature:"", dirty:true, lastDraw:-Infinity,
+  clear(){
+    const canvas=$("#statusCanvas");
+    if(canvas) canvas.getContext("2d").clearRect(0,0,384,216);
+    this.signature=""; this.dirty=true; this.pulses=new WeakMap();
+  },
+  sync(){ this.dirty=true; this.render(visualNow(),false); },
+  pulse(unit,status){
+    const key=visualStatusKey(status);
+    if(!unit || !key) return;
+    this.pulses.set(unit,{key,until:visualNow()+750});
+    this.dirty=true;
+    this.render(visualNow(),!document.hidden && !idleMotionPreference?.matches);
+  },
+  render(now=0,animate=false){
+    const canvas=$("#statusCanvas");
+    if(!canvas) return;
+    const ctx=canvas.getContext("2d");
+    if(!B || B.over || document.hidden || !$("#scBattle").classList.contains("on")){
+      ctx.clearRect(0,0,384,216); this.signature=""; return;
+    }
+    if(animate && !this.dirty && now-this.lastDraw<100) return;
+    const entries=[
+      {unit:MY(),actor:$("#spYou"),box:{x:44,y:75,w:111,h:111}},
+      {unit:OP(),actor:$("#spFoe"),box:{x:240,y:29,w:88,h:88}}
+    ];
+    const frame=animate ? Math.floor(now/140)%8 : 0;
+    const effects=entries.map(({unit,actor,box})=>{
+      const paused=unit.dead || unit.hp<=0 || ["enter","lunge","faint"].some(c=>actor.classList.contains(c));
+      const pulse=this.pulses.get(unit);
+      return {id:unit.id,keys:paused?[]:getStatusVisualKeys(unit),box,
+        burst:!!(animate && pulse && pulse.until>now),pulseKey:pulse?.key};
+    });
+    const signature=JSON.stringify([frame,effects]);
+    if(!this.dirty && signature===this.signature) return;
+    ctx.clearRect(0,0,384,216); ctx.imageSmoothingEnabled=false;
+    for(const effect of effects) for(const key of effect.keys){
+      drawStatusEffect(ctx,key,frame,effect.box,effect.burst && effect.pulseKey===key);
+    }
+    this.signature=signature; this.dirty=false; this.lastDraw=now;
+  }
+};
+const StatusPreview = {
+  key:"paralysis",running:false,handle:null,lastDraw:-Infinity,
+  init(){
+    const panel=$("#statusPreview");
+    if(!panel) return;
+    panel.addEventListener?.("toggle",()=>this.sync());
+    document.querySelectorAll("[data-status-preview]").forEach(button=>{
+      button.onclick=()=>this.select(button.dataset.statusPreview);
+    });
+    this.select(this.key);
+  },
+  select(key){
+    if(!STATUS_VISUALS[key]) return;
+    this.key=key;
+    document.querySelectorAll("[data-status-preview]").forEach(button=>{
+      const active=button.dataset.statusPreview===key;
+      button.classList[active?"add":"remove"]("on");
+      button.setAttribute?.("aria-pressed",String(active));
+    });
+    $("#statusCaption").textContent=STATUS_VISUALS[key].caption;
+    this.render(visualNow(),false); this.sync();
+  },
+  canRun(){
+    return typeof requestAnimationFrame==="function" && !document.hidden && !idleMotionPreference?.matches
+      && $("#statusPreview")?.open && $("#scBuild").classList.contains("on");
+  },
+  sync(){
+    if(!this.canRun()){ this.stop(); this.render(visualNow(),false); return; }
+    if(this.running) return;
+    this.running=true; this.lastDraw=-Infinity;
+    this.handle=requestAnimationFrame(now=>this.tick(now));
+  },
+  stop(){
+    if(this.handle!==null && typeof cancelAnimationFrame==="function") cancelAnimationFrame(this.handle);
+    this.handle=null; this.running=false;
+  },
+  tick(now){
+    if(!this.running) return;
+    this.handle=null;
+    if(!this.canRun()){ this.stop(); return; }
+    if(now-this.lastDraw>=100){ this.render(now,true); this.lastDraw=now; }
+    this.handle=requestAnimationFrame(time=>this.tick(time));
+  },
+  render(now=0,animate=false){
+    const canvas=$("#statusDemo");
+    if(!canvas) return;
+    const ctx=canvas.getContext("2d");
+    ctx.imageSmoothingEnabled=false;
+    ctx.fillStyle="#141e31"; ctx.fillRect(0,0,192,112);
+    ctx.fillStyle="#27453e"; ctx.fillRect(0,78,192,34);
+    ctx.fillStyle="#69745f";
+    for(let y=-4;y<=4;y++){
+      const w=Math.floor(49*Math.sqrt(1-y*y/25));
+      ctx.fillRect(96-w,94+y,w*2,1);
+    }
+    const phase=animate && this.key!=="freeze" ? Math.floor(now/500)%4 : 0;
+    const sprite=getIdleFrame("oborogi","front",phase);
+    for(let y=0;y<32;y++) for(let x=0;x<32;x++){
+      const color=sprite.pal[sprite.px[y][x]];
+      if(color){ctx.fillStyle=color;ctx.fillRect(64+x*2,32+y*2,2,2);}
+    }
+    drawStatusEffect(ctx,this.key,animate?Math.floor(now/140)%8:0,{x:64,y:32,w:64,h:64},false);
+  }
+};
+
 
 /* ================= build state ================= */
 let party = [];   // {id, moves:[], equip}
@@ -3138,6 +3438,7 @@ function beginBattle(youTeam, foeTeam, seed, meSide){
     hazard: {you:{rock:false, sand:false}, foe:{rock:false, sand:false}},
     yi:0, fi:0, turn:1, over:false, busy:false, pickSeq:0
   };
+  StatusEffects.clear();
   $("#log").innerHTML = "";
   ["you","foe"].forEach(sd => (sd==="you"?$("#spYou"):$("#spFoe")).classList.remove("faint","enter","hit"));
   show("scBattle");
@@ -3208,6 +3509,7 @@ function paint(enter){
   $("#youEq").innerHTML = eqLine(y);
   $("#foeEq").innerHTML = eqLine(f);
   renderTeams(); renderStrip();
+  StatusEffects.sync();
 }
 
 const eqLine = u =>
@@ -3724,7 +4026,9 @@ async function applyHazards(u){
 function inflict(u, st){
   if(u.sub > 0 || u.status || u.hp <= 0) return false;
   if(STATUS_IMMUNE[st] === u.type) return false;
-  u.status = st; u.statusTurns = 0; return true;
+  u.status = st; u.statusTurns = 0;
+  StatusEffects.pulse(u,st);
+  return true;
 }
 
 /* 変化技の効果が相手に通らないか（コマンドの「効果なし」表示にも使う） */
@@ -3746,7 +4050,7 @@ async function doMove(u, target, key){
     await sleep(500); return;
   }
   if(u.flinch){ u.flinch=false; say(`${nm(u)} はひるんで動けない！`); await sleep(500); return; }
-  if(u.status === "麻痺" && rng() < PARA_FAIL){ say(`${nm(u)} は痺れて動けない！`); await sleep(500); return; }
+  if(u.status === "麻痺" && rng() < PARA_FAIL){ StatusEffects.pulse(u,"麻痺"); say(`${nm(u)} は痺れて動けない！`); await sleep(500); return; }
   if(!key){
     u.guardStreak = 0;                       // 守る以外を挟んだ扱い。lastMove は保持する
     const gain = has(u,"focus2") ? EN_FOCUS*2 : EN_FOCUS;
@@ -4254,6 +4558,7 @@ async function endTurn(){
     if(u.status === "やけど"){
       const d = Math.max(1, Math.floor(u.maxhp/16));
       if(indirect(u, d, "やけどのダメージ")){ popDmg(u.side, "-"+d, "#ff9450");
+        StatusEffects.pulse(u,"やけど");
         say(`${nm(u)} はやけどのダメージを受けた (-${d})`); }
       shown = true;
     }
@@ -4330,6 +4635,7 @@ const NET = {
 
 function netLost(msg){
   IdleAnimation.stop();
+  StatusEffects.clear();
   if(B && !B.over){ B.over = true; B.busy = true; }
   clearWaiting();
   lobbyStatus(msg, true);
@@ -4446,6 +4752,7 @@ drawField(document.getElementById("fieldCanvas"));
 renderChart();
 party = loadDraft() || randBuild();
 renderAll();
+StatusPreview.init();
 </script>
 </body>
 </html>
