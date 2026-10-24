@@ -1,0 +1,4315 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>幻獣闘記 ─ 戦闘エンジン試作</title>
+<style>
+:root{
+  --bg:#0d1020;
+  --panel:#171c33;
+  --panel2:#1f2743;
+  --line:#2f3a63;
+  --gold:#e3b04b;
+  --bone:#e9e5d8;
+  --dim:#8c93b5;
+  --red:#d8503c;
+  --green:#63c07d;
+  --blue:#4c8fd8;
+  --mono:"SFMono-Regular",Menlo,Consolas,"MS Gothic","Osaka-Mono",monospace;
+  --gothic:"Hiragino Kaku Gothic ProN","Yu Gothic","MS PGothic",system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  color:var(--bone);
+  font-family:var(--gothic);
+  font-size:14px;
+  line-height:1.5;
+  padding:10px;
+  max-width:760px;
+  margin:0 auto;
+  overflow-x:hidden;
+}
+h1{
+  font-family:var(--mono);
+  font-size:15px;
+  letter-spacing:.28em;
+  color:var(--gold);
+  margin:6px 0 2px;
+  font-weight:700;
+}
+.sub{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--dim);margin-bottom:14px}
+.screen{display:none}
+.screen.on{display:block}
+
+/* ---------- generic ---------- */
+button{
+  font-family:var(--gothic);
+  font-size:13px;
+  color:var(--bone);
+  background:var(--panel2);
+  border:1px solid var(--line);
+  border-radius:2px;
+  padding:9px 12px;
+  cursor:pointer;
+  transition:background .12s,border-color .12s;
+}
+button:hover:not(:disabled){background:#28315480;border-color:var(--gold)}
+button:disabled{opacity:.35;cursor:default}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.primary{background:var(--gold);color:#161020;border-color:var(--gold);font-weight:700;letter-spacing:.08em}
+.primary:hover:not(:disabled){background:#f0c368;border-color:#f0c368}
+.ghost{background:transparent}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--dim);margin:16px 0 7px}
+
+/* ---------- type chips ---------- */
+.t{font-family:var(--mono);font-size:10px;padding:1px 5px;border-radius:2px;letter-spacing:.1em;border:1px solid}
+.t-炎{color:#ff9450;border-color:#7a3416;background:#7a341630}
+.t-水{color:#66b6ee;border-color:#1b4b73;background:#1b4b7330}
+.t-草{color:#7ed08a;border-color:#245c33;background:#245c3330}
+.t-雷{color:#f4d75e;border-color:#6d5a13;background:#6d5a1330}
+.t-岩{color:#bab2a4;border-color:#54514a;background:#54514a30}
+.t-地{color:#d59a53;border-color:#6b4a1e;background:#6b4a1e30}
+.t-空{color:#a8dfe0;border-color:#356b6d;background:#356b6d30}
+.t-幻{color:#f09ad8;border-color:#6b2a58;background:#6b2a5830}
+.t-影{color:#b58cf0;border-color:#452a70;background:#452a7030}
+.t-無{color:#a8b0cc;border-color:#3a4266;background:#3a426630}
+
+/* ---------- build screen ---------- */
+.mongrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:8px}
+.moncard{
+  background:var(--panel);border:1px solid var(--line);border-radius:3px;
+  padding:8px 6px;text-align:center;cursor:pointer;position:relative;
+}
+.moncard.sel{border-color:var(--gold);background:#241f2e}
+.moncard .no{position:absolute;top:4px;left:6px;font-family:var(--mono);font-size:10px;color:var(--gold)}
+.moncard .nm{font-size:12px;font-weight:700;margin-top:2px}
+.moncard .st{font-family:var(--mono);font-size:9px;color:var(--dim);letter-spacing:.04em;margin-top:3px}
+canvas.sp{width:64px;height:64px;image-rendering:pixelated;image-rendering:crisp-edges;display:block;margin:0 auto}
+
+.slot{background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:10px;margin-bottom:9px}
+.slot h3{margin:0 0 6px;font-size:13px;display:flex;align-items:center;gap:7px}
+.slot h3 .idx{font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:.15em}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{
+  font-size:11px;padding:5px 7px;border:1px solid var(--line);border-radius:2px;
+  background:#141829;cursor:pointer;display:flex;align-items:center;gap:5px;
+}
+.chip.on{border-color:var(--gold);background:#2a2334;color:#fff}
+.chip .pw{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.count{font-family:var(--mono);font-size:10px;color:var(--dim);margin:6px 0 3px;letter-spacing:.1em}
+select{
+  width:100%;background:#141829;color:var(--bone);border:1px solid var(--line);
+  border-radius:2px;padding:7px;font-family:var(--gothic);font-size:12px;margin-top:3px;
+}
+.hint{font-size:11px;color:var(--dim);margin:4px 0 0;line-height:1.5}
+
+/* ---------- lobby ---------- */
+.lobby{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:11px}
+.pass{width:100%;background:#0a0d1c;color:var(--bone);border:1px solid var(--line);border-radius:2px;
+  padding:9px 10px;font-family:var(--mono);font-size:14px;letter-spacing:.12em;margin-top:8px}
+.pass:focus{outline:none;border-color:var(--gold)}
+.hint.err{color:var(--red)}
+.wait{background:#141829;border:1px dashed var(--line);border-radius:3px;padding:16px;
+  text-align:center;font-size:12px;color:var(--dim);letter-spacing:.08em}
+.netbadge{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:#161020;
+  background:var(--green);padding:2px 7px;border-radius:2px;margin-left:7px}
+
+/* ---------- type filter ---------- */
+.tfbar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:9px}
+.tfbar .tf{font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:2px;
+  background:#141829;border:1px solid var(--line);color:var(--dim);cursor:pointer}
+.tfbar .tf.on{border-color:var(--gold);color:var(--bone);background:#241f2e}
+.tfbar .tf.t{font-size:11px}
+
+/* ---------- roster card ---------- */
+.mongrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px}
+.moncard{background:var(--panel);border:1px solid var(--line);border-radius:4px;
+  padding:9px 8px 8px;text-align:center;cursor:pointer;position:relative;transition:border-color .12s}
+.moncard.sel{border-color:var(--gold);background:#241f2e}
+.moncard.dim{opacity:.42}
+.moncard .pick{position:absolute;top:0;left:0;right:0;font-family:var(--mono);font-size:9px;
+  letter-spacing:.18em;background:var(--gold);color:#161020;padding:1px 0;border-radius:3px 3px 0 0}
+.moncard canvas.sp{width:64px;height:64px;margin:6px auto 3px}
+.moncard .nm{font-size:13px;font-weight:700}
+.moncard .tl{display:flex;align-items:center;justify-content:center;gap:5px;margin-top:3px}
+.moncard .aff{font-family:var(--mono);font-size:9px;color:var(--dim)}
+.stats{margin-top:6px;display:grid;gap:2px}
+.sb{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:8.5px;color:var(--dim)}
+.sb span{width:15px;flex:none;text-align:left}
+.sb i{flex:1;height:5px;background:#080b16;border-radius:1px;display:block;overflow:hidden;
+  border:1px solid #1c2138}
+.sb i u{display:block;height:100%;text-decoration:none;border-radius:1px;transition:width .2s}
+.sb b{width:22px;flex:none;text-align:right;font-weight:400;color:#a9b0cc}
+.sb.hp  i u{background:#63c07d}
+.sb.atk i u{background:#d8503c}
+.sb.def i u{background:#4c8fd8}
+.sb.spd i u{background:#e3b04b}
+
+/* ---------- coverage ---------- */
+.cov{background:#0e1224;border:1px solid var(--line);border-radius:3px;padding:8px 10px;margin-top:9px;
+  display:grid;gap:5px;font-size:11.5px}
+.cov .ct{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--dim);margin-right:7px}
+.cov .ok{color:var(--green);font-size:11px}
+.cov b{font-family:var(--mono);font-size:9.5px;color:var(--dim);margin:0 6px 0 2px;font-weight:400}
+
+/* ---------- slot ---------- */
+.slot{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:11px;margin-bottom:10px}
+.shead{display:flex;align-items:center;gap:9px;margin-bottom:9px}
+.shead canvas.sm{width:64px;height:64px;flex:none}
+.sinfo{flex:1;min-width:0}
+.sn{font-size:14px;font-weight:700;display:flex;align-items:center;gap:6px}
+.sn .idx{font-family:var(--mono);font-size:10px;color:var(--gold);letter-spacing:.15em}
+.ssub{font-family:var(--mono);font-size:9px;color:var(--dim);margin-top:2px}
+.sdone{font-family:var(--mono);font-size:10px;color:var(--dim);border:1px solid var(--line);
+  border-radius:2px;padding:3px 7px;flex:none}
+.sdone.ok{color:#161020;background:var(--gold);border-color:var(--gold)}
+.slot.lead{border-color:#4a5580}
+.ord{display:flex;flex-direction:column;gap:2px;flex:none}
+.ob{padding:1px 6px;font-size:10px;line-height:1.3;min-width:24px;background:#141829}
+.ob:disabled{opacity:.25}
+.leadbtn{width:100%;margin-bottom:9px;padding:7px;font-size:11.5px;background:#141829}
+.ordbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;background:#0e1224;
+  border:1px solid var(--line);border-radius:3px;padding:8px 10px;margin-bottom:10px;font-size:12px}
+.ordbar span{font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--dim);margin-right:2px}
+.ordbar b{font-weight:700}
+.ordbar b.lead{color:var(--gold)}
+.ordbar i{color:var(--dim);font-style:normal;font-size:10px}
+.selrow{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:9px}
+.selslot{display:flex;align-items:center;gap:5px;background:#141829;border:1px solid var(--line);
+  border-radius:2px;padding:7px 8px;font-size:12px;cursor:pointer;min-height:32px}
+.selslot.empty{border-style:dashed;cursor:default}
+.selslot .ph{color:var(--dim);font-size:11px}
+
+/* ---------- move picker ---------- */
+.mpick{border:1px solid var(--line);border-radius:3px;padding:0;background:#0e1224;margin-bottom:10px}
+.mpick>summary{padding:9px 11px;font-size:11.5px;letter-spacing:.06em;color:var(--bone);font-family:var(--gothic)}
+.mbody{padding:0 9px 9px;max-height:340px;overflow-y:auto}
+.mgrp{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;
+  color:var(--dim);margin:10px 0 5px;padding-top:7px;border-top:1px solid var(--line)}
+.mrow{border:1px solid var(--line);border-radius:3px;padding:7px 9px;margin-bottom:5px;
+  background:#141829;cursor:pointer;transition:border-color .12s}
+.mrow.on{border-color:var(--gold);background:#241f2e}
+.mrow.off{opacity:.38}
+.mhead{display:flex;align-items:center;gap:6px}
+.mhead .mn{font-size:13px;font-weight:700}
+.mhead .mck{margin-left:auto;color:var(--gold);font-size:13px}
+.bd{font-family:var(--mono);font-size:8.5px;font-weight:400;padding:1px 4px;border-radius:2px}
+.bd.pri{color:#161020;background:#7ed08a}
+.bd.late{color:#b58cf0;border:1px solid #452a70}
+.bd.own{color:#7ed08a;border:1px solid #245c33}
+.mst{font-family:var(--mono);font-size:9.5px;color:#9aa2c4;margin-top:3px}
+.mdesc{font-size:11px;color:var(--dim);margin-top:3px;line-height:1.45}
+
+/* ---------- cards (ability / equip) ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:5px}
+.card{background:#141829;border:1px solid var(--line);border-radius:3px;padding:7px 9px;cursor:pointer}
+.card.on{border-color:var(--gold);background:#241f2e}
+.card .cn{font-size:12.5px;font-weight:700}
+.card .cd{font-size:10.5px;color:var(--dim);margin-top:2px;line-height:1.4}
+
+/* ---------- battle stage ---------- */
+.stage{
+  position:relative;width:100%;aspect-ratio:16/9;
+  background:#10192b;
+  border:1px solid var(--line);border-radius:3px;overflow:hidden;margin-bottom:8px;
+}
+#fieldCanvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}
+canvas.actor{position:absolute;height:auto;image-rendering:pixelated}
+canvas.actor.foe{width:23%;left:62.5%;bottom:46%}
+canvas.actor.you{width:29%;left:11.5%;bottom:14%}
+.hit{animation:hit .3s steps(2) 2}
+@keyframes hit{0%{filter:brightness(4) saturate(0)}100%{filter:none}}
+.faint{animation:faint .45s forwards}
+@keyframes faint{to{transform:translateY(30px);opacity:0}}
+.enter{animation:enter .3s}
+@keyframes enter{from{transform:translateY(-14px);opacity:0}}
+
+.hud{position:absolute;background:#0b0f1fee;border:1px solid var(--line);border-radius:3px;padding:7px 9px;width:48%;backdrop-filter:blur(2px)}
+.hud.foe{left:4%;top:7%}
+.hud.you{right:4%;bottom:6%}
+.hud .nm{font-size:12.5px;font-weight:700;display:flex;flex-wrap:wrap;align-items:center;gap:4px}
+.bar{height:7px;background:#000;border:1px solid #33406b;border-radius:1px;margin-top:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--green);transition:width .35s ease}
+.bar.en i{background:var(--blue)}
+.hud .val{font-family:var(--mono);font-size:9.5px;color:#a9b0cc;text-align:right;margin-top:3px;letter-spacing:.04em}
+.eqline{font-family:var(--mono);font-size:9px;color:#cfc7ae;letter-spacing:.04em;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eqline .no{color:var(--dim)}
+.team{display:grid;gap:5px}
+.trow{display:flex;align-items:center;gap:7px;background:#141829;border:1px solid var(--line);border-radius:2px;padding:6px 8px;font-size:11.5px}
+.trow.out{opacity:.4}
+.trow.act{border-color:var(--gold)}
+.trow .who{font-family:var(--mono);font-size:9px;letter-spacing:.1em;width:34px;flex:none}
+.trow .w-you{color:var(--gold)}
+.trow .w-foe{color:#f0937d}
+.trow .nmx{font-weight:700;flex:none}
+.trow .eq{font-family:var(--mono);font-size:9.5px;color:#cfc7ae;margin-left:auto;text-align:right;line-height:1.35}
+.trow .eq i{display:block;color:var(--dim);font-style:normal;font-size:9px}
+/* ---------- move effects ---------- */
+.pt{position:absolute;width:5px;height:5px;border-radius:50%;pointer-events:none;z-index:3;
+  margin:-2px 0 0 -2px;animation:pt .6s ease-out forwards}
+@keyframes pt{
+  from{transform:translate(0,0) scale(1.15);opacity:1}
+  to{transform:translate(var(--dx),var(--dy)) scale(.15);opacity:0}}
+.pt.heal{background:#63c07d;width:4px;height:4px;animation:ptheal .8s ease-out forwards}
+@keyframes ptheal{from{transform:translateY(0);opacity:1}to{transform:translateY(-34px);opacity:0}}
+.ring{position:absolute;border-radius:50%;border:2px solid;pointer-events:none;z-index:3;
+  transform:translate(-50%,-50%);animation:rg .6s ease-out forwards}
+@keyframes rg{from{width:6px;height:6px;opacity:.95}to{width:120px;height:120px;opacity:0}}
+.flashfx{position:absolute;inset:0;pointer-events:none;z-index:2;animation:ff .35s ease-out forwards}
+@keyframes ff{from{opacity:1}to{opacity:0}}
+.streak{position:absolute;left:0;width:100%;height:2px;pointer-events:none;z-index:3;
+  background:linear-gradient(90deg,#0000,#eaf3fa,#0000);animation:stk .5s ease-out forwards}
+@keyframes stk{from{transform:translateX(-40%);opacity:0}30%{opacity:1}to{transform:translateX(40%);opacity:0}}
+.bolt{position:absolute;top:0;width:3px;height:58%;pointer-events:none;z-index:3;
+  background:linear-gradient(#fffbc4,#f4d75e);clip-path:polygon(40% 0,100% 45%,55% 45%,100% 100%,0 55%,45% 55%,0 0);
+  animation:blt .4s steps(3) forwards}
+@keyframes blt{from{opacity:1}to{opacity:0}}
+.stage.shake{animation:shk .38s}
+@keyframes shk{0%,100%{transform:translate(0)}
+  20%{transform:translate(-4px,2px)}45%{transform:translate(4px,-2px)}
+  70%{transform:translate(-3px,1px)}}
+canvas.actor.you.lunge{animation:lgY .3s ease-out}
+@keyframes lgY{45%{transform:translate(42px,-26px) scale(1.06)}}
+canvas.actor.foe.lunge{animation:lgF .3s ease-out}
+@keyframes lgF{45%{transform:translate(-42px,26px) scale(1.06)}}
+.dmg{position:absolute;z-index:4;font-family:var(--mono);font-weight:700;font-size:19px;color:#fff;
+  text-shadow:0 2px 0 #000;pointer-events:none;animation:fly 1s forwards}
+@keyframes fly{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-38px);opacity:0}}
+
+/* ---------- team strip ---------- */
+.strip{display:grid;gap:4px;margin-bottom:8px}
+.srow{display:flex;align-items:stretch;gap:4px}
+.slb{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;width:34px;flex:none;
+  display:flex;align-items:center}
+.cell{flex:1;min-width:0;background:#0e1224;border:1px solid var(--line);border-radius:2px;padding:4px 6px}
+.cell.act{border-color:var(--gold);background:#1a1a2e}
+.cell.out{opacity:.35}
+.cell .cn{font-size:10.5px;font-weight:700;display:flex;align-items:center;gap:4px;
+  white-space:nowrap;overflow:hidden}
+.cell .cn .t{font-size:8.5px;padding:0 3px}
+.cbar{height:4px;background:#000;border-radius:1px;margin:3px 0 2px;overflow:hidden}
+.cbar i{display:block;height:100%;transition:width .35s}
+.cft{font-family:var(--mono);font-size:8.5px;color:var(--dim);display:flex;align-items:center;gap:4px}
+.mks{margin-left:auto;display:flex;gap:2px}
+.mk{font-style:normal;font-size:8px;padding:0 2px;border-radius:1px;line-height:1.4}
+.mk.s{color:#f4d75e;border:1px solid #6d5a13}
+.mk.b{color:#a8b0cc;border:1px solid #3a4266}
+.mk.p{color:#f0937d;border:1px solid #6b3b34}
+.mk.w{color:#66b6ee;border:1px solid #1b4b73}
+.mk.r{color:#f09ad8;border:1px solid #6b2a58}
+
+/* ---------- log & commands ---------- */
+.log{
+  background:#0a0d1c;border:1px solid var(--line);border-radius:3px;
+  padding:10px 12px;height:132px;overflow-y:auto;font-size:12.5px;line-height:1.7;
+}
+.log p{margin:0 0 3px}
+.log p:last-child{color:#fff}
+.log .em{color:var(--gold)}
+.log .u-you{color:var(--gold);font-weight:700}
+.log .u-foe{color:#f0937d;font-weight:700}
+.pfx{color:#f0937d;font-family:var(--mono);font-size:9px;letter-spacing:.12em;margin-right:2px}
+.log .bad{color:var(--red)}
+.log .good{color:var(--green)}
+.log .sys{color:var(--dim);font-size:11px}
+.cmd{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px}
+.cmd button{text-align:left;padding:9px 11px;display:block;min-height:60px}
+.cmd .mv{display:flex;flex-direction:column;gap:3px}
+.cmd .mvx{font-size:10.5px;color:var(--dim);line-height:1.45}
+.cmd .lockmsg{font-size:10.5px;color:#f0937d;line-height:1.45}
+.cmd .mv{display:flex;flex-direction:column;gap:3px}
+.cmd .mvn{font-size:13.5px;font-weight:700;display:flex;align-items:center;gap:5px}
+.cmd .mvd{font-family:var(--mono);font-size:9.5px;color:#9aa2c4;letter-spacing:.03em;line-height:1.5}
+.wide{grid-column:1/-1}
+.eff{font-family:var(--mono);font-size:8.5px;padding:1px 4px;border-radius:2px;font-weight:400}
+.eff.up{color:#161020;background:var(--gold)}
+.eff.dn{color:var(--dim);border:1px solid var(--line)}
+.eff.no{color:#f0937d;border:1px solid #6b3b34}
+.eff.st{color:#a8dfe0;border:1px solid #356b6d;margin-right:3px}
+.eff.pri{color:#161020;background:#7ed08a;margin-right:3px}
+.eff.late{color:#b58cf0;border:1px solid #452a70;margin-right:3px}
+.st-tag{font-family:var(--mono);font-size:9px;color:#f4d75e;border:1px solid #6d5a13;padding:0 3px;border-radius:2px}
+.st-麻痺{color:#f4d75e;border-color:#6d5a13}
+.st-やけど{color:#ff9450;border-color:#7a3416}
+.st-寄生{color:#7ed08a;border-color:#245c33}
+.st-拘束{color:#66b6ee;border-color:#1b4b73}
+.st-幻{color:#f09ad8;border-color:#6b2a58}
+.st-挑発{color:#b58cf0;border-color:#452a70}
+.st-身代{color:#a8b0cc;border-color:#3a4266}
+.st-滅び{color:#f0937d;border-color:#6b3b34}
+.rk{font-family:var(--mono);font-size:9px;padding:0 3px;border-radius:2px;margin-left:2px}
+.rk.up{color:#161020;background:var(--gold)}
+.rk.dn{color:#f0937d;border:1px solid #6b3b34}
+.bench{display:flex;gap:6px;margin-top:7px}
+.bench button{flex:1;padding:8px 9px;font-size:11.5px;text-align:left;display:flex;flex-direction:column;gap:2px}
+.bench .bn{font-weight:700;display:flex;align-items:center;gap:4px}
+.bench .d{font-family:var(--mono);font-size:9px;color:var(--dim);display:block}
+.result{text-align:center;padding:14px}
+.result .big{font-family:var(--mono);font-size:22px;letter-spacing:.3em;margin-bottom:10px}
+.win{color:var(--gold)}.lose{color:var(--red)}
+table.chart{border-collapse:collapse;font-family:var(--mono);font-size:10px;width:100%}
+table.chart td,table.chart th{border:1px solid var(--line);padding:3px;text-align:center}
+table.chart th{color:var(--dim);font-weight:400}
+.x2{color:var(--gold)}.xh{color:#6a7196}.x0{color:#f0937d;font-weight:700}
+details{border:1px solid var(--line);border-radius:3px;padding:8px 10px;margin-top:14px;background:var(--panel)}
+summary{cursor:pointer;font-size:12px;color:var(--dim);font-family:var(--mono);letter-spacing:.14em}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:420px){.cmd{grid-template-columns:1fr}}
+</style>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+
+<h1>幻獣闘記</h1>
+<div class="sub">BATTLE ENGINE PROTOTYPE / 3 vs 3</div>
+
+<!-- ============ BUILD ============ -->
+<div id="scBuild" class="screen on">
+  <div class="eyebrow">01 ─ 手持ちを3体えらぶ</div>
+  <div class="tfbar" id="typeFilter"></div>
+  <div class="mongrid" id="roster"></div>
+  <div id="coverage"></div>
+  <div class="eyebrow">02 ─ 技4つと装備を決める</div>
+  <div id="slots"></div>
+  <p class="hint" id="buildHint"></p>
+  <div class="row" style="margin-top:12px">
+    <button class="primary" id="btnStart" disabled>AIと戦う</button>
+    <button class="ghost" id="btnRand">ランダム構築</button>
+    <button class="ghost" id="btnClearDraft">編成をクリア</button>
+  </div>
+
+  <div class="eyebrow">03 ─ 友達と対戦する</div>
+  <div class="lobby">
+    <p class="hint">同じ合言葉を入れて、片方が「部屋を作る」、もう片方が「部屋に入る」を押してください。
+      構築とシードを交換したあと、毎ターンお互いの選択だけをやり取りします。</p>
+    <input id="passIn" class="pass" type="text" inputmode="latin" autocomplete="off"
+           placeholder="合言葉（英数字）" maxlength="24">
+    <div class="row" style="margin-top:7px">
+      <button class="primary" id="btnHost" disabled>部屋を作る</button>
+      <button id="btnJoin" disabled>部屋に入る</button>
+      <button class="ghost" id="btnCancelNet">中止</button>
+    </div>
+    <p class="hint" id="lobbyStatus"></p>
+  </div>
+  <details>
+    <summary>タイプ相性表</summary>
+    <div id="chartBox" style="margin-top:8px;overflow-x:auto"></div>
+    <p class="hint">縦が攻撃側、横が受け側。<b>影</b>だけは自分自身に2倍が入る高リスク型。</p>
+  </details>
+</div>
+
+<!-- ============ BATTLE ============ -->
+<div id="scBattle" class="screen">
+  <div class="stage" id="stage">
+    <canvas id="fieldCanvas" width="384" height="216" aria-hidden="true"></canvas>
+    <canvas class="actor foe" id="spFoe" width="32" height="32"></canvas>
+    <canvas class="actor you" id="spYou" width="32" height="32"></canvas>
+    <div class="hud foe">
+      <div class="nm"><span id="foeName"></span><span id="foeTags"></span></div>
+      <div class="bar"><i id="foeHp"></i></div>
+      <div class="val" id="foeHpV"></div>
+      <div class="eqline" id="foeEq"></div>
+    </div>
+    <div class="hud you">
+      <div class="nm"><span id="youName"></span><span id="youTags"></span></div>
+      <div class="bar"><i id="youHp"></i></div>
+      <div class="bar en"><i id="youEn"></i></div>
+      <div class="val" id="youHpV"></div>
+      <div class="eqline" id="youEq"></div>
+    </div>
+  </div>
+  <div class="strip" id="strip"></div>
+  <div class="log" id="log"></div>
+  <div class="cmd" id="cmd"></div>
+  <div class="bench" id="bench"></div>
+  <details id="teamPanel">
+    <summary>手持ちの詳細（特性・持ち物・足元）</summary>
+    <div id="teamBox" style="margin-top:8px"></div>
+  </details>
+</div>
+
+<!-- ============ RESULT ============ -->
+<div id="scResult" class="screen">
+  <div class="result">
+    <div class="big" id="resTitle"></div>
+    <p class="hint" id="resBody" style="margin-bottom:16px"></p>
+    <div class="row" style="justify-content:center">
+      <button class="primary" id="btnAgain">同じ構築でもう一度</button>
+      <button class="ghost" id="btnBack">編成に戻る</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ================= seeded RNG =================
+   ネット対戦時はホストが seed を配れば両者で同じ結果になる */
+let _seed = (Date.now() ^ 0x9e3779b9) >>> 0;
+function setSeed(s){ _seed = s >>> 0; }
+function rng(){
+  _seed = (_seed + 0x6D2B79F5) >>> 0;
+  let t = _seed;
+  t = Math.imul(t ^ (t >>> 15), t | 1);
+  t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+const ri = n => Math.floor(rng() * n);
+const pick = a => a[ri(a.length)];
+
+/* ================= types ================= */
+const TYPES = ["炎","水","草","雷","岩","影","地","空","幻","無"];
+/* 攻撃側 → 受け側 の倍率。0 は完全無効。 */
+const CHART = {
+  炎:{炎:.5,水:.5,草:2 ,雷:1 ,岩:.5,影:2 ,地:.5,空:1 ,幻:1 ,無:1},
+  水:{炎:2 ,水:.5,草:.5,雷:.5,岩:2 ,影:1 ,地:2 ,空:1 ,幻:1 ,無:1},
+  草:{炎:.5,水:2 ,草:.5,雷:1 ,岩:2 ,影:.5,地:2 ,空:.5,幻:1 ,無:1},
+  雷:{炎:1 ,水:2 ,草:.5,雷:.5,岩:.5,影:2 ,地:0 ,空:2 ,幻:1 ,無:1},
+  岩:{炎:2 ,水:.5,草:.5,雷:2 ,岩:1 ,影:1 ,地:.5,空:2 ,幻:2 ,無:1},
+  影:{炎:1 ,水:1 ,草:2 ,雷:2 ,岩:1 ,影:2 ,地:1 ,空:1 ,幻:2 ,無:1},
+  地:{炎:2 ,水:1 ,草:1 ,雷:2 ,岩:2 ,影:1 ,地:1 ,空:0 ,幻:1 ,無:1},
+  空:{炎:1 ,水:1 ,草:2 ,雷:1 ,岩:1 ,影:1 ,地:1 ,空:1 ,幻:1 ,無:1},
+  幻:{炎:1 ,水:1 ,草:1 ,雷:2 ,岩:.5,影:2 ,地:1 ,空:1 ,幻:0 ,無:1},
+  無:{炎:1 ,水:1 ,草:1 ,雷:1 ,岩:1 ,影:1 ,地:1 ,空:0 ,幻:.5,無:1}
+};
+const eff = (a,d) => CHART[a][d];
+
+/* ================= moves ================= */
+/* ── 技の優先度 ──────────────────────────────
+   数値が大きいほど先に発動する。同じ優先度なら素早さ順。
+     +5 おどかす … 変化技への割り込み。守るより先に入る
+     +4 守る     … 攻撃より前に構える
+     +2 不意打ち … 相手の攻撃技に先んじる
+      0 通常技
+     -3 仕返し   … 殴られてから返す
+   マイナス側は今後も追加予定。pri を省略した技は 0 として扱う。 */
+const PRI = {startle:5, guard:4, ambush:2, normal:0, counter:-3};
+
+const MOVES = {
+  tackle:{n:"体当たり",t:"無",p:35,acc:100,en:10},
+  guard :{n:"守る",   t:"無",p:0, acc:null,en:25,pri:PRI.guard,fx:"guard",d:"そのターンの被ダメ80%減。必ず先制。連続使用で消費気力が倍増"},
+  focus :{n:"気合い", t:"無",p:0, acc:null,en:25,fx:"atkup",  d:"自分の攻撃+1"},
+  sand  :{n:"砂かけ", t:"無",p:0, acc:100, en:25,fx:"accdown",d:"相手の命中-1"},
+  ambush:{n:"不意打ち",t:"無",p:70, acc:100,en:30,pri:PRI.ambush,fx:"ambush",
+          d:"相手が攻撃技を選んでいれば先制。そうでなければ失敗"},
+  startle:{n:"おどかす",t:"無",p:45,acc:100,en:25,pri:PRI.startle,fx:"startle",
+          d:"相手が変化技を選んでいれば先制し、その技を失敗させて攻撃-1。そうでなければ失敗"},
+  sub   :{n:"身代わり",t:"無",p:0, acc:null,en:30,fx:"sub",
+          d:"最大HPの1/4を払って盾を作る。壊れるまで状態異常・能力ダウン・行動制限・拘束を受けない"},
+  repose:{n:"静養",   t:"無",p:0, acc:null,en:40,fx:"repose",
+          d:"最大HPの50%を回復し状態異常を治すが、次のターン行動できない"},
+  revenge:{n:"仕返し",t:"無",p:0, acc:100, en:30,pri:PRI.counter,fx:"counter",d:"このターンに受けたダメージの1.5倍を返す。必ず後攻"},
+
+  ember :{n:"火の粉",  t:"炎",p:40, acc:100,en:25,fx:"burn",pr:.10,d:"10%でやけど"},
+  flame :{n:"火炎放射",t:"炎",p:80, acc:100,en:35,fx:"burn",pr:.15,d:"15%でやけど"},
+  inferno:{n:"業火",   t:"炎",p:110,acc:80, en:45,fx:"recoil",d:"与ダメの1/3を自分も受ける"},
+  coal  :{n:"熾火",    t:"炎",p:0,  acc:90, en:25,fx:"burnsure",d:"相手をやけどにする"},
+
+  squirt:{n:"水鉄砲", t:"水",p:40, acc:100,en:25,fx:"spddown",pr:.20,d:"20%で相手の素早さ-1"},
+  aqua  :{n:"濁流",   t:"水",p:80, acc:100,en:35,fx:"spddown",pr:.30,d:"30%で相手の素早さ-1"},
+  tsunami:{n:"大波",  t:"水",p:110,acc:80, en:45},
+  haze  :{n:"白霧",   t:"水",p:0,  acc:null,en:20,fx:"haze",
+          d:"両者の能力ランクをすべて元に戻す"},
+  whirl :{n:"渦潮",   t:"水",p:0,  acc:95, en:25,fx:"bind",d:"相手の素早さ-1。5ターンのあいだ相手は交代できない"},
+
+  vine  :{n:"蔦打ち", t:"草",p:45, acc:100,en:25,fx:"drain",dr:.30,d:"与ダメの30%を吸収"},
+  seed  :{n:"種爆弾", t:"草",p:80, acc:95, en:35},
+  leaf  :{n:"葉の刃", t:"草",p:110,acc:80, en:45},
+  photo :{n:"光合成", t:"草",p:0,  acc:null,en:30,fx:"heal",d:"最大HPの35%回復"},
+  parasite:{n:"寄生種",t:"草",p:0, acc:90, en:25,fx:"seedfx",own:true,d:"5ターンの間、相手の最大HPの1/10を毎ターン吸い取る。交代されると消える"},
+
+  spark :{n:"静電気", t:"雷",p:40, acc:100,en:25,fx:"para",pr:.15,d:"15%で麻痺"},
+  sand2 :{n:"痺れ砂", t:"雷",p:0, acc:null,en:30,fx:"hzSand",
+          d:"相手側に設置。交代で出てきた相手を麻痺させる。空・地・雷には効かない"},
+  bolt  :{n:"雷撃",   t:"雷",p:85, acc:90, en:35,fx:"para",pr:.10,d:"10%で麻痺"},
+  thunder:{n:"迅雷",  t:"雷",p:110,acc:75, en:45,fx:"para",pr:.20,d:"20%で麻痺"},
+
+  spikes:{n:"岩棘",   t:"岩",p:0, acc:null,en:30,fx:"hzRock",
+          d:"相手側に設置。交代で出てきた相手に最大HPの1/8×岩相性のダメージ"},
+  rock  :{n:"岩投げ", t:"岩",p:50, acc:100,en:20},
+  slide :{n:"岩雪崩", t:"岩",p:80, acc:90, en:35,fx:"flinch",pr:.20,d:"20%でひるみ"},
+  edge  :{n:"岩の刃", t:"岩",p:110,acc:75, en:45},
+
+  gravel:{n:"砂礫",   t:"地",p:45, acc:100,en:15},
+  quake :{n:"地響き", t:"地",p:80, acc:100,en:35},
+  rift  :{n:"大地割", t:"地",p:115,acc:85, en:45},
+  root  :{n:"根を張る",t:"地",p:0, acc:null,en:25,fx:"rootup",d:"自分の防御+1、素早さ-1"},
+
+  gust  :{n:"風切り", t:"空",p:45, acc:100,en:15},
+  blast :{n:"突風",   t:"空",p:80, acc:95, en:35,fx:"accdownfx",pr:.20,d:"20%で相手の命中-1"},
+  pivot :{n:"翻し",   t:"空",p:60, acc:100,en:30,fx:"pivot",
+          d:"攻撃したあと控えと入れ替わる"},
+  sweep :{n:"払い風", t:"空",p:0, acc:null,en:20,fx:"hzClear",
+          d:"自分側に置かれた設置をすべて吹き飛ばす"},
+  dive  :{n:"翔撃",   t:"空",p:110,acc:85, en:45},
+  soar  :{n:"舞い上がる",t:"空",p:0,acc:null,en:25,fx:"soar",d:"自分の回避+1、素早さ+1"},
+
+  phantom:{n:"幻痛",  t:"幻",p:45, acc:100,en:25,fx:"endrain",d:"相手の気力を15奪う"},
+  mirage:{n:"虚像斬", t:"幻",p:80, acc:95, en:35},
+  lunacy:{n:"幻月",   t:"幻",p:110,acc:80, en:45},
+  swap  :{n:"奇術",   t:"幻",p:0,  acc:100,en:25,fx:"swapitem",
+          d:"自分と相手の持ち物を入れ替える。両者とも持っていなければ失敗"},
+  perish:{n:"滅びの唄",t:"幻",p:0, acc:null,en:35,fx:"perish",
+          d:"3ターン後、唄を聞いた両者の場のモンスターが倒れる。交代すれば逃れられる"},
+  encore:{n:"反響",   t:"幻",p:0,  acc:100,en:30,fx:"encore",
+          d:"相手は3ターン、直前に使った技しか出せない。技を使っていなければ失敗"},
+  disable:{n:"封技",  t:"幻",p:0,  acc:100,en:25,fx:"disable",
+          d:"相手が直前に使った技を3ターン封じる。技を使っていなければ失敗"},
+
+  bond  :{n:"道連れ", t:"影",p:0,  acc:null,en:30,pri:3,fx:"bond",
+          d:"このターン中に倒されたら、倒した相手も道連れにする"},
+  taunt :{n:"挑発",   t:"影",p:0,  acc:100,en:25,fx:"taunt",
+          d:"相手は3ターン 変化技を使えなくなる"},
+  touch :{n:"影撫で", t:"影",p:45, acc:100,en:25,fx:"defdown",d:"相手の防御-1"},
+  devour:{n:"闇喰らい",t:"影",p:80, acc:100,en:35,fx:"drain",dr:.50,d:"与ダメの50%を吸収"},
+  night :{n:"悪夢",   t:"影",p:110,acc:80, en:45}
+};
+/* 無属性の技は全員が覚えられる。MOVES から自動で拾うので、
+   技を足したときに登録を忘れて一覧から消える事故が起きない。 */
+const NEUTRAL = Object.keys(MOVES).filter(k => MOVES[k].t === "無");
+const BY_TYPE = {};
+for (const k in MOVES){ const t=MOVES[k].t; if(t!=="無"){ (BY_TYPE[t]=BY_TYPE[t]||[]).push(k); } }
+
+/* ================= equipment ================= */
+const EQUIPS = {
+  none  :{n:"なし",      d:"効果なし"},
+  wing  :{n:"疾風の羽",  d:"素早さ ×1.2 / 同じ技を連続で使えない", lock:true},
+  plate :{n:"鋼の甲",    d:"防御 ×1.2 / 同じ技を連続で使えない", lock:true},
+  fang  :{n:"猛火の牙",  d:"攻撃 ×1.2 / 同じ技を連続で使えない", lock:true},
+  belt  :{n:"気力帯",    d:"気力回復 +10/ターン"},
+  charm :{n:"護りの札",  d:"HP50%以上から倒されるとき、1回だけHP1で耐える"},
+  thorn :{n:"毒棘",      d:"被弾時、相手に最大HPの5%"},
+  berry :{n:"命の実",    d:"毎ターン 最大HPの5%回復"},
+  ward  :{n:"破魔石",    d:"いまひとつ(0.5倍)を0.75倍に緩和"},
+  bell  :{n:"癒しの鈴",  d:"場に出たとき、状態異常を1回だけ治す"},
+  armor :{n:"戦装束",    d:"防御 ×1.35 だが変化技を使えない", noStatus:true},
+  mask  :{n:"無垢の仮面", d:"持ち主の特性が発動しなくなる", mask:true}
+};
+
+/* ================= abilities =================
+   持ち物が「常時の数値補正」なのに対し、特性は
+   状況・登場・交代・状態異常・確率 といったルール側に干渉する。 */
+const ABILITIES = {
+  pressure:{n:"威圧", d:"場に出たとき、相手の攻撃-1"},
+  grit    :{n:"不屈", d:"HPが1/3以下のあいだ 攻撃1.5倍"},
+  ballast :{n:"重心", d:"自分より速い相手からの被ダメ0.8倍"},
+  tempo   :{n:"好機", d:"自分の方が速いとき 技の追加効果の発動率2倍"},
+  glutton :{n:"貪食", d:"攻撃で与えたダメージの15%を回復"},
+  spite   :{n:"反骨", d:"相手に能力を下げられるたび 攻撃+1"},
+  mirror  :{n:"鏡膜", d:"相手による能力ダウンを受けない"},
+  regen   :{n:"再生", d:"自分から交代で引っ込むと 最大HPの25%回復"},
+  quick   :{n:"早熟", d:"状態異常が3ターンで自然に治る"},
+  blur    :{n:"見切り", d:"相手の技の命中率0.9倍"},
+  focus2  :{n:"集中", d:"「気を溜める」の回復量が2倍"},
+  hide    :{n:"岩肌", d:"効果ばつぐんの被ダメ0.85倍"},
+  breaker :{n:"型破り", d:"相手の特性を無視して技を出す"},
+  ghost   :{n:"霊体", d:"やけど・寄生・設置・反動・毒棘など、直接攻撃以外のダメージを受けない"},
+  heavy   :{n:"重圧", d:"相手の技の消費気力+8"}
+};
+/* 特性の判定はすべてここを通る。無垢の仮面を持っている間は全特性が沈黙する */
+const abilOff = u => !!EQUIPS[u.equip].mask;
+const has = (u, k) => u.ability === k && !abilOff(u);
+/* 守り側の特性。攻撃側が型破りなら無かったことになる */
+const hasVs = (def, k, att) => has(def, k) && !(att && has(att, "breaker"));
+
+/* 拘束中かどうか。縛った個体が場を離れていれば解けている扱い */
+function isBound(u){
+  if(!u || u.bindTurns <= 0 || !u.boundBy) return false;
+  const by = u.boundBy;
+  return !by.dead && active(by.side) === by;
+}
+
+/* ================= sprites ================= */
+// Native 32×32 pixel art; generated by art-src/build_art.py.
+const SPRITES = {
+  "homura": {
+    "pal": {
+      "o": "#35150f",
+      "s": "#87301d",
+      "b": "#d34b25",
+      "l": "#f48237",
+      "h": "#ffb24d",
+      "f": "#ffe386",
+      "w": "#fff0bc",
+      "n": "#1e1419",
+      "r": "#a51f20",
+      "c": "#ffcf9b"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "........................o.......",
+      ".........o..............o.......",
+      ".........ofo.....l.....ofo......",
+      ".........offo....l..l..ofo......",
+      ".........offlo..lflll..fflo.....",
+      ".........offfooolflfl.offfo.....",
+      "......o..olfoolllfflooofffo.....",
+      "......oo.ooolhhhhlllhhloflo.....",
+      "......oo.oohhhhhfhhllllboo......",
+      "......osoolllhllllllhllsso......",
+      "...o.osloolssllllllllssbblo.....",
+      "...oooslolllnwnllllllnwnbbo.....",
+      "...ooollosllnnnllclllnnnsbo.....",
+      "...osolsshsslccccclllclsbss.....",
+      "..oslslflsshsccccccncccsbbbss...",
+      "..osllffsshhcccnnnnnnncccss.....",
+      "..osllffosshcccccnnnccccbbss....",
+      "..oslfffobbsssccccsccccbbss.....",
+      "...oslfobbbhlolcccscccbsso......",
+      "...ossfobbbbbloolllloooobo......",
+      "....oooobbbbbblhoooohllooo......",
+      ".......ooooooollhhhlhllbo.......",
+      "........oosssoblhhlllbbbo.......",
+      ".........osssobbbhblobbbbo......",
+      "........ossssobbbbbbobbbbo......",
+      "........ohhhhooooooohhhhbo......",
+      "........ohhcho.....ohhchbo......",
+      "........oooooo.....oooooo.......",
+      "................................",
+      "................................"
+    ]
+  },
+  "youcho": {
+    "pal": {
+      "o": "#371514",
+      "s": "#792622",
+      "b": "#bd4028",
+      "l": "#ed6b32",
+      "h": "#ffae45",
+      "f": "#ffdb70",
+      "w": "#f7e5b8",
+      "d": "#bda67a",
+      "n": "#251b23",
+      "m": "#e89a6e"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "...............o................",
+      "..........o....o................",
+      "..........oo..olo...o...........",
+      "..........olo.oho..oo...........",
+      "..........ohoolhloolo...........",
+      ".......o.olhholhoollho......o...",
+      ".......ooohhhlhholooho.....oo...",
+      ".......olohhfhhfolmloo....olso..",
+      ".....oollhhhffhffommooo...osso..",
+      "..ooooolhhhffffffooooooooolsso..",
+      "..oo..olllhhhhffoollllllloosso..",
+      "..oo...olllhhhhollhhhhhhhlboo...",
+      "..ooo..ooollllollhhhhhhhllbbo...",
+      "...oo.obbbolslohhhhhhhhlllssb...",
+      "...ooobbbbssssllsshllllllsbbbo..",
+      "....oobbslsssosllnwnlllllnfnbo..",
+      ".....obbssllsowolnnnlllllnnnboo.",
+      ".....obbsslssowwollllmmmmmbbboo.",
+      ".....obbssllsodwollmnnmmmnnmbwo.",
+      "......oossssllowwoomnnmmmnnmowo.",
+      ".......osooobsbowwwosmmmmmssowo.",
+      ".......olssobbbbooloosssssoowdo.",
+      ".......osssobbbsbboooooooooddo..",
+      "......oshssooooooooo..oslssoo...",
+      "......onnnno..........onnnno....",
+      "......onnnno..........onnnno....",
+      "......oooooo..........oooooo....",
+      "................................",
+      "................................"
+    ]
+  },
+  "iwaushi": {
+    "pal": {
+      "o": "#2b251d",
+      "s": "#65513d",
+      "b": "#8c7254",
+      "l": "#b19770",
+      "h": "#d2be93",
+      "w": "#ede2bd",
+      "g": "#9c9683",
+      "d": "#756f60",
+      "n": "#181b1b",
+      "e": "#e9b44d",
+      "p": "#b39a85"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "...oo......................ooo..",
+      "..ogw......................hho..",
+      "..oww.....................ohho..",
+      "..owwo....................oho...",
+      "...oww.......oooo........ohho...",
+      "...owwooo..oobsssoooo..ooghho...",
+      "...ogwwwwoobsshhhsssboohhhgo....",
+      "....ogwwwobslhlllhhlsbohhgo.....",
+      ".....ogggobslllllllhsbbooo......",
+      "......ooobsllsllllllssbbo.......",
+      "......oobbssssslllssboobo.......",
+      ".....obossbbbbssssbbbosoooo.....",
+      "....obsosoossbbbsbbbboooosso....",
+      "...obsloslnenobbsbbonensoosso...",
+      "...oslloslnnnbbbsbbbnnnsoooso...",
+      "...oslloslllsbooooooosssooboo...",
+      "...oslhoslllphppppppppssooboo...",
+      "...obhllsllopnnppppnnpooolboso..",
+      "...obsllossopnnppppnnpobobllso..",
+      "...obsssosbossssssssssooobooso..",
+      "...obbbboooboosddddsoobooossso..",
+      "....obbbossoooooooooooossosso...",
+      ".....obbossssobbbbbbossssooo....",
+      "......ooossssobbbbbbossssso.....",
+      ".......onnnnnoooooooonnnnno.....",
+      ".......onndnno......onndnno.....",
+      ".......ooodooo......ooooooo.....",
+      "................................",
+      "................................"
+    ]
+  },
+  "saikaku": {
+    "pal": {
+      "o": "#24272b",
+      "s": "#55585c",
+      "b": "#85868a",
+      "l": "#aaa9a6",
+      "h": "#d2cfc4",
+      "w": "#f3e9cd",
+      "n": "#121a22",
+      "e": "#edc779",
+      "d": "#777467",
+      "g": "#393f46"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      ".......o........................",
+      ".......oo.......................",
+      ".......ow.......................",
+      "......oww..oo...................",
+      "......oww.obbo......o...........",
+      "......oww.obso......ooo.........",
+      "......owwoobohoooooobho.........",
+      ".....owwwoooowoboosohboo........",
+      ".....owwwoolowobbboobosbo.......",
+      ".....owwwollowholsbobolsbo......",
+      ".....owwwolohwhobssobohlhbo.....",
+      ".....owwwwooooggggssoolhlsoo....",
+      "....ohhwwwobbboennssollloooo....",
+      "...oohhwwwwobbbnnnsbolsossoo....",
+      "...ooooooooobbbssssossbossooooo.",
+      "...ooollllloobsssssobsllsssoooo.",
+      "...olnnllhlllobsssobblossssoooo.",
+      "...osnnssssllobbsbobbbssbssoooo.",
+      "...olssssssslooooobbbbssooooo...",
+      "....ossssssssooolbbbbooossobo...",
+      "......ooooggsssosbbbsossssoo....",
+      "..........osgggggggsbosssso.....",
+      ".........osssssooooooossssso....",
+      ".........ohhhhho.....olllllo....",
+      ".........ohhshho.....ollsllo....",
+      ".........ooooooo.....ooooooo....",
+      "................................",
+      "................................"
+    ]
+  },
+  "doryu": {
+    "pal": {
+      "o": "#302317",
+      "s": "#62442b",
+      "b": "#956a40",
+      "l": "#bd925e",
+      "h": "#d9b983",
+      "w": "#f1dfb5",
+      "d": "#a89b84",
+      "n": "#201b1c",
+      "p": "#d1a783",
+      "c": "#f6ecd4"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................o...............",
+      "...............obo..............",
+      "............oolobol.o...........",
+      "...........looohhboobo..........",
+      "..........lobhhbbbobbo..........",
+      ".........llohbbbbbbbbbo.........",
+      "........llooohlllllooooo........",
+      ".......llllllllllhlllsslo.......",
+      ".......lllhllllllllllssso.......",
+      ".......lllllllllllllllsss.......",
+      "......obllocollllllocolsso......",
+      "......obllooollllllooolsso......",
+      "......obllbbbbsssssslllsso......",
+      "......oblblbsshownnosslsso......",
+      "....oooolbbshhopnnnpohssoooo....",
+      "...osssloobshhopppppohsosbsso...",
+      "...olllllsoshssossosshosbbbsso..",
+      "..osllllllsosshshhshsosbbbbbooo.",
+      "..oooolllllolbssssssbobbbbbbowo.",
+      "...cdollllsolhbblbbbbosbbobbooo.",
+      "..ocoooooooollhlllssooosoosooo..",
+      "..ooocdocdosoohllloosssoowoowo..",
+      "....ocoocoosssobbbossssooooooo..",
+      "....oooooohhhhooooohhhhso..o....",
+      ".........oooooo...ooooooo.......",
+      "................................",
+      "................................"
+    ]
+  },
+  "sarou": {
+    "pal": {
+      "o": "#3c2d20",
+      "s": "#7d5d35",
+      "b": "#ad854b",
+      "l": "#d5ac6e",
+      "h": "#ebce98",
+      "w": "#fff0c5",
+      "n": "#1d2021",
+      "e": "#e49f35",
+      "d": "#ae9775",
+      "c": "#d58f4a"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "..........oo............o.......",
+      ".........obno...........nno.....",
+      ".........onno..........onno.....",
+      ".........onnno.........onno.....",
+      ".........obnnbo.......onhno.....",
+      ".........obhnnbooo....onhbo.....",
+      "..........obhoolhloooobhbo......",
+      ".....o....ooolhhhhhhhoobbo......",
+      ".....o....oohhhhhhhhlllobo......",
+      "....oo....ollhhhhhhhlllloo......",
+      "....oo....osslhllllllllsso......",
+      "...oho...ollwenslllllnenblo.....",
+      "...oho...sslnnnlllhllnnnbbo.....",
+      "..ohhoosshhslhllllhhllbbsbo.....",
+      "..ohhhbbshhslhhhhnnnnhhhbss.....",
+      "..obwhhhoshhhhhhwnnnnnhhbbbss...",
+      "..obwhhsshhhhshhhhwswwwsbss.....",
+      "..obwhhhshhhhshshhhshhhhbbs.....",
+      "...obwwobsshsllhhhhshhbbbbs.....",
+      "....obbobbbsoslllllsslsbss......",
+      ".....ooobbbbbswslsshsooso.......",
+      "........oboooshwshwhslbo........",
+      ".........oossssswhssslbbo.......",
+      ".........ossssobssbbobbbo.......",
+      ".........osssoooosooobbbo.......",
+      "........ohhhho......ohhhho......",
+      "........ohwhho......ohhwho......",
+      "........oooooo......ooooo.......",
+      "................................",
+      "................................"
+    ]
+  },
+  "shiogame": {
+    "pal": {
+      "o": "#0a2635",
+      "d": "#15516b",
+      "b": "#2f85ae",
+      "l": "#5ebcdb",
+      "h": "#a9e8eb",
+      "w": "#e3f5e9",
+      "s": "#4e382b",
+      "m": "#80603c",
+      "c": "#ae8952",
+      "g": "#d8b974",
+      "e": "#071821"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "............gggggggg............",
+      "..........ggossssssogo..........",
+      "........ggsssssccgcssgg.........",
+      ".......gossmgggggggcsssg........",
+      ".......ossmsggggggggcssso.......",
+      "......osssmsgggggggggcssso......",
+      "......osgcsgggggccccccssso......",
+      ".....osgcgsgccccccccccsmsso.....",
+      ".....osccccscccccccccsmmsso.....",
+      ".....oscccsscccccccccsmmmso.....",
+      ".....osccsmsssccccccssmmmso.....",
+      ".....osccsmmmssccssscsmmmso.....",
+      ".....osssmmmhhoooooogcsmmso.....",
+      ".....osssmmhlllllllboosssso.....",
+      "......osmmllwolllllwobosso......",
+      "......osmlloooolllooooboso......",
+      "....ooboolloooollloooobbodoo....",
+      "...obbbbolloooollloooobbodddo...",
+      "...obbblobllooldldloobbbodddo...",
+      "..obbllbobhblllllllbbhbboddddo..",
+      "..ollbbobohbhhddhhddbhbobodddo..",
+      "..oobbbobbhhhhhhddhhhhhbboddoo..",
+      "....oooobbbohhhhhhhhhobbbooo....",
+      "........wwwo.hhhhhhh.wwwo.......",
+      ".........oo...........oo........",
+      "................................",
+      "................................",
+      "................................"
+    ]
+  },
+  "soukou": {
+    "pal": {
+      "o": "#082432",
+      "d": "#164c69",
+      "b": "#287da4",
+      "l": "#57b4d3",
+      "h": "#9fdfeb",
+      "w": "#e4f2f3",
+      "s": "#a2c4cf",
+      "e": "#07151f",
+      "r": "#a95565"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "...............o................",
+      "...............oo...............",
+      "..............obbo..............",
+      "..............olbo..............",
+      "..............olbbo.........oo..",
+      ".............oblbbo.........oo..",
+      ".........oooooblbbbo.......obo..",
+      "......ooobbblboooobo.......obo..",
+      ".....obbhhhhhlllbboo......obo...",
+      "....obhhlllllllllllloo....obo...",
+      "...ollllwebbbbbblllllboo.oblo...",
+      "...obbbeeeebbbbbbbbbbblbooblo...",
+      "...obhbeeeebdbbdbbbbblbbbbolo...",
+      "..obbbbbeebbbdbbdbbbbbbbbbolo...",
+      "..oebbbbbbbebdbbdooobbbbbbbobo..",
+      "..oeweeeewebdbboobbobbwbbbolbo..",
+      "...eeeeweeebdbboblbowwwwwobblo..",
+      "...oweeeeewwwwwobblbowwwbobblo..",
+      "....owwwwwwwwwwwoblboswbo.obbbo.",
+      ".....oowwwwsssssoblbowoo...oobo.",
+      ".......oowwwwwwwolbooo.......oo.",
+      ".........oooooooolooo...........",
+      ".................ooooo..........",
+      ".................o...oo.........",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................"
+    ]
+  },
+  "rainen": {
+    "pal": {
+      "o": "#453208",
+      "d": "#8b6819",
+      "b": "#c8a12c",
+      "l": "#f0d357",
+      "h": "#fff0a0",
+      "w": "#fff9d1",
+      "e": "#241900",
+      "s": "#a47f29",
+      "a": "#d88e39"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      ".............oooooo.............",
+      "..........oohhhhhhhooo..........",
+      ".........ohhhhhhhhhhlbo.........",
+      "...o....hhhhhhhhhhhhhhbo....o...",
+      "...h...olhhhhlbbbbbllllbo...h...",
+      "...h..owllhlllbbbbllllllho..h...",
+      "..oho.lllwellbbbbbbllwello.oho..",
+      "..ohhhlleeeelbbbbblleeeelbhhho..",
+      "..obbhlleeeelllbbllleeeelbhbbo..",
+      "...obohlleelllbbllllleellhobbo..",
+      "....oohhhlllllbllllllllhhhooo...",
+      ".....obllhhllhllllhlohhlsbo.....",
+      "...ooboblllooooooooolllssoboo...",
+      "..obbbosblllobbbbbbolssssobbbo..",
+      "...oboossssobbbbbbbbobssooobo...",
+      "...oo...ssobddddddddbobs...oo...",
+      "........sobbbbbbbbbbbbos........",
+      ".........osbbbbbbbbbbbo.........",
+      ".........o..sbbbbbbbs.o.........",
+      "........oo..ohbooobhbooo........",
+      "......oo...oboo...oobo..oo......",
+      "...........oo.......oo..........",
+      "................................",
+      "................................",
+      "................................"
+    ]
+  },
+  "fuen": {
+    "pal": {
+      "o": "#142b42",
+      "d": "#23486e",
+      "b": "#397db2",
+      "l": "#75bfdf",
+      "h": "#b3e4ed",
+      "w": "#e9f3f6",
+      "s": "#aac9dc",
+      "g": "#eebc48",
+      "a": "#9e7628",
+      "e": "#081822"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "...o........................o...",
+      "..obo......................odo..",
+      "..olbo....................obdo..",
+      "..ollo....................bbdo..",
+      "..obllo..................obbdo..",
+      "...ollbo......ooooo.....obbbo...",
+      "...ohllbo....olllllo...obbbbo...",
+      "...obhllbo..ollllllbo.odbbbbo...",
+      "...obhlllboollllllllbodbbbbdo...",
+      "...obbhllllobwebbbwebobbbbdlo...",
+      "....dbhlllloeeeebbeeeobbbblo....",
+      "....odbhllloeeeawaaabobbbldo....",
+      ".....odbhblloeebagabobbddlo.....",
+      ".....obdbhhobobbagaoboddldd.....",
+      "......obdbbobwoooaobbolldd......",
+      "......obbddowwwwwwwwbodddo......",
+      ".......oobbowwwwwwwwboddo.......",
+      ".........oooswwwwwwwboo.........",
+      "...........ooswwwwwso...........",
+      "............ossswwsso...........",
+      "............oosssssoo...........",
+      "............obsssssbo...........",
+      "...........oblbbooblo...........",
+      "...........olbbo.obblo..........",
+      "...........oloo...oblo..........",
+      "..........ooo......oobo.........",
+      "..........o..........oo.........",
+      "................................",
+      "................................"
+    ]
+  },
+  "ungei": {
+    "pal": {
+      "o": "#213c54",
+      "d": "#416989",
+      "b": "#6d9fbd",
+      "l": "#9bcada",
+      "h": "#c9e8ec",
+      "w": "#eff8f2",
+      "s": "#aacdd8",
+      "e": "#112a3b",
+      "a": "#6aa4b9"
+    },
+    "px": [
+      "................................",
+      "................................",
+      ".................bbb............",
+      "............bbwwwwwwbb..........",
+      "..........bbhwwwwwwwwb..........",
+      "..........bwhwwwwwwwbb..........",
+      "..........bbhhwwwwbb............",
+      "............bbbb.............o..",
+      "..............bb............oo..",
+      "..........ooooooooo........obo..",
+      ".......lhhhhhhhbbbboo......obo..",
+      "......hhllllllllllllboo...obbo..",
+      ".....llllllllllllllllbbo.obhbo..",
+      "....lllllbbbbbbbbllllllbobbho...",
+      "...obllwebbbbbbbbbbbbbblbohbo...",
+      "..obbleeeelbbbbbbbbbbbhbbboo....",
+      "..obbbeeeehbbbbbbbbbbbbbbboo....",
+      "..obbbbeebbbbboobbbbbbwwwboho...",
+      "..owbbbbbbbbbbobooowwwwwwbohbo..",
+      "..oowwwwwwwwwwohbbowwwwwwbobho..",
+      "...oooooowwwwobhbbowwwwwbobbbbo.",
+      "....owwswwswwobhbowwwwwwo.oboo..",
+      ".....wwwswwswobhboswwwww...o....",
+      "......owwswwsohbbowwwoo.........",
+      "........owwwwohbowwoo...........",
+      "..........oooooooooddo...h......",
+      "....s........o....oodo..h.......",
+      ".....ssssss.........hhhh........",
+      "......................o.........",
+      "................................",
+      "................................",
+      "................................"
+    ]
+  },
+  "raitachi": {
+    "pal": {
+      "o": "#49340c",
+      "d": "#95721c",
+      "b": "#d4ac2d",
+      "l": "#f5d958",
+      "h": "#fff0a4",
+      "w": "#fff9d3",
+      "s": "#c2972d",
+      "e": "#271b05",
+      "a": "#df9b37"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "............oo.........o........",
+      "...........obbo........ooo......",
+      "...........obho.......ohbo......",
+      "...........obhboo.....ohbo......",
+      "...........obbhoo...oohbbo......",
+      "............obollooooohbo.......",
+      "............oooohhllloobo.......",
+      "............oohhllhhooloo.......",
+      "............olwelllllwelo.......",
+      ".....o.....oleeeelllleeelo......",
+      ".....ooo...oleeeehhhheeelo......",
+      "....obbo...oaleehheehhelao......",
+      "....olo.....oahhhheehhhao.......",
+      "...ohlo.....oohhhdhddhhho.......",
+      "...ohhh.......ohhhdhhhh.........",
+      "...hhho......oolhhhhhhoo........",
+      "...hhhbo...ooboolhhhlbooo.......",
+      "...hhbbo..obbbbbohhhhossso......",
+      "..hhhhhho.ohhhbohhhhhossho......",
+      "...hhhhhboooboolhhhhhlooo.......",
+      "...hhhhlbbbooodlhhhhhlbbo.......",
+      "....hhhhhhlbbdblhhhhhbbbo.......",
+      ".....ohhhbbbodollhhhlbbo........",
+      ".......hoooo.ooollhlooo.........",
+      ".............obbooobobboo.......",
+      "............ohbbbbooobhbo.......",
+      "............oooooo..oooooo......",
+      "................................",
+      "................................",
+      "................................"
+    ]
+  },
+  "kokejyu": {
+    "pal": {
+      "o": "#0a1a0e",
+      "d": "#12301a",
+      "s": "#275c35",
+      "b": "#3f8a45",
+      "l": "#79c479",
+      "h": "#c8e88a",
+      "w": "#e9f5b8",
+      "e": "#f7dc64",
+      "n": "#514226",
+      "m": "#9a8050"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      ".......omo............onosss....",
+      ".....swsss............osshls....",
+      ".....shhhso..........onslls.....",
+      ".....sshsmo.o...b....onslss.....",
+      ".......ssmo.obo.booo.onss.......",
+      "..oo.....ooobbbowbllono.....oo..",
+      "..osoo..oollhbbbbbllobooo.oobo..",
+      "..oshsooollbbbbbbbhbbbllloblbo..",
+      "...oshsolhhhbbbbbbbbbbbbbolbo...",
+      "...oshsohhhhhbbbbbbbhbbbblobo...",
+      "...ossolhhhhlllllllllbbbblobo...",
+      "...ossohwhoeollllllloeobbbobo...",
+      "....ooohhhoholllllllohobbboo....",
+      "......olhhooollllllloooblo......",
+      "......olhllllldddddllbbbbo......",
+      "......olslllllldddllbssblo......",
+      "......oosssllsssdllssbsblo......",
+      "......obosbsssbbbsssbsllobo.....",
+      ".....obbbsbbbbssssbbbsoosbo.....",
+      ".....obbbsbbbbbbbbbbbssssso.....",
+      "......obblsbssssbbbssssssso.....",
+      "......obblsslllhssssssssso......",
+      ".......obbllllhllllsssssso......",
+      ".......oobbbllhllllsssssso......",
+      ".......osoobblbbbbbsbbbooo......",
+      ".......olssoooooooooooosso......",
+      ".......oooooo.......oooooo......",
+      "................................",
+      "................................"
+    ]
+  },
+  "tsutazaru": {
+    "pal": {
+      "o": "#0a1a0c",
+      "d": "#123016",
+      "s": "#245e31",
+      "b": "#37853f",
+      "l": "#6dc06d",
+      "h": "#d8ee96",
+      "w": "#f2f9ce",
+      "e": "#e8bd52",
+      "v": "#99c95a",
+      "n": "#8ca467"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      ".................dddd...........",
+      ".............oo.dvhvd...........",
+      "...........oollodvhdlo..........",
+      "..........olhlldvhvdllo.........",
+      "........oohhhhhldhdllllooo......",
+      ".......obohhhhlldvdllblosso.....",
+      "..dd..obbolhhhhlldhhhbbolsso....",
+      "..dhddobollhhhhhlhhhhhbbllso....",
+      "..dvvvobolhhwoohhhwoohhbolso....",
+      "..dvvvobolhhooohhhooohhbolso....",
+      "..ddvdobolhhoobhhhoobhhbosso....",
+      "..oodbooollhhhhssshhhhbboso.....",
+      ".oobbhbbolllhhhssshhhhbooo......",
+      ".obbhbbbboolhdhhhhhddho.........",
+      ".obbhbbbbo.olhdddddhhlo.........",
+      ".obbhooo.ooooohhhhhhooo.........",
+      ".obbhooo.oobbwhhhhhnbboo........",
+      ".obbh...ooobhwhhhhhnnnoooo......",
+      ".obbb..oolobhwhhhhhnnnobovo.....",
+      ".oobbo.ovlobhwhhhhhnnbovvvoo....",
+      ".oobbbbovvvbhhhhhhnnnbovbddo....",
+      "..oobbbboovobhhlllnnnosobdhdd...",
+      "..oooooooobbobbhhhnbosssdlld....",
+      "...o.ooooobbbobbbbbossssddld....",
+      ".........obbbbooooosssssood.....",
+      ".........oohoooo..oloooo........",
+      "..........oooooo..oooooo........",
+      "................................",
+      "................................"
+    ]
+  },
+  "fukurou": {
+    "pal": {
+      "o": "#171026",
+      "d": "#211539",
+      "s": "#392658",
+      "b": "#5b3f96",
+      "l": "#8e6fd0",
+      "h": "#d3c2ff",
+      "w": "#f2eaff",
+      "e": "#f2e46a",
+      "a": "#ba973f",
+      "p": "#b799e6"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      ".....o.....................o....",
+      ".....ooo.................ooo....",
+      ".....olhoo..oooooooo...ooblo....",
+      ".....olhhlobllllllllboolbblo....",
+      ".....olhhhlbbbbbbbbbblllbblo....",
+      "......ohhlssssbbbbbssssbbbo.....",
+      "......ohlshhhhsbbbsppppslbo.....",
+      "......olshhwoohsbspwooopslo.....",
+      "......oshhoeooohsppoooeopso.....",
+      "......oshoeeooeospoeooeeoso.....",
+      ".......shoeeooeospoeooeeos......",
+      "......oshhoeooohsppoooeopso.....",
+      ".....obbshhooodedddpooopssso....",
+      ".....obboshhhhsdadsppppsosso....",
+      "....oblbhbssssldadlssssssbsso...",
+      "....oblbhpollllldlllllolsbsso...",
+      "...oblbhpolhlhlllhlhlllossblso..",
+      "...oblbhpollhlllllhllllossbsso..",
+      "...oblbhbolllllllllllllossbsso..",
+      "...oblhboblllhlhlllhlhlsossbso..",
+      "....olhbobblllhlllllhlssossbo...",
+      "....obooobblllllllllllssoooso...",
+      "....oo...obblllhlhlllsss...oo...",
+      "..........obbbllhlbbbss.........",
+      "...........oobbbbbsbooo.........",
+      ".......ooeao.ooooooo.eoo........",
+      ".......ooooaa.......e.oooo......",
+      "......................oooo......",
+      "................................"
+    ]
+  },
+  "yoigumo": {
+    "pal": {
+      "o": "#130b22",
+      "d": "#1c1030",
+      "s": "#30204e",
+      "b": "#4b2f7e",
+      "l": "#7d5cb8",
+      "h": "#b79bdc",
+      "w": "#e0d0ff",
+      "e": "#f2e46a",
+      "a": "#ad7d45",
+      "p": "#ece1fa"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      ".....o.....................o....",
+      "...oboo.......ooooo.......ooso..",
+      "...obboo....oolllllob....oosso..",
+      "..obooboo.oolllelellbbo.oosooso.",
+      "..obooohooopeolllllpeobooloooso.",
+      "......ooboleeollllleeobbsoo.....",
+      ".......ooolooolllllooobboo......",
+      "........oolooosllssoooboo.......",
+      "..ooooo.ooollllsslllbbboo.oooo..",
+      ".obbbhoooooodddllldddbboooolsso.",
+      ".obooobboolldwdllldhdssoossooso.",
+      ".obo..ooobllldooooodssssooo.oso.",
+      ".obo...oobllsdwwpwwdssssoo..oso.",
+      ".obo....obllpppppwwssssso...oso.",
+      "........obblswwwppppsssso.......",
+      ".....oooobbbswwwpwhssssboooo....",
+      "....ohbbobbbshwwphhssssbosslo...",
+      "....booooobbbsswphsssssooooso...",
+      "...obo...obbbbbspsssssso...os...",
+      "...bo.....obbbbbsbsssso....oso..",
+      "..obo...oooobbbbbssssoooo..oso..",
+      "..bo...oobbooobbbbbsoossoo..os..",
+      ".obo...ohoo...ooooo...oolo..oso.",
+      ".......obo.............oso......",
+      "....ooobo...............osooo...",
+      "....bbbbo...............ossss...",
+      "....oooo.................oooo...",
+      "................................"
+    ]
+  },
+  "mubaku": {
+    "pal": {
+      "o": "#21102e",
+      "d": "#2a1338",
+      "s": "#492956",
+      "b": "#6b3f8c",
+      "l": "#a878c8",
+      "h": "#d4abea",
+      "w": "#f0d8ff",
+      "e": "#ffe066",
+      "a": "#ae77b8",
+      "p": "#fff2ff"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "..........ooo.......ooo.........",
+      "....w....olllo.....obbbo........",
+      "........ollwloooo.obbhbbo.......",
+      ".....h..olwoolllloooohhbo..e....",
+      "........olollllleelllohbo.......",
+      "........ololllleelllllobo.......",
+      ".........olhhlleellllbbo....h...",
+      ".........ohhhhleeellbbbbo.......",
+      "........ohhhhhhleeelpoobo.......",
+      "........ohhpoohlllllooobo.......",
+      ".......ollhooolllllloeoobo......",
+      ".......ollloeolllllbbbbosbo.....",
+      "........ooooooollllbbbbossbo....",
+      ".......oohhhhholllbbbblossso....",
+      "......ohwhlllholslssblohsssso...",
+      "......ohhllllhollslllohasssso...",
+      "......ossllllhooooooophasssso...",
+      "......ossllhhowwwwwpphhasssooo..",
+      ".......ohhhhhowwwwwhhhhbssssooo.",
+      "........ooooooawwwwhhhaooossloo.",
+      "...........ollawwwhhhabbbos..oo.",
+      "...........olllaaaaaaabbbos..oo.",
+      "...........ollloobbbbobbbo......",
+      "...........olllo.ooooobbbo......",
+      "...........owooo.....ohooo......",
+      "...........ooooo.....ooooo......",
+      "................................",
+      "................................"
+    ]
+  },
+  "oborogi": {
+    "pal": {
+      "o": "#2b0e29",
+      "d": "#3d1030",
+      "s": "#722052",
+      "b": "#a03878",
+      "l": "#e070b0",
+      "h": "#f69dca",
+      "w": "#ffd0ee",
+      "e": "#fff0a0",
+      "a": "#c8859f",
+      "p": "#fff0fa"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "........o................o......",
+      "........ooo.............oo......",
+      "........olsoo..........obo......",
+      ".........ohslo.........obo......",
+      ".........ohsllo.......obwo......",
+      ".........olhslo......olbblo.....",
+      ".........olhsllo..ooolbbblo.....",
+      ".........olhsslloowlllbbblo.....",
+      "..........ossslwwwpwlbbbblo.....",
+      "..........olllslwwwwwlplblo.....",
+      "..o.......oloplllwwwleoolho.....",
+      "..owo.....owooeoowwooollhho.....",
+      "..owbo....owwlloolwlolhhhllo....",
+      "...wwo....ewwwwllllldhhhhwlo....",
+      "...wwho...owwwwwwddddhhhhlo.....",
+      "...wwwo...olwwwwwwddhhhhlo......",
+      "...wwwho...oolwwwwsdhssllo......",
+      "...wwhhoo...oolwwwwsslloo.......",
+      "..ohwhhhboooblooolllloobo.......",
+      "..ohhhhhhbbobhllsoooowwso.......",
+      "..obhhhhhhbollhlswwpwhwso.......",
+      "..obhlhhhbbollhllswpwhsbo.......",
+      "...obbllbblolllllswwhwsoo.......",
+      "...obbbbllbbolllllsshsllo.......",
+      "....ooobbbooohhhhllbssllo.......",
+      ".......ooo..ohhhhlbbbollo.......",
+      "............owhhhooooowlo.......",
+      "............ooooo....oooo.......",
+      "................................",
+      "................................"
+    ]
+  }
+};
+
+const BACK_SPRITES = {
+  "homura": {
+    "pal": {
+      "o": "#35150f",
+      "s": "#87301d",
+      "b": "#d34b25",
+      "l": "#f48237",
+      "h": "#ffb24d",
+      "f": "#ffe386",
+      "w": "#fff0bc",
+      "n": "#1e1419",
+      "r": "#a51f20",
+      "c": "#ffcf9b"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "..........................o.....",
+      "..............ooo.........o.....",
+      "..............ollo.......oho....",
+      "..............ohho.......oho....",
+      "..............ohhlo.oo..ohhlo...",
+      "..............olhooolhooohhho...",
+      "..............ooohhhhhhhoohho...",
+      "..............ollhhhhhhhhholo...",
+      ".............olllshhhhhllblo....",
+      ".......o....ollsfsllssllbbbo....",
+      ".......oo...olshhssshsllbbbbo...",
+      "....o.obo...olshfshhfhsssbbbo...",
+      "....o.obbo.oloshfhhffhshsbbo....",
+      "...oboolboolloshfffffhfsbbbo....",
+      "...oloblbollhshhffffffhsbbbo....",
+      "..oblolflbohlshhffffffssblo.....",
+      "..ollbfflbollssssfhhfslbooo.....",
+      "..olllffllolllllbfhssooooso.....",
+      "..oblffflllolllblshsssssosso....",
+      "...ollfffflbollbllssssssosso....",
+      "...obbffflllboblllssssssosso....",
+      "....obblfbbbolblllsbssssssso....",
+      ".....obbbooolllllssssssboso.....",
+      "......oooolllllllsssssbbbo......",
+      "........osshobbbssssshhhbo......",
+      "........olllloooooo.ohhhbo......",
+      "........olllllo.......ooo.......",
+      "........ooooooo.................",
+      "................................",
+      "................................"
+    ]
+  },
+  "youcho": {
+    "pal": {
+      "o": "#371514",
+      "s": "#792622",
+      "b": "#bd4028",
+      "l": "#ed6b32",
+      "h": "#ffae45",
+      "f": "#ffdb70",
+      "w": "#f7e5b8",
+      "d": "#bda67a",
+      "n": "#251b23",
+      "m": "#e89a6e"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      ".................o..............",
+      ".................o..............",
+      "................oloooo......o...",
+      "............o...oloooo.....olo..",
+      "............oo.olhloooo....olo..",
+      "............oo.olhlollooooollo..",
+      "............ololhhllhlohhlloo...",
+      "...........ohlolhhfhhlooohooo...",
+      ".........o.ohhlhhhfhhlllohhboo..",
+      ".........ooohhlfhfffhhllolobbo..",
+      "........oolhhhffhfffhhlollobbbo.",
+      ".......ollohhffffffhhllolobbboo.",
+      "......oblholhhffffhhlloolobbboo.",
+      "......oblbollhfffllooollloobowo.",
+      "....oobbbbbolhhfllobbbbbllloowo.",
+      ".oollooobbbboohllolbbbbbbboowo..",
+      ".oololoobbbbblolollllbbbssoooo..",
+      ".ooloooobbbbsslollllllbsssosso..",
+      ".ool.obbobbsllsslllllsssssosso..",
+      "..olooollbllhhhslllsssssssssso..",
+      "...olllbbllllllhslssssssssoso...",
+      ".......obllllllhssssssssssoo....",
+      ".......ooobbbbbbsssssssossso....",
+      ".......ossoobbbssssssoonnnno....",
+      "......onnnnnoooooooo..onnnno....",
+      "......onnnnno.........ooo.......",
+      "......ooooooo...................",
+      "................................",
+      "................................"
+    ]
+  },
+  "iwaushi": {
+    "pal": {
+      "o": "#2b251d",
+      "s": "#65513d",
+      "b": "#8c7254",
+      "l": "#b19770",
+      "h": "#d2be93",
+      "w": "#ede2bd",
+      "g": "#9c9683",
+      "d": "#756f60",
+      "n": "#181b1b",
+      "e": "#e9b44d",
+      "p": "#b39a85"
+    },
+    "px": [
+      "................................",
+      "................................",
+      ".....oo.....................o...",
+      "....ogo.....................ooo.",
+      "....oww.....................oho.",
+      "....owwo....................oho.",
+      ".....www.........ooo.......ohho.",
+      ".....owwo......oobssooo....hhgo.",
+      ".....owwwooo..obssllssbo..hhho..",
+      "......owwwwwwobslhhhhlsboohho...",
+      ".......ogggwgobbhllllllsbbogo...",
+      "........oooggobbslllllssssoo....",
+      "........obsoobbbbssssssssso.....",
+      ".......obslhobbbbsbbbsssso......",
+      "......obshhlloobbbsbsssssoo.....",
+      ".....obshllllllobbsbsssssobo....",
+      "....obbslllllllloobssssboobo....",
+      "....obbsllllllssbbooosboosobo...",
+      "....obbsssssssssssbbboosssobo...",
+      "....obbbbssbbbbbbsbbossbbssoo...",
+      ".....obssbllllbbbbsbobbssbooo...",
+      ".....obsllbbbblobbsosssssbooso..",
+      ".....obbsbbbbblobbbosssssoboso..",
+      ".....obbsbbbbblobbossssssoboso..",
+      "......oobsbbbblobbosssssobosoo..",
+      ".......oossssbolosboosoooooo....",
+      ".......osoobbsslobbbbobosso.....",
+      ".......onnnoooooooooooonnno.....",
+      ".......onndnno.obso.onndnno.....",
+      ".......ooooooo.oossooooo........",
+      ".................oo.............",
+      "................................"
+    ]
+  },
+  "saikaku": {
+    "pal": {
+      "o": "#24272b",
+      "s": "#55585c",
+      "b": "#85868a",
+      "l": "#aaa9a6",
+      "h": "#d2cfc4",
+      "w": "#f3e9cd",
+      "n": "#121a22",
+      "e": "#edc779",
+      "d": "#777467",
+      "g": "#393f46"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "............................oo..",
+      "............................oo..",
+      "...................oo.......oo..",
+      "..................obo..o...owo..",
+      "..................obho.oo..owo..",
+      "..................obhooooooowo..",
+      "..............oooooboobowooowo..",
+      "............oobbbboobblowooowo..",
+      "..........oossssssoolllowoohwo..",
+      "........oosshhhhllsoblloohohhwo.",
+      ".......osshhllllllobblllloohhwo.",
+      "......oslhllllllllogbblbbssohho.",
+      ".....obslllllllllllogbbbbssoho..",
+      "....obslllllllllllosogbbssssoo..",
+      "...obbbsslllllllssosboggssssso..",
+      "...obbbbbsssssssbosbssoobsssso..",
+      "...obbbsssbbbssbbossssssosbooo..",
+      "...obbboblllbbbssosssssssoooso..",
+      "....oooblbbbllbbsosssssssoboso..",
+      "...oobbbbbbbbbbbosssssssobboso..",
+      "...obsbbbbbbbbbsooosssoobbooo...",
+      "...obossbbbbbbbsbbbooobbboo.....",
+      "...oo.oosbbbbsssbbbbbbboo.......",
+      "...oooosossssbbbbbbbbboso.......",
+      "...oooollooooooooooooohho.......",
+      ".....oollsllo.....ohhshho.......",
+      "......ooooooo.....oooo..........",
+      "................................",
+      "................................"
+    ]
+  },
+  "doryu": {
+    "pal": {
+      "o": "#302317",
+      "s": "#62442b",
+      "b": "#956a40",
+      "l": "#bd925e",
+      "h": "#d9b983",
+      "w": "#f1dfb5",
+      "d": "#a89b84",
+      "n": "#201b1c",
+      "p": "#d1a783",
+      "c": "#f6ecd4"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      ".................o..............",
+      "................obo.............",
+      "................obo...o.........",
+      "...............oblboooo.........",
+      "............o..oblboblbo........",
+      "............oooblllbllbo........",
+      "...........ooblblhlllllbo.o.....",
+      "......o...oobllllllllllbooo.o...",
+      "...o.oo.oobobbhllhhlllbboow.oo..",
+      "...o.ow.oolobbbhhlllllbobodooo..",
+      "..ocoowooblobbbllllllbbobodocoo.",
+      "..ocoodoblllobbblbbbbbossooodoo.",
+      "...odoooblhloobbbbbbboossoboooo.",
+      "...oooobllllllhobbboossssobbboo.",
+      "..ollloblllllhllobolsssssobbboo.",
+      "..ollloblllllhlllbllsssssobbbbo.",
+      "...ollobllhlllhlblllbssssobbbo..",
+      "...obloblllhllllblllsbsssosbso..",
+      "...ooboblllhlllllbllbssssooooo..",
+      ".....oobbllllllllbllbssss.......",
+      ".......obbllhllllllssssso.......",
+      "........obllllllllslsssbo.......",
+      "........obbllllblssssssoo.......",
+      "........oobbbbbbbbssssooso......",
+      "........osooooobbbsboossso......",
+      "........ohhhhobooooohhhhho......",
+      "........ooooooobbooooooooo......",
+      "...............oo...............",
+      "................................"
+    ]
+  },
+  "sarou": {
+    "pal": {
+      "o": "#3c2d20",
+      "s": "#7d5d35",
+      "b": "#ad854b",
+      "l": "#d5ac6e",
+      "h": "#ebce98",
+      "w": "#fff0c5",
+      "n": "#1d2021",
+      "e": "#e49f35",
+      "d": "#ae9775",
+      "c": "#d58f4a"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "..............oo..........o.....",
+      ".............obno.........nno...",
+      ".............onnn........onno...",
+      ".............onnno.......onno...",
+      ".............onnnnoooo..onhno...",
+      "..............ohnoolhlooonhbo...",
+      "..............ooolhhhhhloobo....",
+      "..............olhhhhhhhhhloo....",
+      "..............ollhhhhhhhlblo....",
+      ".............olllhhhhhhhbbblo...",
+      ".............olllshlhllbbbbbo...",
+      ".............osllssslssbbbbbo...",
+      "....o........lssshhhshsbbbbo....",
+      "...oh......ollshhhhhhhhsbbbo....",
+      "...oh.....ollshhwhhhhhhsssbo....",
+      "..obho....ollshhhwhshhhhsloo....",
+      "..ohwh...obllsshhhssshhhsoso....",
+      "..ohwho..ooblllsshssssssoosso...",
+      "..ohhwhoobbolllllssslssssosso...",
+      "..obhwhhhhbbohlllssslssssosso...",
+      "..obhhwwhlllbolllsslsssssosso...",
+      "...obllhllllbbollsslsssssoso....",
+      "...obblllllllbbolssssssssoo.....",
+      "....oobbblbbboolllsssssobo......",
+      "......oobbbohoobbbbbsohhhbo.....",
+      "........ooohhhhooooo.ohwhbo.....",
+      "..........ohwhho.......ooo......",
+      "..........oooooo................",
+      "................................",
+      "................................"
+    ]
+  },
+  "shiogame": {
+    "pal": {
+      "o": "#0a2635",
+      "d": "#15516b",
+      "b": "#2f85ae",
+      "l": "#5ebcdb",
+      "h": "#a9e8eb",
+      "w": "#e3f5e9",
+      "s": "#4e382b",
+      "m": "#80603c",
+      "c": "#ae8952",
+      "g": "#d8b974",
+      "e": "#071821"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      "................................",
+      ".........................ooo....",
+      ".......................oohhho...",
+      "......................olllllbo..",
+      "............gggggggs..ollllllo..",
+      "..........ggsssccgccssblllllbo..",
+      "........ggssggggggggggssllllbo..",
+      ".......gsmsggggggggggccssbbbbo..",
+      ".......ossggggggggggcccssoooo...",
+      "......ossssccgccccccccssmsoddo..",
+      "......ssccscccccccccccsmcssbdo..",
+      "...ooosgggcsccccccccccsmcssobbo.",
+      "..obbosccgcsssccccccsssmmcsobo..",
+      "..oblosccgcsmsssccssscsmmcsodo..",
+      ".oblbosccgssmmmsssscggcsmmsoo...",
+      ".obbboscccsmmmmmssggccgsmsso....",
+      "..obbosccsmmmmmmssccccgcssso....",
+      "..oooossssmmmmmmssccccccsso.....",
+      "......ossmmmmmmmsscccccssso.....",
+      ".......ssssmmmmmssccccsssoo.....",
+      ".......ossssmmssmssscccmsddo....",
+      ".....oobsccssssssssccmmssbddo...",
+      ".....obllbsccccccccmmssdddbbdo..",
+      ".....olbbboosssssssss..oooodo...",
+      ".....obbbo.....obo.........oo...",
+      ".....oooo.......o...............",
+      "................................",
+      "................................"
+    ]
+  },
+  "soukou": {
+    "pal": {
+      "o": "#082432",
+      "d": "#164c69",
+      "b": "#287da4",
+      "l": "#57b4d3",
+      "h": "#9fdfeb",
+      "w": "#e4f2f3",
+      "s": "#a2c4cf",
+      "e": "#07151f",
+      "r": "#a95565"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "..................o.............",
+      ".................ohoo...........",
+      ".................ohbo.ooooo.....",
+      "................olhboobbbbbo....",
+      "...............oblhbobblhhlbo...",
+      "...............olllbolhhllllbo..",
+      "...............olllbohlbhbbbbo..",
+      "...............olllbboblbbbbdo..",
+      "..............oobllbbobbbbbddo..",
+      ".............obbolllbdobbbddo...",
+      ".............oblolbbdobbbdddo...",
+      "............obllodddbbbbdddodo..",
+      "............oblloobbbbbddsobbo..",
+      "..........oobllllbbbbdddsddddoo.",
+      "........oobobllllbbbdddsdoooo...",
+      "........obbollllbbbdddsd........",
+      "........oblolllbbbdddso.........",
+      "..oo...oblobhllbdddsso..........",
+      "..oboo.oblobbooddsso............",
+      "...olbooboobbodooo..............",
+      "...oblloobbobboddo..............",
+      "...obbbdlbbboboodo..............",
+      "....oobdddbbbo..oo..............",
+      "......ooddbbbo..................",
+      ".......odddbo...................",
+      "........dddo....................",
+      "........oo......................",
+      "........o.......................",
+      "................................"
+    ]
+  },
+  "rainen": {
+    "pal": {
+      "o": "#453208",
+      "d": "#8b6819",
+      "b": "#c8a12c",
+      "l": "#f0d357",
+      "h": "#fff0a0",
+      "w": "#fff9d1",
+      "e": "#241900",
+      "s": "#a47f29",
+      "a": "#d88e39"
+    },
+    "px": [
+      "................................",
+      "................................",
+      ".............................o..",
+      ".............................h..",
+      "........................oooooh..",
+      ".......o............oooo.hhhh...",
+      ".......ho..ooo...ooobblohoo.....",
+      "........hoohhhooobbbhhohlllo....",
+      ".........hh...hhohhhllllhllbooo.",
+      "............oobhhllllllllllohho.",
+      "...........obbhllllllhhhbbbssh..",
+      "..........obllllllllhhhbbbbsho..",
+      "..........obllllllhhhhbbbbssho..",
+      ".........obllllllhhhhbbbbbssoho.",
+      ".....ooooobwlllllhhhhhbbbssso...",
+      "....obbbobllllllhhhhhbbbbsolo...",
+      "....obhboblllllhhhhhbbbbsssoll..",
+      "...obhbboblllllbbhhbbbbsssssool.",
+      "...obhbbobllllbbhhdbbbssdsosool.",
+      "....obhhbobllbbbhdbbsssdsoslsol.",
+      "....obbboobllbdddbbsssdsosslsol.",
+      ".....ooo.oblbbbbssssddbooosoool.",
+      ".........oobssssssddsoo...o.ol..",
+      "........obbobssssdsbo......ol...",
+      ".......obbbbosbbbooo............",
+      ".......obhbbloooo...............",
+      "......obhbbbblbbbo..............",
+      ".....obbhboooblbbo..............",
+      "......oboo...oobbo..............",
+      "......oo.......oo...............",
+      "................................",
+      "................................"
+    ]
+  },
+  "fuen": {
+    "pal": {
+      "o": "#142b42",
+      "d": "#23486e",
+      "b": "#397db2",
+      "l": "#75bfdf",
+      "h": "#b3e4ed",
+      "w": "#e9f3f6",
+      "s": "#aac9dc",
+      "g": "#eebc48",
+      "a": "#9e7628",
+      "e": "#081822"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      "............................oo..",
+      "..oo.......................odo..",
+      "..obo.....................odbo..",
+      "..olbo..........oool......obbo..",
+      "..ollbo........hhhhll....obbdo..",
+      "..obllo.......olllllll..odbbdo..",
+      "..obllbo.....oblllllbboodbbbdo..",
+      "..ohbllbo....obbbbbbbbodbbbdlo..",
+      "..obhlllbo...obbbbbbbdobbbbldo..",
+      "...ohblllloo.oodbbbbddbbbbldo...",
+      "...obhbllllbolldbddbbbbbddldo...",
+      "....odbbllllollldbbddbbddldo....",
+      "....odhbblhobllldlllboddlodo....",
+      ".....odhobloblllllllbodlodo.....",
+      "......dbhoboblhllhhlboldoo......",
+      "......oddobobdlhhlldboooo.......",
+      ".......obdoobddlllddbooo........",
+      "........oooobdbddbbdbo..........",
+      "...........oobdbbddbo...........",
+      "............obdddddbo...........",
+      "............oodddddo............",
+      "............oldooobdo...........",
+      "...........odldo.obdo...........",
+      "...........olddo.odbo...........",
+      "...........oloo...obo...........",
+      "..........ooo......ooo..........",
+      "..........o..........o..........",
+      "................................",
+      "................................"
+    ]
+  },
+  "ungei": {
+    "pal": {
+      "o": "#213c54",
+      "d": "#416989",
+      "b": "#6d9fbd",
+      "l": "#9bcada",
+      "h": "#c9e8ec",
+      "w": "#eff8f2",
+      "s": "#aacdd8",
+      "e": "#112a3b",
+      "a": "#6aa4b9"
+    },
+    "px": [
+      "................................",
+      ".........................bbb....",
+      ".....................bbwwwwwb...",
+      "....................bwwwwwwwb...",
+      "....................bhhwwwbb....",
+      ".....................bbbb.......",
+      "......................obb.......",
+      "...................ooobbbooo....",
+      ".................oobbhbblllbo...",
+      "...............ooblohlbblllbo...",
+      "..............oblhoholllllllbo..",
+      "............ooblhohhobbbhbbbbo..",
+      "...........obllhlobbhobbbbbbbo..",
+      "...........obllllobbhobbbbbbdo..",
+      "..........obllllobbbobbbbbbddo..",
+      "..........obllllooooobbbbbdddo..",
+      ".........obllllbbbbbbbbbbdddddo.",
+      ".........oblllbbbbbbbbbbddddbdo.",
+      ".........oblllbbbbbbbbdddddobdo.",
+      "....o.....oblbbbbbbbbddddsodoo..",
+      "..ooboo...oblbbbbbbdddddso.o....",
+      "...ohbboo.obbbbbddddddsso.......",
+      "...obhbbboobbddddddddso.........",
+      "....obhhbdbobddddddsso..........",
+      "....obbbhddobddddsso....h.......",
+      ".....oobbdddoooooo......h.......",
+      ".......oohddbobhbo....hh........",
+      "...s....obdddooboo..hh..........",
+      "....ssss.odddooo................",
+      ".........oboo...................",
+      ".........oo.....................",
+      "................................"
+    ]
+  },
+  "raitachi": {
+    "pal": {
+      "o": "#49340c",
+      "d": "#95721c",
+      "b": "#d4ac2d",
+      "l": "#f5d958",
+      "h": "#fff0a4",
+      "w": "#fff9d3",
+      "s": "#c2972d",
+      "e": "#271b05",
+      "a": "#df9b37"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "...............o.......o........",
+      "..............obo......ooo......",
+      ".............obdo.....osdo......",
+      ".............oddbo....osdo......",
+      ".............oddbo.oooodso......",
+      ".............obdoohhhhooso......",
+      "..............oobhlllllllo......",
+      ".....ooo......oolllllllllbo.....",
+      ".....owo......oblllllllllsbo....",
+      "....olbo......obbllbbbbbssssso..",
+      "....olbo......obblbbbbssssssbo..",
+      "...olbbo.......obbbbbbsssssso...",
+      "...ohbo........obddbbsddsbbbo...",
+      "...ohhh........ohobdddbbbboo....",
+      "...ohho.......oblhoooooooo......",
+      "...hhhbo......oblhhhllbbosoo....",
+      "...hhhhh......oblhhhllbboslo....",
+      "...hhhhh.....oobhhhhhlbboslo....",
+      "...ohhhboo..obobhhhhllbboslo....",
+      "....hhhhhhooobdbllhlllbbosso....",
+      "....ohhhhhbbobdolhhllbbdoso.....",
+      ".....ohhhlllobdolhlllbbobo......",
+      "......oohbbbobdooollbolobo......",
+      "........oooooobdooolobosoo......",
+      ".............obbddoobbosssoo....",
+      "............obbbbbdddbosslso....",
+      "............oblllbbooooosssoo...",
+      ".............obbbbbo....ooo.....",
+      ".............oooooo.............",
+      "................................"
+    ]
+  },
+  "kokejyu": {
+    "pal": {
+      "o": "#0a1a0e",
+      "d": "#12301a",
+      "s": "#275c35",
+      "b": "#3f8a45",
+      "l": "#79c479",
+      "h": "#c8e88a",
+      "w": "#e9f5b8",
+      "e": "#f7dc64",
+      "n": "#514226",
+      "m": "#9a8050"
+    },
+    "px": [
+      "................................",
+      ".........................o......",
+      "............omo.........oonss...",
+      ".........swssmo.........osshls..",
+      ".........shhhsmo.......oonslls..",
+      "..........shssmo.......onosls...",
+      "..........ss.oomoooooo.ono.s.o..",
+      ".......oo...ooomolllllono..ooo..",
+      ".......oloo.ohooolllllooooohbo..",
+      ".......oslsohhhhllllllbbllobbo..",
+      ".......osslohhhhbllllbbbbbobbo..",
+      ".......ossohhhhhlblllbbbbbloo...",
+      "........osolhhhllblllbbbbbbo....",
+      ".........oolhhhlblllbbbbbbbo....",
+      ".........osossllbssbbbsssbo.....",
+      ".........osolssssbbsssbbslo.....",
+      "........oslhosbbbbbbbbbbso......",
+      ".......obshlhssbbbbbbbbbsoo.....",
+      ".......osllhllsbbsssbbssoso.....",
+      "......obsllhllsssbsossossso.....",
+      "......obslllsssbssbssssssso.....",
+      "......obbssslsssbbbbbsssssso....",
+      "......obbslllllsblbbbbssssso....",
+      ".......obshsssssbblbbsssssbo....",
+      ".......obslshhhhsblbbssssboo....",
+      ".......obsshllllssbbbssssboo....",
+      "......osoossssssobbsssssboso....",
+      "......osbboosoonosssssbbooo.....",
+      ".......olbbboooobbbsbooobbo.....",
+      "........ooooooooooooooooooo.....",
+      "................................",
+      "................................"
+    ]
+  },
+  "tsutazaru": {
+    "pal": {
+      "o": "#0a1a0c",
+      "d": "#123016",
+      "s": "#245e31",
+      "b": "#37853f",
+      "l": "#6dc06d",
+      "h": "#d8ee96",
+      "w": "#f2f9ce",
+      "e": "#e8bd52",
+      "v": "#99c95a",
+      "n": "#8ca467"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "..................dddd..........",
+      "...............ooodvhvd.........",
+      ".............oolldvhvvd.........",
+      "............ollllddvvdloooo.....",
+      ".........oooolhhhhlddbblobso....",
+      "........ollolhhwhhlllbbbobbso...",
+      ".......olllohhhhhblllbbbbobso...",
+      ".......ollolhhhhhlblbbbbbobso...",
+      "...dd..ollolhhhhllblbbbbbosso...",
+      "...dhddoblolhhhlllblbbbbboso....",
+      "...dvvvvobbohllllbllbbbbboo.....",
+      "...odvvvdooolllllbllbbbblo......",
+      "...oddvdbooollssllsssbbbo.......",
+      "..ooobd.oboooosbssbbbssooo......",
+      "..oobo...bobbbsbbbbbbbsosooo....",
+      "..ooh..oboobbsbbbbbbbsosssooo...",
+      "..ooh..ooobbbssbbbbbbssoosssoo..",
+      "..ooh..ooobblllssbbssssssossoo..",
+      "..ooh...oobblllhlssbsssssosooo..",
+      "..oobh..ooobllhlllbbssssvssoo...",
+      "..oooh...vobblhllbbbssssvvvvo...",
+      "...oobo..vvvvlllbblsssssllddo...",
+      "...ooobb.hhhvblbbblssssblldhdd..",
+      "....oooobhhhhbbbbblssssosdlld...",
+      "......ooooobboobbbssssossddld...",
+      ".......oo.olllloooooobbbbood....",
+      "...........ooooo.....ooooo......",
+      "...........ooooo.....ooooo......",
+      "................................",
+      "................................"
+    ]
+  },
+  "fukurou": {
+    "pal": {
+      "o": "#171026",
+      "d": "#211539",
+      "s": "#392658",
+      "b": "#5b3f96",
+      "l": "#8e6fd0",
+      "h": "#d3c2ff",
+      "w": "#f2eaff",
+      "e": "#f2e46a",
+      "a": "#ba973f",
+      "p": "#b799e6"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      ".....o.....................o....",
+      ".....ooo.................ooo....",
+      ".....olhoo..ooooooooo...oblo....",
+      ".....olhhloollllllllbooobblo....",
+      ".....olhhhlhhhhhllllbbblbblo....",
+      "......olhhhhhhhhllllbbbbbbo.....",
+      "......olhhhhhlhhllslbbsbbbo.....",
+      "......olhhhhhhlhlllsbsbbbbo.....",
+      "......ollhhhhhllllllsbbbbbo.....",
+      "......ollhhshlllllllbbbbbbo.....",
+      ".......ollsbsslllsssbbbbblo.....",
+      "......oollsbbbsssbbbsssbloo.....",
+      ".....ollosbblbblllbbllslobbo....",
+      ".....olbbossbllbbbllbsoossbo....",
+      ".....olbbbbbssbbbbbbbsssssbo....",
+      "....olhbbbbbbbssbbbssssssslbo...",
+      "....olbhbbbbhbbosssslsssslsbo...",
+      "....olbbhbhhbblooobssllslssbo...",
+      "....ollbbhbbblobobobssslssbbo...",
+      ".....olhbbbhlobbobsoblssslbo....",
+      ".....olbhbhlobbbobssoblslsbo....",
+      ".....olllhlobbbbossssoblbbbo....",
+      "......olooobbbbbbsssssooobo.....",
+      "......oo...oobbbbssssso..oo.....",
+      "...........oooooosooooo.........",
+      ".......ooaaaoolbbhsboaaa........",
+      ".......ooooo..oobhboo.oooo......",
+      "................ooo...oooo......",
+      "................................"
+    ]
+  },
+  "yoigumo": {
+    "pal": {
+      "o": "#130b22",
+      "d": "#1c1030",
+      "s": "#30204e",
+      "b": "#4b2f7e",
+      "l": "#7d5cb8",
+      "h": "#b79bdc",
+      "w": "#e0d0ff",
+      "e": "#f2e46a",
+      "a": "#ad7d45",
+      "p": "#ece1fa"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "...............o................",
+      "...............o.......oo.......",
+      "................ooooooo.........",
+      "...............ohhlllboo........",
+      "..............ohllhhlsbbo..o....",
+      "....o........olllllllssbbooobo..",
+      "..oloo.......olllllllssssobbbo..",
+      "..ollloo.....obllllllssssoooobo.",
+      ".olooohoo....oooooollsssboo.obo.",
+      ".olo.ooloo..oobbbbbossssoo......",
+      "......oolooolllssbbbssoooo......",
+      ".......oloblllshhllllssoo.oo....",
+      ".....ooooolwlshhllllllssoooloo..",
+      "..oolhooolllshhwllllllsssbbobbo.",
+      ".olloollolhshwwllllllllssoooobo.",
+      ".olo..ooblsppwwllllllllsso..obo.",
+      ".olo...oblshwppllllllllsso..obo.",
+      ".olo...oblshwwwwllllllssso..obo.",
+      ".olo...obbshwppwllllllssso......",
+      ".......obbsppwwwwllllssssooo....",
+      ".....oooobshhwwwwwwwhssssbblo...",
+      "....oohlobbshhhwwwhhsssso..ob...",
+      "....oloo.obbshhphhppssso...obo..",
+      "...oloo..obbbshhpphsssso....ob..",
+      "..oolo....oobbssssssssoboo..obo.",
+      "..oloo...ooloooobbooo.oolo..obo.",
+      "..loo.oooohoossoooosso.oobooobo.",
+      ".olo..llllooosso..osso..obbbb...",
+      "......ooo....oo....oo....oooo...",
+      "................................"
+    ]
+  },
+  "mubaku": {
+    "pal": {
+      "o": "#21102e",
+      "d": "#2a1338",
+      "s": "#492956",
+      "b": "#6b3f8c",
+      "l": "#a878c8",
+      "h": "#d4abea",
+      "w": "#f0d8ff",
+      "e": "#ffe066",
+      "a": "#ae77b8",
+      "p": "#fff2ff"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "................................",
+      ".....w...........oo.......oo....",
+      "...........e....ohlo.....olbo...",
+      "...............ohhhlooo.olllbo..",
+      "......h........ohhoollloolllbo..",
+      "............h..ololllhllloobbo..",
+      "...............olohhhhlllblobo..",
+      "................ohhhlllllbblo...",
+      "................hhhhhlllbbbbo...",
+      ".............aaolhhhhlllbbbbbo..",
+      "..........oaawwolhhhlllbbbbooo..",
+      ".........oawwwwollhllllbbbbobo..",
+      "........obapppwwollllllbbbbobho.",
+      ".......obapppppwolssllbssbbobho.",
+      "......obbapppppwwosbsssbsblobho.",
+      ".....obbawpppppwwhsbbbbbbsoobh..",
+      ".....obbawwpppwwwhhsbbbbbsbbho..",
+      ".....obbawwwwwwwwhhsssbbssobbo..",
+      ".....obbawpwwwwwhhhhhsssssooo...",
+      ".....obbbawpwwwhhhhhasssssobo...",
+      ".....obboawpwwhhhhhhsssssbobo...",
+      "......ooolwwwwhhhhhasssssobbo...",
+      "......oolooawwhhhhhassssoobbo...",
+      "......oolobbawhaaasssssssoooo...",
+      "......oolobbbaabbbssssosso......",
+      ".......oloooobbbbbbsoohsso......",
+      ".......ooohbboooooo..ooooo......",
+      ".........oooooo.................",
+      "................................",
+      "................................"
+    ]
+  },
+  "oborogi": {
+    "pal": {
+      "o": "#2b0e29",
+      "d": "#3d1030",
+      "s": "#722052",
+      "b": "#a03878",
+      "l": "#e070b0",
+      "h": "#f69dca",
+      "w": "#ffd0ee",
+      "e": "#fff0a0",
+      "a": "#c8859f",
+      "p": "#fff0fa"
+    },
+    "px": [
+      "................................",
+      "................................",
+      "...........o...............o....",
+      "...........ooo............oo....",
+      "...........olhoo.........oso....",
+      "............obhlo.......osso....",
+      "............olhllo.....olbso....",
+      "............olbllo..ooolsslo.w..",
+      "............olbblloolllssslo....",
+      ".............olbhhhhllblsslo....",
+      "..........e..olhhhhbllbbbbbo....",
+      ".............ohhhhhlblbbbbbb....",
+      ".............ohhhhhlbbbbbbbbo...",
+      "..oo........ollhhhhlbbbbbbbbbo..",
+      "..owoo......oslhlllblbbbbbbblo..",
+      "..owpwo.....ossslllsssbbssbbo...",
+      "...wwpwo....oswwssswwwsswsboo...",
+      "...owpwo...oswpwwwwwwhhhhso.....",
+      "...owpwwo..osswppwhhhhhhwso.....",
+      "...owpwwo.obblsswwhhhhhhsso.....",
+      "...owpwwloobblhlsshsbssssso.....",
+      "..owwwwwbooblllllbsbssssssso....",
+      "..owwwwbbooollloobbbssssssso....",
+      "..olwwwbbbloooollobbssssssso....",
+      "..ollwbbbblllllllobbsssssso.....",
+      "...olbhbbbbbbbbbllobsssssoo.....",
+      "...ollbhhbbhhblllobbssssboo.....",
+      "....oolbbhhbblllobbbsboooso.....",
+      "......ooblllllloooooooolsso.....",
+      "........ooooooooo.....ooooo.....",
+      "................................",
+      "................................"
+    ]
+  }
+};
+
+/* ================= pixel field ================= */
+/* Native 384 × 216 pixel field. All marks use integer fillRect calls.
+   Decorative randomness is private and never consumes the battle's RNG. */
+function drawField(canvas){
+  const W = 384, H = 216;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+  let seed = 0x67b38ac1;
+  const rand = n => {
+    seed = (Math.imul(seed,1664525) + 1013904223) >>> 0;
+    return Math.floor(seed / 4294967296 * n);
+  };
+  const rect = (x,y,w,h,c) => {
+    ctx.fillStyle = c;
+    ctx.fillRect(Math.floor(x),Math.floor(y),Math.floor(w),Math.floor(h));
+  };
+  const ellipse = (cx,cy,rx,ry,c) => {
+    for(let y=-ry; y<=ry; y++){
+      const dx = Math.floor(rx * Math.sqrt(Math.max(0,1-y*y/(ry*ry))));
+      rect(cx-dx,cy+y,dx*2+1,1,c);
+    }
+  };
+  const poly = (points,c) => {
+    const top=Math.min(...points.map(p=>p[1])), bottom=Math.max(...points.map(p=>p[1]));
+    for(let y=top;y<=bottom;y++){
+      const cuts=[];
+      for(let i=0;i<points.length;i++){
+        const a=points[i],b=points[(i+1)%points.length];
+        if((a[1]<=y+.5&&b[1]>y+.5)||(b[1]<=y+.5&&a[1]>y+.5)){
+          cuts.push(a[0]+(y+.5-a[1])*(b[0]-a[0])/(b[1]-a[1]));
+        }
+      }
+      cuts.sort((a,b)=>a-b);
+      for(let i=0;i+1<cuts.length;i+=2){
+        const x=Math.ceil(cuts[i]);
+        rect(x,y,Math.floor(cuts[i+1])-x+1,1,c);
+      }
+    }
+  };
+  const line=(x0,y0,x1,y1,c)=>{
+    const dx=Math.abs(x1-x0),dy=-Math.abs(y1-y0),sx=x0<x1?1:-1,sy=y0<y1?1:-1;
+    let err=dx+dy;
+    for(;;){
+      rect(x0,y0,1,1,c);
+      if(x0===x1&&y0===y1)break;
+      const e=err*2;
+      if(e>=dy){err+=dy;x0+=sx;}
+      if(e<=dx){err+=dx;y0+=sy;}
+    }
+  };
+
+  // A stepped twilight palette, with sparse one-pixel transition dithering.
+  const sky=["#121b32","#18243b","#203048","#293d50","#344b58","#405a60"];
+  sky.forEach((c,i)=>rect(0,i*17,W,17,c));
+  for(let y=15;y<99;y+=17){
+    const band=Math.floor(y/17);
+    for(let x=(band%2)*2;x<W;x+=4) rect(x,y,1,1,sky[Math.min(band+1,5)]);
+    for(let x=2-(band%2)*2;x<W;x+=4) rect(x,y+2,1,1,sky[band]);
+  }
+  for(let i=0;i<49;i++){
+    const x=rand(W),y=4+rand(66);
+    if(x>303&&x<351&&y<53)continue;
+    rect(x,y,1,1,i%4===0?"#b3c9c8":"#738e9f");
+    if(i%13===0){rect(x-1,y,3,1,"#a8bcc6");rect(x,y-1,1,3,"#a8bcc6");}
+  }
+  // Pixel moon and its stepped aureole.
+  ellipse(327,28,19,19,"#263c4d");
+  ellipse(327,28,16,16,"#3b5159");
+  ellipse(327,28,13,13,"#9fafa2");
+  ellipse(326,27,12,12,"#d8d8b7");
+  ellipse(324,25,9,10,"#e9e5c5");
+  rect(322,19,4,2,"#c5c9ac"); rect(320,21,3,3,"#d0d2b4");
+  rect(331,28,4,3,"#c3c9af"); rect(328,33,3,2,"#c3c9af");
+  rect(318,29,2,2,"#f3edce");
+  // Low broken clouds make the sky feel spacious without masking silhouettes.
+  [[24,47,34],[79,38,25],[209,31,26],[279,58,23],[350,50,28]].forEach(([x,y,w])=>{
+    rect(x,y,w,1,"#46606b");rect(x+7,y-1,w-13,1,"#3c5363");
+    rect(x+4,y+1,w+9,1,"#30495c");
+  });
+
+  // Distant ridges and a closer jagged range.
+  poly([[0,81],[17,72],[35,77],[60,57],[77,65],[98,45],[127,70],[152,58],[180,77],[210,53],[238,72],[262,58],[289,78],[314,67],[338,80],[363,65],[384,76],[384,108],[0,108]],"#2b4254");
+  poly([[0,90],[25,81],[43,88],[66,74],[91,84],[116,63],[139,83],[159,75],[181,91],[204,77],[225,84],[251,70],[273,85],[302,77],[325,88],[354,76],[384,89],[384,110],[0,110]],"#264450");
+  poly([[98,45],[107,59],[115,67],[106,63],[101,59],[95,61]],"#4d626c");
+  poly([[210,53],[219,66],[210,62],[203,66]],"#4b6069");
+  // The forest uses tiered foliage instead of blurred blobs.
+  function fir(x,y,h,c,lit){
+    rect(x-1,y,2,h+3,"#243f40");
+    poly([[x,y-h],[x-4,y-h+10],[x-2,y-h+10],[x-8,y-h+20],[x-5,y-h+20],[x-12,y+1],[x+12,y+1],[x+6,y-h+19],[x+9,y-h+19],[x+3,y-h+9],[x+5,y-h+9]],c);
+    line(x-3,y-h+10,x,y-h+4,lit);
+    line(x-7,y-h+20,x-3,y-h+15,lit);
+    line(x-10,y-1,x-6,y-7,lit);
+  }
+  for(let x=-5;x<W+12;x+=13)fir(x,96+rand(5),18+rand(15),"#1b3b40","#315354");
+  for(let x=2;x<W+12;x+=25)fir(x,103+rand(4),19+rand(19),"#193936","#34534a");
+  // A small ruined moon gate behind the clearing.
+  rect(146,70,7,30,"#263b3e");rect(174,68,8,32,"#263b3e");
+  rect(146,69,5,28,"#506461");rect(174,67,5,30,"#506461");
+  rect(144,65,11,5,"#61716a");rect(172,63,11,5,"#61716a");
+  rect(149,60,28,5,"#4e625f");rect(152,58,22,3,"#6d7b6d");
+  rect(155,62,15,3,"#253f3e");rect(147,77,3,2,"#849178");
+  rect(175,74,3,2,"#859077");rect(146,90,7,3,"#385447");
+  line(176,80,178,84,"#2b4240");line(178,84,176,89,"#2b4240");
+  rect(145,96,12,3,"#6b7866");rect(171,96,13,3,"#687666");
+
+  // Clearing: banded grass, irregular gentle contours, depth-scaled texture.
+  rect(0,103,W,113,"#254a3f");
+  poly([[0,103],[71,99],[147,101],[224,98],[307,101],[384,98],[384,115],[292,112],[200,115],[117,110],[0,116]],"#3b5b4c");
+  poly([[0,125],[63,119],[128,125],[212,119],[284,123],[384,117],[384,146],[310,141],[242,147],[143,140],[61,145],[0,139]],"#315442");
+  poly([[0,159],[67,152],[131,158],[210,151],[295,158],[384,149],[384,182],[293,177],[208,185],[124,177],[43,184],[0,175]],"#294c3b");
+  poly([[0,194],[73,189],[151,197],[220,188],[309,197],[384,191],[384,216],[0,216]],"#1f4136");
+  // A meandering old path links the two arenas.
+  poly([[221,105],[234,108],[195,124],[186,132],[168,141],[143,156],[131,160],[118,158],[148,140],[169,129],[183,119]],"#3c5447");
+  for(let i=0;i<610;i++){
+    const x=rand(W),y=103+rand(113),near=y>162;
+    const colors=near?["#315744","#3b5f46","#183d32","#44684b"]:["#46654f","#345643","#547159","#2b4c3e"];
+    rect(x,y,1+rand(near?4:3),1,colors[rand(colors.length)]);
+    if(i%4===0)rect(x+1,y-1,1,1,colors[1]);
+  }
+
+  // Flat combat patches: soil, a broken stone lip, tiny chips, and sparse grass.
+  function platform(cx,cy,rx,ry){
+    ellipse(cx,cy+3,rx+2,ry+2,"#173b32");
+    ellipse(cx,cy,rx,ry,"#829079");
+    ellipse(cx,cy+1,rx-1,ry-1,"#454e43");
+    ellipse(cx,cy-1,rx-4,ry-2,"#6c7360");
+    ellipse(cx,cy-2,rx-8,ry-4,"#767b65");
+    for(let i=0;i<95;i++){
+      const x=rand(rx*2)-rx,y=rand(ry*2)-ry;
+      if(x*x/((rx-6)*(rx-6))+y*y/((ry-2)*(ry-2))<1){
+        rect(cx+x,cy+y,1+rand(3),1,i%3===0?"#89907a":i%3===1?"#5c6756":"#717a64");
+      }
+    }
+    // Flagstone seams along the lip, interrupted by weathered gaps.
+    for(let x=-rx+8;x<rx-6;x+=14){
+      const y=Math.floor(ry*Math.sqrt(1-x*x/(rx*rx)));
+      line(cx+x,cy+y-3,cx+x+2,cy+y,"#374d3d");
+      rect(cx+x-2,cy-y,3,1,"#a2aa8a");
+    }
+    for(let i=0;i<15;i++){
+      const x=rand(rx*2)-rx;
+      const y=Math.floor(ry*Math.sqrt(1-x*x/(rx*rx)));
+      const by=cy+(i%2?y:-y);
+      line(cx+x,by,cx+x-1,by-3,"#416444");
+      line(cx+x+1,by,cx+x+2,by-2,"#6a8456");
+    }
+  }
+  platform(284,112,65,10);
+  platform(100,177,80,12);
+
+  // Small broken stones and moonlit wildflowers around the arena.
+  function stone(x,y,w){
+    poly([[x,y],[x+2,y-3],[x+w-2,y-4],[x+w+1,y],[x+w-1,y+2],[x+1,y+2]],"#203d35");
+    poly([[x+1,y-1],[x+3,y-4],[x+w-2,y-4],[x+w,y-1]],"#7b8874");
+    rect(x+3,y-3,Math.max(1,w-5),1,"#a0a58a");
+    rect(x+2,y,Math.max(1,w-3),1,"#526450");
+  }
+  [[20,121,9],[176,107,6],[353,136,11],[210,158,7],[177,196,9],[40,204,7],[327,205,10],[7,162,8]].forEach(p=>stone(...p));
+  const flowers=[[15,139],[51,116],[197,144],[242,137],[363,164],[154,201],[306,151],[29,194],[237,208],[373,199]];
+  flowers.forEach(([x,y],i)=>{
+    rect(x,y,1,4,"#547348");rect(x-2,y+2,2,1,"#6d8653");
+    rect(x-1,y-1,3,1,i%3===0?"#b5b0d0":"#c4bd8c");
+    rect(x,y-2,1,3,i%3===0?"#e0c8db":"#e4d5a1");
+    rect(x,y-1,1,1,"#d7b875");
+  });
+  // Foreground tufts frame the scene; openings keep the nearer monster clear.
+  for(let x=-3;x<W;x+=6){
+    const y=211+rand(6),h=3+rand(7);
+    line(x,y,x-2,y-h,"#173a30");line(x+1,y,x+2,y-h-2,"#173a30");
+    line(x+2,y,x+5,y-h+1,"#2a503a");rect(x+2,y-h-1,1,2,"#58754e");
+  }
+  // Fireflies are fixed pixels, not a timer, and cannot alter battle timing.
+  [[34,103],[122,113],[207,102],[346,91],[371,121],[188,165],[14,184]].forEach(([x,y])=>{
+    rect(x-1,y,3,1,"#60774e");rect(x,y-1,1,3,"#60774e");rect(x,y,1,1,"#d1ce81");
+  });
+}
+
+
+/* ================= monsters ================= */
+const SPECIES = [
+  {id:"homura",  n:"焔犬",   t:"炎", hp:120,atk:105,def:70, spd:95, aff:"岩"},
+  {id:"shiogame",n:"潮亀",   t:"水", hp:160,atk:75, def:115,spd:45, aff:"岩"},
+  {id:"kokejyu", n:"苔獣",   t:"草", hp:140,atk:85, def:95, spd:65, aff:"水"},
+  {id:"raitachi",n:"雷鼬",   t:"雷", hp:95, atk:100,def:60, spd:135,aff:"影"},
+  {id:"iwaushi", n:"岩牛",   t:"岩", hp:150,atk:95, def:130,spd:40, aff:"草"},
+  {id:"fukurou", n:"影梟",   t:"影", hp:100,atk:125,def:65, spd:110,aff:"雷"},
+  {id:"doryu",   n:"土竜",   t:"地", hp:145,atk:100,def:110,spd:55, aff:"影"},
+  {id:"fuen",    n:"風燕",   t:"空", hp:105,atk:95, def:70, spd:125,aff:"雷"},
+  // ── 各タイプの2体目。1体目と役割が重ならないように振ってある ──
+  {id:"youcho",  n:"熔猪",   t:"炎", hp:155,atk:90, def:110,spd:45, aff:"地"},
+  {id:"soukou",  n:"蒼鮫",   t:"水", hp:105,atk:120,def:65, spd:110,aff:"影"},
+  {id:"tsutazaru",n:"蔦猿",  t:"草", hp:115,atk:105,def:70, spd:110,aff:"影"},
+  {id:"rainen",  n:"雷鯰",   t:"雷", hp:150,atk:95, def:105,spd:50, aff:"水"},
+  {id:"saikaku", n:"砕角",   t:"岩", hp:115,atk:130,def:85, spd:70, aff:"地"},
+  {id:"yoigumo", n:"宵蜘蛛", t:"影", hp:140,atk:85, def:105,spd:70, aff:"草"},
+  {id:"sarou",   n:"砂狼",   t:"地", hp:110,atk:115,def:75, spd:100,aff:"炎"},
+  {id:"ungei",   n:"雲鯨",   t:"空", hp:160,atk:90, def:95, spd:55, aff:"水"},
+  {id:"mubaku",  n:"夢貘",   t:"幻", hp:145,atk:85, def:105,spd:65, aff:"影"},
+  {id:"oborogi", n:"朧狐",   t:"幻", hp:105,atk:115,def:70, spd:110,aff:"雷"}
+];
+/* 各種族が選べる特性は2つ。役割に合うものを割り当ててある */
+const ABIL_OF = {
+  homura:["grit","tempo"],      youcho:["hide","ballast"],
+  shiogame:["ballast","mirror"], soukou:["glutton","tempo"],
+  kokejyu:["regen","quick"],     tsutazaru:["glutton","tempo"],
+  raitachi:["tempo","blur"],     rainen:["ballast","quick"],
+  iwaushi:["hide","mirror"],     saikaku:["grit","spite"],
+  fukurou:["tempo","glutton"],   yoigumo:["blur","ghost"],
+  doryu:["hide","focus2"],       sarou:["grit","breaker"],
+  fuen:["blur","regen"],         ungei:["pressure","heavy"],
+  mubaku:["mirror","glutton"],   oborogi:["blur","tempo"]
+};
+const spec = id => SPECIES.find(s => s.id === id);
+
+/* ステータスバーの正規化。実際の最小〜最大を 18%〜100% に伸ばして差を見せる */
+const STAT_RANGE = ["hp","atk","def","spd"].reduce((o,k)=>{
+  const vs = SPECIES.map(s=>s[k]);
+  o[k] = {min:Math.min(...vs), max:Math.max(...vs)};
+  return o;
+}, {});
+function statPct(key, v){
+  const {min,max} = STAT_RANGE[key];
+  if(max === min) return 100;
+  return Math.round(18 + (v-min)/(max-min)*82);
+}
+/* 習得できる技。own:true の技は一致タイプの個体しか覚えられない
+   （適性で持ち込むと壊れる技を、そのタイプの専売にするための仕組み）。
+   例: 寄生種は草タイプ専用 → 適性が草の岩牛は覚えられない。 */
+const learnable = s => NEUTRAL.concat(BY_TYPE[s.t], BY_TYPE[s.aff])
+  .filter(k => !MOVES[k].own || MOVES[k].t === s.t);
+
+function drawSprite(cv, id, view="front"){
+  const sp = (view === "back" ? BACK_SPRITES : SPRITES)[id];
+  const h = sp.px.length, w = sp.px[0].length;
+  if(cv.width !== w) cv.width = w;
+  if(cv.height !== h) cv.height = h;
+  const ctx = cv.getContext("2d");
+  ctx.imageSmoothingEnabled = false;
+  ctx.clearRect(0,0,w,h);
+  for(let y=0;y<h;y++) for(let x=0;x<w;x++){
+    const c = sp.pal[sp.px[y][x]];
+    if(c){ ctx.fillStyle = c; ctx.fillRect(x,y,1,1); }
+  }
+}
+
+/* ================= build state ================= */
+let party = [];   // {id, moves:[], equip}
+let foeParty = [];
+
+/* ================= 編成の自動保存 =================
+   このHTMLを開いているブラウザだけに保存される（PeerJS通信では送らない）。
+   編成画面を閉じてもタブを閉じても、次に開いたときに続きから始められる。 */
+const DRAFT_KEY = "genju_battle_draft_v1";
+
+function saveDraft(){
+  try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(party)); }catch(e){}
+}
+
+/* 保存されたデータを検証しながら読み込む。壊れていたり仕様が変わっていても
+   読める範囲だけ復元し、読めない部分は静かに捨てる（画面を壊さないため）。 */
+function loadDraft(){
+  let raw;
+  try{ raw = localStorage.getItem(DRAFT_KEY); }catch(e){ return null; }
+  if(!raw) return null;
+  let data;
+  try{ data = JSON.parse(raw); }catch(e){ return null; }
+  if(!Array.isArray(data)) return null;
+  const out = [];
+  for(const e of data.slice(0,3)){
+    if(!e || typeof e.id !== "string") continue;
+    const sp = SPECIES.find(x=>x.id === e.id);
+    if(!sp) continue;                                  // 削除・改名された種族は捨てる
+    const pool = learnable(sp);
+    const moves = Array.isArray(e.moves)
+      ? [...new Set(e.moves.filter(k=>pool.includes(k)))].slice(0,4)
+      : [];
+    const ability = ABIL_OF[sp.id].includes(e.ability) ? e.ability : ABIL_OF[sp.id][0];
+    const equip = EQUIPS[e.equip] ? e.equip : "none";
+    out.push({id:sp.id, moves, equip, ability});
+  }
+  return out.length ? out : null;
+}
+
+function randBuild(){
+  const ids = SPECIES.map(s=>s.id).sort(()=>rng()-.5).slice(0,3);
+  return ids.map(id=>{
+    const pool = learnable(spec(id)).slice().sort(()=>rng()-.5);
+    return {id, moves:pool.slice(0,4), equip:pick(Object.keys(EQUIPS).filter(k=>k!=="none")),
+            ability:pick(ABIL_OF[id])};
+  });
+}
+
+const $ = s => document.querySelector(s);
+const el = (t,c,h) => { const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
+const chip = t => `<span class="t t-${t}">${t}</span>`;
+
+let rosterFilter = "all";
+
+function renderRoster(){
+  const bar = $("#typeFilter");
+  if(bar){
+    bar.innerHTML = "";
+    ["all"].concat(TYPES.filter(t=>t!=="無")).forEach(t=>{
+      const b = el("button","tf"+(rosterFilter===t?" on":""), t==="all" ? "すべて" : t);
+      if(t!=="all") b.classList.add("t","t-"+t);
+      b.onclick = ()=>{ rosterFilter = t; renderAll(); };
+      bar.appendChild(b);
+    });
+  }
+  const box = $("#roster"); box.innerHTML = "";
+  SPECIES.filter(s=> rosterFilter==="all" || s.t===rosterFilter).forEach(s=>{
+    const on = party.some(p=>p.id===s.id);
+    const full = party.length>=3 && !on;
+    const c = el("div","moncard"+(on?" sel":"")+(full?" dim":""));
+    const bars = [["HP","hp",s.hp],["攻","atk",s.atk],["防","def",s.def],["速","spd",s.spd]]
+      .map(([l,k,v])=>`<div class="sb ${k}"><span>${l}</span><i><u style="width:${statPct(k,v)}%"></u></i><b>${v}</b></div>`)
+      .join("");
+    c.innerHTML = `${on?'<div class="pick">選択中</div>':""}
+      <canvas class="sp" width="32" height="32"></canvas>
+      <div class="nm">${s.n}</div>
+      <div class="tl">${chip(s.t)}<span class="aff">適性 ${s.aff}</span></div>
+      <div class="stats">${bars}</div>`;
+    drawSprite(c.querySelector("canvas"), s.id);
+    c.onclick = ()=>{
+      const at = party.findIndex(p=>p.id===s.id);
+      if(at>=0) party.splice(at,1);
+      else if(party.length<3) party.push({id:s.id, moves:[], equip:"none", ability:ABIL_OF[s.id][0]});
+      renderAll();
+    };
+    box.appendChild(c);
+  });
+}
+
+/* 技1件の表示。威力・命中・気力・優先度・効果を省略せず出す */
+function moveRow(m, k, on, disabled, onclick){
+  const pr = m.pri || 0;
+  const badges =
+      (pr>0 ? `<b class="bd pri">先制+${pr}</b>` : pr<0 ? `<b class="bd late">後攻${pr}</b>` : "")
+    + (m.own ? '<b class="bd own">専用</b>' : "");
+  const stat = m.p>0
+    ? `威力 ${m.p}　命中 ${m.acc}　気力 ${m.en}`
+    : `変化技　${m.acc?`命中 ${m.acc}　`:""}気力 ${m.en}`;
+  const row = el("div","mrow"+(on?" on":"")+(disabled?" off":""));
+  row.innerHTML = `
+    <div class="mhead">${chip(m.t)}<span class="mn">${m.n}</span>${badges}
+      <span class="mck">${on?"✓":""}</span></div>
+    <div class="mst">${stat}</div>
+    ${m.d?`<div class="mdesc">${m.d}</div>`:""}`;
+  if(onclick) row.onclick = onclick;
+  return row;
+}
+
+function renderSlots(){
+  const box = $("#slots"); box.innerHTML = "";
+  if(party.length > 1){
+    const o = el("div","ordbar");
+    o.innerHTML = '<span>出す順番</span>' + party.map((p,i)=>
+      `<b class="${i===0?"lead":""}">${i===0?"先発 ":""}${spec(p.id).n}</b>`).join('<i>→</i>');
+    box.appendChild(o);
+  }
+  if(!party.length){
+    box.innerHTML = '<p class="hint">上から3体えらぶと、ここに技・特性・装備の設定が出ます。</p>';
+    return;
+  }
+  party.forEach((p,i)=>{
+    const s = spec(p.id);
+    const d = el("div","slot");
+    if(i===0) d.classList.add("lead");
+    const head = el("div","shead");
+    head.innerHTML = `<canvas class="sp sm" width="32" height="32"></canvas>
+      <div class="sinfo">
+        <div class="sn"><span class="idx">${i===0?"先発":i+1+"番手"}</span> ${s.n} ${chip(s.t)}</div>
+        <div class="ssub">適性 ${s.aff}　H${s.hp} A${s.atk} D${s.def} S${s.spd}</div></div>
+      <div class="ord">
+        <button class="ob" data-mv="-1" ${i===0?"disabled":""} title="上へ">▲</button>
+        <button class="ob" data-mv="1" ${i===party.length-1?"disabled":""} title="下へ">▼</button>
+      </div>
+      <div class="sdone ${p.moves.length===4?"ok":""}">技 ${p.moves.length}/4</div>`;
+    d.appendChild(head);
+    drawSprite(head.querySelector("canvas"), s.id);
+    head.querySelectorAll(".ob").forEach(b=>{
+      b.onclick = ev=>{
+        ev.stopPropagation();
+        const j = i + Number(b.dataset.mv);
+        if(j < 0 || j >= party.length) return;
+        [party[i], party[j]] = [party[j], party[i]];
+        renderAll();
+      };
+    });
+    if(i > 0){
+      const lead = el("button","leadbtn","この子を先発にする");
+      lead.onclick = ()=>{ party.unshift(party.splice(i,1)[0]); renderAll(); };
+      d.appendChild(lead);
+    }
+
+    // 選択中の技
+    const sel = el("div","selrow");
+    for(let n=0;n<4;n++){
+      const k = p.moves[n];
+      const b = el("div","selslot"+(k?"":" empty"));
+      b.innerHTML = k ? `${chip(MOVES[k].t)}<span>${MOVES[k].n}</span>` : `<span class="ph">空き</span>`;
+      if(k) b.onclick = ()=>{ p.moves.splice(p.moves.indexOf(k),1); renderAll(); };
+      sel.appendChild(b);
+    }
+    d.appendChild(sel);
+
+    // タイプ別に技を並べる
+    const pool = learnable(s);
+    const byT = {};
+    pool.forEach(k=>{ (byT[MOVES[k].t] = byT[MOVES[k].t] || []).push(k); });
+    const acc = el("details","mpick");
+    acc.innerHTML = `<summary>技をえらぶ（${pool.length}種）</summary>`;
+    const body = el("div","mbody");
+    [s.t, s.aff, "無"].filter((t,ix,a)=>a.indexOf(t)===ix).forEach(t=>{
+      if(!byT[t]) return;
+      const lbl = t===s.t ? "一致（1.5倍）" : t===s.aff ? "適性" : "汎用";
+      body.appendChild(el("div","mgrp",`${chip(t)} <span>${lbl}</span>`));
+      byT[t].forEach(k=>{
+        const m = MOVES[k], on = p.moves.includes(k);
+        const full = p.moves.length>=4 && !on;
+        body.appendChild(moveRow(m, k, on, full, ()=>{
+          const at = p.moves.indexOf(k);
+          if(at>=0) p.moves.splice(at,1);
+          else if(p.moves.length<4) p.moves.push(k);
+          renderAll();
+        }));
+      });
+    });
+    acc.appendChild(body);
+    d.appendChild(acc);
+
+    // 特性
+    d.appendChild(el("div","count","特性"));
+    const ab = el("div","cards");
+    ABIL_OF[p.id].forEach(k=>{
+      const c = el("div","card"+(p.ability===k?" on":""),
+        `<div class="cn">${ABILITIES[k].n}</div><div class="cd">${ABILITIES[k].d}</div>`);
+      c.onclick = ()=>{ p.ability = k; renderAll(); };
+      ab.appendChild(c);
+    });
+    d.appendChild(ab);
+
+    // 装備
+    d.appendChild(el("div","count","装備"));
+    const eq = el("div","cards");
+    Object.keys(EQUIPS).forEach(k=>{
+      const c = el("div","card sm"+(p.equip===k?" on":""),
+        `<div class="cn">${EQUIPS[k].n}</div><div class="cd">${EQUIPS[k].d}</div>`);
+      c.onclick = ()=>{ p.equip = k; renderAll(); };
+      eq.appendChild(c);
+    });
+    d.appendChild(eq);
+    box.appendChild(d);
+  });
+}
+
+/* 手持ち3体の弱点・打点をまとめて出す */
+function renderCoverage(){
+  const box = $("#coverage");
+  if(!box) return;
+  if(party.length < 1){ box.innerHTML = ""; return; }
+  const mine = party.map(p=>spec(p.id).t);
+  const rows = TYPES.filter(t=>t!=="無").map(atk=>{
+    const hits = mine.filter(d=>eff(atk,d)>1).length;
+    return {atk, hits};
+  }).filter(r=>r.hits>0).sort((a,b)=>b.hits-a.hits);
+  const offense = new Set();
+  party.forEach(p=> p.moves.forEach(k=>{ if(MOVES[k].p>0) offense.add(MOVES[k].t); }));
+  const cant = TYPES.filter(d=> ![...offense].some(a=>eff(a,d)>1));
+  box.innerHTML = `
+    <div class="cov">
+      <div><span class="ct">攻められやすい</span>${rows.length
+        ? rows.map(r=>`${chip(r.atk)}<b>${r.hits}体</b>`).join(" ")
+        : '<span class="ok">目立った弱点なし</span>'}</div>
+      <div><span class="ct">弱点を突けない相手</span>${cant.length
+        ? cant.map(t=>chip(t)).join(" ")
+        : '<span class="ok">全タイプに2倍あり</span>'}</div>
+    </div>`;
+}
+
+function renderAll(){
+  renderRoster(); renderSlots(); renderCoverage(); if($("#btnHost")) syncLobby();
+  const ready = party.length===3 && party.every(p=>p.moves.length===4);
+  $("#btnStart").disabled = !ready;
+  const need = party.length<3
+    ? `手持ちをあと ${3-party.length} 体えらんでください`
+    : party.filter(p=>p.moves.length<4).map(p=>spec(p.id).n+"の技").join(" / ") + " が未設定";
+  $("#buildHint").textContent = ready ? "準備完了。相手はランダム構築のAIです。" : need;
+  saveDraft();
+}
+
+function renderChart(){
+  let h = '<table class="chart"><tr><th>攻＼受</th>';
+  TYPES.forEach(t=>h+=`<th>${t}</th>`); h+="</tr>";
+  TYPES.forEach(a=>{
+    h += `<tr><th>${a}</th>`;
+    TYPES.forEach(d=>{
+      const v = eff(a,d);
+      h += `<td class="${v===0?"x0":v>1?"x2":v<1?"xh":""}">${v===1?"・":v===0?"0":v}</td>`;
+    });
+    h += "</tr>";
+  });
+  $("#chartBox").innerHTML = h+"</table>";
+}
+
+/* ================= battle ================= */
+const LV = 50;
+const PARA_FAIL  = 1/8; // 麻痺で行動できない確率
+const BIND_TURNS = 5;   // 渦潮の拘束ターン数
+const SEED_TURNS = 5;   // 寄生の持続。場に出ている間だけ減る
+const EN_REGEN   = 22;  // ターン終了時の気力回復（気力帯で +10）
+const EN_FOCUS   = 25;  // 「気を溜める」で追加回復する量
+
+/* 一部の装備は、直前に使った技をそのまま繰り返すことを禁じる */
+/* その技を今このターン選べるか。選べない場合は理由文字列を返す */
+function moveLock(u, key){
+  const m = MOVES[key];
+  if(u.encore && u.encore.key !== key)
+    return `反響で ${MOVES[u.encore.key].n} しか出せない（あと${u.encore.turns}）`;
+  if(u.disabled && u.disabled.key === key)
+    return `封技で使えない（あと${u.disabled.turns}）`;
+  if(u.tauntTurns > 0 && m.p === 0)
+    return `挑発で変化技が出せない（あと${u.tauntTurns}）`;
+  if(EQUIPS[u.equip].noStatus && m.p === 0)
+    return `${EQUIPS[u.equip].n}を着ていて変化技を使えない`;
+  if(EQUIPS[u.equip].lock && u.lastMove === key)
+    return `${EQUIPS[u.equip].n}のため連続で使えない`;
+  return null;
+}
+const moveBlocked = (u, key) => !!moveLock(u, key);
+
+/* 実際の消費気力。守るだけは連続使用で倍増する（20→40→80…）。
+   最大気力が100なので、3回目以降は自然に撃てなくなる。 */
+function enCost(u, key){
+  const m = MOVES[key];
+  let c = m.fx === "guard" ? m.en * Math.pow(2, u.guardStreak) : m.en;
+  if(B){                                        // 相手の重圧で余計に消耗する
+    const foe = u.side === "you" ? FOE() : YOU();
+    if(foe && foe !== u && !foe.dead && has(foe, "heavy")) c += 8;
+  }
+  return c;
+}
+function makeUnit(b, side){
+  const s = spec(b.id);
+  const eq = b.equip;
+  return {
+    side, sp:s, id:b.id, name:s.n, type:s.t, equip:eq,
+    ability: b.ability || ABIL_OF[b.id][0],
+    maxhp:s.hp, hp:s.hp, en:100, maxen:100,
+    baseAtk:s.atk, baseDef:s.def, baseSpd:s.spd,
+    moves:b.moves.slice(),
+    rank:{atk:0,def:0,acc:0,spd:0,eva:0},
+    status:null,          // null / "麻痺" / "やけど" ─ 重複しない。交代でも治らない
+    seedTurns:0,          // 寄生種の残り。交代でも消えず、場に出ている間だけ減る
+    statusTurns:0,        // 状態異常の経過ターン。早熟が参照する
+    bindTurns:0, boundBy:null,  // 渦潮による拘束。縛った側が場を離れれば解ける
+    sub:0,                // 身代わりの残り耐久
+    perish:0,             // 滅びの唄の残りターン
+    bond:false,           // 道連れを宣言しているか
+    restTurns:0,          // 静養の反動で動けない残りターン
+    bellUsed:false,       // 癒しの鈴を使ったか
+    encore:null,          // {key,turns} 直前の技しか出せない
+    disabled:null,        // {key,turns} その技だけ出せない
+    tauntTurns:0,         // 変化技を出せない残りターン
+    plannedMove:null,     // このターンに選んだ技。不意打ち・おどかすが参照する
+    actionCancelled:false,// おどかすで潰されたか
+    dmgTaken:0,           // このターンに攻撃で受けたダメージ。仕返しが参照する
+    lastMove:null,        // 直前に使った技。連続使用を禁じる装備が参照する
+    preHitHp:s.hp,        // 直近の被弾直前のHP
+    flinch:false, guarding:false, guardStreak:0,
+    charmUsed:false, dead:false
+  };
+}
+/* ランク補正は2系統。
+   攻撃・防御・素早さ … 2系（±1で ×1.5 / ×0.667）。ダメージ計算を経由するので効きは間接的。
+   命中・回避        … 3系（±1で ×1.333 / ×0.75）。確率に直接掛かるため緩やかにしてある。 */
+const statMul = n => n>=0 ? (2+n)/2 : 2/(2-n);
+const accMul  = n => n>=0 ? (3+n)/3 : 3/(3-n);
+function ATK(u){ let v = u.baseAtk*statMul(u.rank.atk); if(u.equip==="fang") v*=1.2;
+  if(has(u,"grit") && u.hp <= u.maxhp/3) v*=1.5; if(u.status==="やけど") v*=.75; return v; }
+function DEF(u){ let v = u.baseDef*statMul(u.rank.def); if(u.equip==="plate") v*=1.2; if(u.equip==="armor") v*=1.35; return v; }
+function SPD(u){ let v = u.baseSpd*statMul(u.rank.spd); if(u.equip==="wing") v*=1.2; if(u.status==="麻痺") v*=.5; return v; }
+
+/* 場を離れた個体の処理。
+   能力ランク・守り・ひるみは失う。麻痺などの状態異常は持ち越す。 */
+function leaveField(u){
+  const msgs = [];
+  if(has(u,"regen") && !u.dead && u.hp < u.maxhp){
+    const h = Math.max(1, Math.floor(u.maxhp*.25));
+    u.hp = Math.min(u.maxhp, u.hp+h);
+    msgs.push(`は再生で体力を取り戻した (+${h})`);
+  }
+  if(u.rank.atk || u.rank.def || u.rank.acc || u.rank.spd || u.rank.eva) msgs.push("の能力変化は元に戻った。");
+  if(u.seedTurns > 0) msgs.push("は植えられた種を振り落とした。");
+  u.rank = {atk:0, def:0, acc:0, spd:0, eva:0};
+  u.seedTurns = 0;        // 寄生はランク変化と同じく場を離れると消える
+  u.guarding = false;
+  u.flinch = false;
+  u.guardStreak = 0;
+  u.dmgTaken = 0;
+  u.lastMove = null;   // 場に出し直せば連続扱いは切れる
+  if(u.encore || u.disabled || u.tauntTurns) msgs.push("にかかっていた制限は解けた。");
+  u.encore = null; u.disabled = null; u.tauntTurns = 0;
+  if(u.sub > 0){ u.sub = 0; msgs.push("の身代わりは消えた。"); }
+  if(u.perish > 0){ u.perish = 0; msgs.push("は滅びの唄から逃れた。"); }
+  u.bond = false;
+  return msgs;
+}
+
+/* HUDの状態表示 */
+function tags(u){
+  let h = u.status ? `<span class="st-tag st-${u.status}">${u.status}</span>` : "";
+  if(u.seedTurns > 0) h += `<span class="st-tag st-寄生">寄生${u.seedTurns}</span>`;
+  if(isBound(u)) h += `<span class="st-tag st-拘束">拘束${u.bindTurns}</span>`;
+  if(u.encore)   h += `<span class="st-tag st-幻">反響${u.encore.turns}</span>`;
+  if(u.disabled) h += `<span class="st-tag st-幻">封技${u.disabled.turns}</span>`;
+  if(u.tauntTurns > 0) h += `<span class="st-tag st-挑発">挑発${u.tauntTurns}</span>`;
+  if(u.sub > 0)    h += `<span class="st-tag st-身代">身代${u.sub}</span>`;
+  if(u.perish > 0) h += `<span class="st-tag st-滅び">滅び${u.perish}</span>`;
+  const lbl = {atk:"攻", def:"防", acc:"命", spd:"速", eva:"回"};
+  for(const k in lbl){
+    const n = u.rank[k];
+    if(n) h += `<span class="rk ${n>0?"up":"dn"}">${lbl[k]}${n>0?"+":""}${n}</span>`;
+  }
+  return h;
+}
+
+/* ダメージ適用。被弾直前のHPを控えておく（護りの札の発動条件に使う） */
+/* 直接攻撃以外のダメージ。霊体を持っていれば通らない */
+function indirect(u, amount, label){
+  if(has(u, "ghost")){ say(`${nm(u)} は霊体で${label}を受けない。`); return 0; }
+  hurt(u, amount); return amount;
+}
+
+function hurt(u, amount){
+  u.preHitHp = u.hp;
+  u.hp -= amount;
+}
+
+let B = null;
+
+function beginBattle(youTeam, foeTeam, seed, meSide){
+  setSeed(seed);
+  ME = meSide;
+  B = {
+    you: youTeam.map(b=>makeUnit(b,"you")),
+    foe: foeTeam.map(b=>makeUnit(b,"foe")),
+    hazard: {you:{rock:false, sand:false}, foe:{rock:false, sand:false}},
+    yi:0, fi:0, turn:1, over:false, busy:false, pickSeq:0
+  };
+  $("#log").innerHTML = "";
+  ["you","foe"].forEach(sd => (sd==="you"?$("#spYou"):$("#spFoe")).classList.remove("faint","enter","hit"));
+  show("scBattle");
+  say(`<span class="sys">── 相手の手持ち: ${opTeam().map(u=>u.name).join(" / ")}</span>`);
+  if(NET.on) say(`<span class="sys">通信対戦（あなたは ${ME==="you"?"ホスト":"ゲスト"}側）</span>`);
+  say(`ゆけ、${nm(MY())}！`);
+  onEnter(FOE()); onEnter(YOU());
+  paint(true); renderCmd();
+}
+
+function startBattle(){
+  NET.on = false;
+  foeParty = randBuild();
+  beginBattle(party, foeParty, (Date.now() ^ 0x9e3779b9) >>> 0, "you");
+}
+
+/* 内部の陣営は常に「ホスト=you / ゲスト=foe」で固定する。
+   両端末が同じ盤面を同じ順序で計算できるようにするため、
+   どちらの視点かは ME だけが持ち、表示の反転にしか使わない。 */
+let ME = "you";
+const YOU = () => B.you[B.yi];
+const FOE = () => B.foe[B.fi];
+const MY  = () => ME === "you" ? YOU() : FOE();
+const OP  = () => ME === "you" ? FOE() : YOU();
+const myTeam = () => ME === "you" ? B.you : B.foe;
+const opTeam = () => ME === "you" ? B.foe : B.you;
+const myIdx  = () => ME === "you" ? B.yi : B.fi;
+/* 画面上の位置。自分は常に手前(you枠)、相手は奥(foe枠) */
+const screenPos = side => side === ME ? "you" : "foe";
+const pfx = u => u.side === ME ? "" : "相手の";
+const active = side => side === "you" ? YOU() : FOE();
+const sprite = side => screenPos(side) === "you" ? $("#spYou") : $("#spFoe");
+/* ログ表示名。同じ種を両者が使っても取り違えないよう、相手側には接頭辞と色をつける */
+const nm = u => u.side === ME
+  ? `<span class="u-you">${u.name}</span>`
+  : `<span class="u-foe">相手の${u.name}</span>`;
+
+function say(h){
+  const l = $("#log");
+  l.appendChild(el("p",null,h));
+  l.scrollTop = l.scrollHeight;
+}
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
+
+function paint(enter){
+  const y = MY(), f = OP();
+  drawSprite($("#spYou"), y.id, "back"); drawSprite($("#spFoe"), f.id);
+  if(enter){
+    [[y.side,y],[f.side,f]].forEach(([s,u])=>{
+      if(u.dead) return;                       // 伏せたままの枠は登場させない
+      sprite(s).classList.add("enter");
+      setTimeout(()=>sprite(s).classList.remove("enter"), 320);
+    });
+  }
+  $("#youName").innerHTML = `${y.name} ${chip(y.type)}`;
+  $("#foeName").innerHTML = `<span class="pfx">相手の</span>${f.name} ${chip(f.type)}`;
+  $("#youTags").innerHTML = tags(y);
+  $("#foeTags").innerHTML = tags(f);
+  const yp = Math.max(0,y.hp/y.maxhp), fp = Math.max(0,f.hp/f.maxhp);
+  $("#youHp").style.width = (yp*100)+"%";
+  $("#foeHp").style.width = (fp*100)+"%";
+  $("#youEn").style.width = (y.en/y.maxen*100)+"%";
+  $("#youHp").style.background = yp<.25?"var(--red)":yp<.5?"var(--gold)":"var(--green)";
+  $("#foeHp").style.background = fp<.25?"var(--red)":fp<.5?"var(--gold)":"var(--green)";
+  $("#youHpV").textContent = `HP ${Math.max(0,Math.ceil(y.hp))}/${y.maxhp}  気力 ${Math.floor(y.en)}`;
+  $("#foeHpV").textContent = `HP ${Math.max(0,Math.ceil(f.hp))}/${f.maxhp}`;
+  $("#youEq").innerHTML = eqLine(y);
+  $("#foeEq").innerHTML = eqLine(f);
+  renderTeams(); renderStrip();
+}
+
+const eqLine = u =>
+  (abilOff(u) ? `<span class="no">✦ ${ABILITIES[u.ability].n}（無効）</span>` : `✦ ${ABILITIES[u.ability].n}`)
+  + (u.equip === "none" ? ' <span class="no">/ 持ち物なし</span>' : ` / ◈ ${EQUIPS[u.equip].n}`);
+
+/* 両陣営の手持ちと持ち物の一覧 */
+/* 6体の状態を常に見える形で出す */
+function renderStrip(){
+  const box = $("#strip");
+  if(!box) return;
+  const cell = (u, act) => {
+    const pct = Math.max(0, u.hp/u.maxhp);
+    const col = u.dead ? "#3a4266" : pct<.25 ? "var(--red)" : pct<.5 ? "var(--gold)" : "var(--green)";
+    const marks = (u.status?`<i class="mk s">${u.status[0]}</i>`:"")
+      + (u.sub>0?'<i class="mk b">代</i>':"")
+      + (u.perish>0?`<i class="mk p">${u.perish}</i>`:"")
+      + (isBound(u)?'<i class="mk w">縛</i>':"")
+      + (u.encore||u.disabled||u.tauntTurns>0?'<i class="mk r">封</i>':"");
+    return `<div class="cell${act?" act":""}${u.dead?" out":""}">
+      <div class="cn">${u.name}${chip(u.type)}</div>
+      <div class="cbar"><i style="width:${pct*100}%;background:${col}"></i></div>
+      <div class="cft">${u.dead?"戦闘不能":Math.ceil(u.hp)+"/"+u.maxhp}<span class="mks">${marks}</span></div>
+    </div>`;
+  };
+  box.innerHTML =
+    `<div class="srow"><span class="slb w-foe">あいて</span>${opTeam().map(u=>cell(u,u===OP())).join("")}</div>
+     <div class="srow"><span class="slb w-you">じぶん</span>${myTeam().map(u=>cell(u,u===MY())).join("")}</div>`;
+}
+
+function renderTeams(){
+  const box = $("#teamBox");
+  if(!box) return;
+  const row = (u, isAct, sideLbl, cls) => {
+    const ab = abilOff(u)
+      ? `<span class="no">✦ ${ABILITIES[u.ability].n}（無効）</span><i>無垢の仮面で封じられている</i>`
+      : `✦ ${ABILITIES[u.ability].n}<i>${ABILITIES[u.ability].d}</i>`;
+    const eq = u.equip === "none"
+      ? '<span class="no">持ち物なし</span>'
+      : `◈ ${EQUIPS[u.equip].n}<i>${EQUIPS[u.equip].d}</i>`;
+    const st = u.dead ? "戦闘不能"
+      : `HP ${Math.max(0,Math.ceil(u.hp))}/${u.maxhp}${u.status?" ・"+u.status:""}${u.seedTurns>0?" ・寄生"+u.seedTurns:""}`;
+    return `<div class="trow${u.dead?" out":""}${isAct&&!u.dead?" act":""}">
+      <span class="who ${cls}">${sideLbl}</span>
+      <span class="nmx">${u.name}</span>${chip(u.type)}
+      <span class="mvd" style="font-family:var(--mono);font-size:9.5px;color:var(--dim)">${st}</span>
+      <span class="eq">${ab}${eq}</span></div>`;
+  };
+  const hzLine = (side, lbl, cls) => {
+    const hz = B.hazard[side];
+    const on = Object.keys(hz).filter(k=>hz[k]).map(k=>HAZARD_NAME[k]);
+    return `<div class="trow"><span class="who ${cls}">${lbl}</span>
+      <span class="mvd" style="font-family:var(--mono);font-size:9.5px;color:${on.length?"#f0937d":"var(--dim)"}">
+      足元: ${on.length ? on.join(" / ") : "なし"}</span></div>`;
+  };
+  let h = '<div class="team">';
+  h += hzLine(ME,"じぶん","w-you") + hzLine(ME==="you"?"foe":"you","あいて","w-foe");
+  myTeam().forEach(u => h += row(u, u===MY(), "じぶん", "w-you"));
+  opTeam().forEach(u => h += row(u, u===OP(), "あいて", "w-foe"));
+  box.innerHTML = h + "</div>";
+}
+
+function renderCmd(){
+  const y = MY(), f = OP(), box = $("#cmd");
+  box.innerHTML = "";
+  let anyMove = false;
+  y.moves.forEach(k=>{
+    const m = MOVES[k];
+    const e = m.p>0 ? eff(m.t, f.type) : 1;
+    const pr = m.pri || 0;
+    const prTag = pr > 0 ? `<span class="eff pri">先制+${pr}</span>`
+                : pr < 0 ? `<span class="eff late">後攻${pr}</span>` : "";
+    const stab = m.p>0 && m.t === y.type && e>0 ? '<span class="eff st">一致</span>' : "";
+    const tag = prTag + stab + (
+                m.p===0 && fxNullified(m, f) ? '<span class="eff no">効果なし</span>'
+              : m.p>0 && e===0 ? '<span class="eff no">効果なし</span>'
+              : m.p>0 && e>1   ? '<span class="eff up">ばつぐん</span>'
+              : m.p>0 && e<1   ? '<span class="eff dn">いまひとつ</span>' : "");
+    const cost = enCost(y, k);
+    const lockMsg = moveLock(y, k);
+    const blocked = !!lockMsg;
+    const costTxt = blocked
+      ? lockMsg
+      : (cost > m.en ? `気力 ${cost}（連続${y.guardStreak+1}回目）` : `気力 ${cost}`);
+    const info = blocked ? `<span class="lockmsg">${costTxt}</span>`
+      : `<span class="mvd">${m.p>0 ? `威力 ${m.p}　${costTxt}${m.acc&&m.acc<100?`　命中 ${m.acc}`:""}`
+                                  : `${costTxt}${m.acc&&m.acc<100?`　命中 ${m.acc}`:""}`}</span>`
+        + (m.d ? `<span class="mvx">${m.d}</span>` : "");
+    const b = el("button",null,
+      `<span class="mv"><span class="mvn">${chip(m.t)} ${m.n}${blocked?"":tag}</span>${info}</span>`);
+    b.disabled = blocked || y.en < cost || B.busy;
+    if(!b.disabled) anyMove = true;
+    b.onclick = ()=> resolve({kind:"move",key:k});
+    box.appendChild(b);
+  });
+
+  if(y.encore){
+    // 反響中は技が強制される。溜めることもできず、出せなければ不発
+    const k = y.encore.key;
+    if(!anyMove){
+      const b = el("button","wide",
+        `<span class="mv"><span class="mvn">行動できない</span>
+         <span class="mvd">反響で ${MOVES[k].n} を強制されているが出せない ・ このターンは不発</span></span>`);
+      b.disabled = B.busy;
+      b.onclick = ()=> resolve({kind:"move",key:k});
+      box.appendChild(b);
+    }
+  } else {
+    // 攻撃せず気力を溜める選択肢
+    const full = y.en >= y.maxen;
+    const b = el("button","wide",
+      `<span class="mv"><span class="mvn">気を溜める</span>
+       <span class="mvd">${anyMove ? "" : "出せる技がない ・ "}攻撃しない代わりに気力 +${EN_FOCUS}${full ? "（すでに満タン）" : ""} ・ ターン終了時の回復とは別</span></span>`);
+    b.disabled = B.busy;
+    b.onclick = ()=> resolve({kind:"move",key:null});
+    box.appendChild(b);
+  }
+  const bench = $("#bench"); bench.innerHTML = "";
+  myTeam().forEach((u,i)=>{
+    if(i===myIdx()) return;
+    const bound = isBound(y);
+    const b = el("button",null, u.dead ? `${u.name}<span class="d">戦闘不能</span>`
+      : bound ? `${u.name} に交代<span class="d">渦に巻かれていて交代できない（あと${y.bindTurns}ターン）</span>`
+      : `<span class="bn">${chip(u.type)} ${u.name} に交代</span><span class="d">HP ${Math.ceil(u.hp)}/${u.maxhp}　気力 ${Math.floor(u.en)}</span><span class="d">${eqLine(u)}</span>`);
+    b.disabled = u.dead || bound || B.busy;
+    b.onclick = ()=> resolve({kind:"switch",to:i});
+    bench.appendChild(b);
+  });
+}
+function lockCmd(){ B.busy=true; renderCmd(); }
+
+/* ---- damage ---- */
+function damage(att, def, m){
+  let base = Math.floor(Math.floor(22 * m.p * ATK(att) / DEF(def)) / 55) + 2;
+  let e = eff(m.t, def.type);
+  if(e > 0 && e < 1 && def.equip === "ward") e = 0.75;   // 無効(0)は緩和しない
+  const crit = rng() < 0.0625;
+  if(e === 0) return {dmg:0, e:0, crit:false, stab:false};
+  const stab = m.t === att.type;                 // 自分のタイプの技は1.5倍
+  let d = base * e * (stab?1.5:1) * (crit?1.5:1) * (0.85 + rng()*0.15);
+  if(hasVs(def,"ballast",att) && SPD(att) > SPD(def)) d *= 0.8;   // 重心
+  if(hasVs(def,"hide",att) && e > 1) d *= 0.85;                    // 岩肌
+  if(def.guarding) d *= 0.2;
+  return {dmg:Math.max(1,Math.floor(d)), e, crit, stab};
+}
+
+function popDmg(side, txt, color){
+  const s = $("#stage"), d = el("div","dmg",txt);
+  d.style.color = color || "#fff";
+  const sp = screenPos(side);
+  d.style.left = sp==="you" ? "18%" : "62%";
+  d.style.top  = sp==="you" ? "58%" : "30%";
+  s.appendChild(d);
+  setTimeout(()=>d.remove(),1000);
+}
+/* ================= 技の演出 ================= */
+const FX = {
+  炎:{col:["#ff9450","#ffd66b","#e0542a"], drift:-1, flash:"#7a341655"},
+  水:{col:["#66b6ee","#dfeef5","#2f7fa8"], drift: 1, flash:"#1b4b7355"},
+  草:{col:["#7ed08a","#c8e88a","#3f8a45"], drift:-1, flash:"#245c3355"},
+  雷:{col:["#f4d75e","#fffbc4","#ffffff"], drift: 0, flash:"#fffbc466", bolt:1},
+  岩:{col:["#bab2a4","#8a7f6e","#ded6c4"], drift: 1, flash:"#54514a55", shake:1},
+  影:{col:["#b58cf0","#452a70","#e0d0ff"], drift: 0, flash:"#452a7066", ring:"#b58cf0"},
+  地:{col:["#d59a53","#8a6538","#e8dcc4"], drift: 1, flash:"#6b4a1e55", shake:1},
+  空:{col:["#a8dfe0","#eaf3fa","#3b7cb4"], drift:-1, flash:"#356b6d55", streak:1},
+  幻:{col:["#f09ad8","#ffd0ee","#a03878"], drift: 0, flash:"#6b2a5866", ring:"#f09ad8"},
+  無:{col:["#e9e5d8","#a8b0cc","#8c93b5"], drift: 0, flash:"#3a426655"}
+};
+const FX_POS = {you:{x:26,y:62}, foe:{x:75,y:40}};
+
+function spark(side, type, n){
+  const st = $("#stage"), f = FX[type] || FX.無, pos = FX_POS[screenPos(side)];
+  for(let i=0;i<n;i++){
+    const p = el("div","pt");
+    const a = rng()*Math.PI*2, d = 16 + rng()*30;
+    p.style.setProperty("--dx", (Math.cos(a)*d).toFixed(1)+"px");
+    p.style.setProperty("--dy", (Math.sin(a)*d + f.drift*14).toFixed(1)+"px");
+    p.style.background = f.col[i % f.col.length];
+    p.style.left = pos.x+"%"; p.style.top = pos.y+"%";
+    p.style.animationDelay = Math.floor(rng()*110)+"ms";
+    st.appendChild(p);
+    setTimeout(()=>p.remove(), 800);
+  }
+}
+function ringAt(side, col){
+  const st = $("#stage"), pos = FX_POS[screenPos(side)];
+  const r = el("div","ring");
+  r.style.borderColor = col; r.style.left = pos.x+"%"; r.style.top = pos.y+"%";
+  st.appendChild(r); setTimeout(()=>r.remove(), 620);
+}
+function screenFlash(col){
+  const st = $("#stage"), d = el("div","flashfx");
+  d.style.background = col; st.appendChild(d);
+  setTimeout(()=>d.remove(), 400);
+}
+function shakeStage(){
+  const st = $("#stage");
+  st.classList.add("shake"); setTimeout(()=>st.classList.remove("shake"), 400);
+}
+function streaks(side){
+  const st = $("#stage"), pos = FX_POS[screenPos(side)];
+  for(let i=0;i<4;i++){
+    const l = el("div","streak");
+    l.style.top = (pos.y - 12 + i*8)+"%";
+    l.style.animationDelay = (i*55)+"ms";
+    st.appendChild(l); setTimeout(()=>l.remove(), 600);
+  }
+}
+function boltAt(side){
+  const st = $("#stage"), pos = FX_POS[screenPos(side)];
+  for(let i=0;i<3;i++){
+    const b = el("div","bolt");
+    b.style.left = (pos.x - 6 + i*6)+"%";
+    b.style.animationDelay = (i*45)+"ms";
+    st.appendChild(b); setTimeout(()=>b.remove(), 480);
+  }
+}
+function lunge(side){
+  const c = sprite(side);
+  c.classList.add("lunge");
+  setTimeout(()=>c.classList.remove("lunge"), 320);
+}
+
+/* 技を撃ったときの一連の演出。kind: attack / status / heal / miss */
+function playFx(u, target, m, kind){
+  const t = m.t, f = FX[t] || FX.無;
+  if(kind === "attack"){
+    lunge(u.side);
+    if(f.flash) screenFlash(f.flash);
+    if(f.shake) shakeStage();
+    if(f.bolt)  boltAt(target.side);
+    if(f.streak) streaks(target.side);
+    if(f.ring)  ringAt(target.side, f.ring);
+    setTimeout(()=> spark(target.side, t, m.p >= 100 ? 16 : m.p >= 70 ? 12 : 8), 130);
+  } else if(kind === "status"){
+    ringAt(u.side, f.col[0]);
+    spark(u.side, t, 7);
+  } else if(kind === "heal"){
+    const st = $("#stage"), pos = FX_POS[screenPos(u.side)];
+    for(let i=0;i<9;i++){
+      const p = el("div","pt heal");
+      p.style.left = (pos.x - 7 + rng()*14)+"%";
+      p.style.top  = (pos.y + 6)+"%";
+      p.style.animationDelay = Math.floor(rng()*220)+"ms";
+      st.appendChild(p); setTimeout(()=>p.remove(), 1000);
+    }
+  } else if(kind === "miss"){
+    lunge(u.side);
+  }
+}
+
+function flash(side){
+  const c = side==="you" ? $("#spYou") : $("#spFoe");
+  c.classList.add("hit"); setTimeout(()=>c.classList.remove("hit"),620);
+}
+
+/* ---- AI ---- */
+function aiChoose(){
+  const f = FOE(), y = YOU();
+  const usable = f.moves.filter(k => f.en >= enCost(f, k) && !moveBlocked(f, k));
+  // 交代判断: 今の相手に2倍を取られていて、控えに有利な子がいる
+  if(!isBound(f) && rng() < .35 && eff(y.type, f.type) > 1){
+    const cand = B.foe.map((u,i)=>({u,i}))
+      .filter(o => !o.u.dead && o.i !== B.fi && eff(y.type, o.u.type) <= 1
+                   && o.u.moves.some(k => MOVES[k].p>0 && eff(MOVES[k].t, y.type) > 1));
+    if(cand.length) return {kind:"switch", to:pick(cand).i};
+  }
+  if(f.encore) return {kind:"move", key:f.encore.key};   // 強制。出せなければ不発
+  if(!usable.length) return {kind:"move", key:null};
+  // 撃ちたい大技が気力不足で撃てないなら、溜めて次に備えることがある
+  const wanted = f.moves.filter(k => MOVES[k].p >= 80 && enCost(f,k) > f.en);
+  if(wanted.length && f.en < 40 && f.hp > f.maxhp*0.3 && rng() < .45)
+    return {kind:"move", key:null};
+  const lowHp = f.hp / f.maxhp;
+  let best = null, bestV = -1;
+  usable.forEach(k=>{
+    const m = MOVES[k];
+    let v;
+    if(m.p > 0){
+      v = m.p * eff(m.t, y.type) * (m.acc||100)/100;
+      if(m.t === f.type) v *= 1.5;               // タイプ一致補正
+      if(m.en > f.en * 0.7) v *= 0.8;            // 気力を使い切るのは渋る
+    } else if(m.fx === "heal"){
+      v = lowHp < .45 ? 240 : 10;
+    } else if(m.fx === "guard"){
+      v = (lowHp < .3 ? 90 : 15) * (enCost(f,k) > f.en*0.6 ? 0.3 : 1);
+    } else if(m.fx === "atkup"){
+      v = lowHp > .7 ? 85 : 20;
+    } else if(m.fx === "seedfx"){
+      v = (y.seedTurns > 0 || y.type === "草") ? 3 : 100;
+    } else if(m.fx === "burnsure"){
+      v = (y.status || y.type === "炎") ? 3 : 90;
+    } else if(m.fx === "rootup"){
+      v = lowHp > .5 ? 55 : 15;
+    } else if(m.fx === "soar"){
+      v = f.rank.eva >= 2 ? 10 : 60;
+    } else if(m.fx === "ambush"){
+      // 相手が攻撃してくる方が多いので、そこそこ期待値は高い
+      v = m.p * eff(m.t, y.type) * 0.75;
+    } else if(m.fx === "startle"){
+      v = m.p * eff(m.t, y.type) * 0.35;
+    } else if(m.fx === "counter"){
+      // 選択時点では被弾するか分からない。耐えられる体力があるときだけ狙う
+      v = lowHp > .35 ? 65 : 15;
+    } else if(m.fx === "hzRock" || m.fx === "hzSand"){
+      const key = m.fx === "hzRock" ? "rock" : "sand";
+      const fresh = B.you.filter(u=>!u.dead).length;      // 相手の控えが多いほど価値が高い
+      v = B.hazard.you[key] ? 3 : 55 + fresh*18;
+    } else if(m.fx === "hzClear"){
+      v = (B.hazard.foe.rock || B.hazard.foe.sand) ? 80 : 3;
+    } else if(m.fx === "sub"){
+      v = (f.sub > 0 || f.hp <= f.maxhp/4) ? 3 : (lowHp > .6 ? 95 : 25);
+    } else if(m.fx === "repose"){
+      v = (lowHp < .45 || f.status) ? 200 : 5;
+    } else if(m.fx === "haze"){
+      const setup = Math.max(y.rank.atk, y.rank.def, y.rank.spd, y.rank.eva);
+      v = setup >= 2 ? 120 : 5;
+    } else if(m.fx === "bond"){
+      v = lowHp < .3 ? 130 : 5;
+    } else if(m.fx === "perish"){
+      v = f.perish ? 3 : 70;
+    } else if(m.fx === "pivot"){
+      v = m.p * eff(m.t, y.type) * 1.1;
+    } else if(m.fx === "swapitem"){
+      if(abilOff(f)) v = 140;                                   // 仮面を押し付けたい
+      else if(f.equip === "none" && y.equip !== "none") v = 75;
+      else if(y.equip === "none" && f.equip !== "none") v = 5;
+      else v = 40;
+    } else if(m.fx === "encore"){
+      v = (!y.lastMove || y.encore) ? 3 : (MOVES[y.lastMove].p === 0 ? 130 : 55);
+    } else if(m.fx === "disable"){
+      v = (!y.lastMove || y.disabled) ? 3 : 70;
+    } else if(m.fx === "taunt"){
+      v = y.tauntTurns > 0 ? 3 : 65;
+    } else if(m.fx === "bind"){
+      v = isBound(y) ? 8 : 85;
+    } else {
+      v = 45;
+    }
+    v *= 0.85 + rng()*0.3;
+    if(v > bestV){ bestV = v; best = k; }
+  });
+  return {kind:"move", key:best};
+}
+
+/* ---- turn resolution ---- */
+/* 自分の選択を確定させ、相手の選択と突き合わせてターンを解決する */
+async function resolve(myAct){
+  if(B.over || B.busy) return;
+  lockCmd();
+  let opAct;
+  if(NET.on){
+    NET.send({t:"act", turn:B.turn, act:myAct});
+    waitingMsg("相手の入力を待っています…");
+    opAct = await NET.wait("act:"+B.turn);
+    if(!opAct) return;                       // 切断
+    clearWaiting();
+  } else {
+    opAct = aiChoose();
+  }
+  await takeTurn(myAct, opAct);
+}
+
+async function takeTurn(myAct, opAct){
+  // 内部処理は常にホスト視点(you)で行う
+  const playerAct = ME === "you" ? myAct : opAct;
+  const foeAct    = ME === "you" ? opAct : myAct;
+
+  // 1. 交代は先に処理
+  if(playerAct.kind === "switch"){
+    const out = YOU();
+    say(`${nm(out)} を引っ込めた。`);
+    leaveField(out).forEach(t => say(`<span class="sys">${out.name} ${t}</span>`));
+    B.yi = playerAct.to;
+    say(`ゆけ、${nm(YOU())}！`);
+    paint(true); await sleep(400);
+    await applyHazards(YOU());
+    onEnter(YOU());
+    paint();
+  }
+  if(foeAct.kind === "switch"){
+    const out = FOE();
+    say(`${nm(out)} が引っ込んだ。`);
+    leaveField(out).forEach(t => say(`<span class="sys">相手の${out.name} ${t}</span>`));
+    B.fi = foeAct.to;
+    say(`${nm(FOE())} が現れた！`);
+    paint(true); await sleep(400);
+    await applyHazards(FOE());
+    onEnter(FOE());
+    paint();
+  }
+
+  // このターンの被ダメ記録と、選択した技の記録をリセット
+  YOU().dmgTaken = 0; FOE().dmgTaken = 0;
+  YOU().actionCancelled = false; FOE().actionCancelled = false;
+  YOU().plannedMove = playerAct.kind === "move" ? playerAct.key : null;
+  FOE().plannedMove = foeAct.kind    === "move" ? foeAct.key    : null;
+
+  // 2. 行動順。行動は「決めた瞬間に場にいた個体」に紐づける
+  const acts = [];
+  if(playerAct.kind === "move") acts.push({unit:YOU(), side:"you", key:playerAct.key});
+  if(foeAct.kind === "move")    acts.push({unit:FOE(), side:"foe", key:foeAct.key});
+  await markFaints();          // 設置で交代先が倒れることがある
+  if(B.over) return;
+
+  const pri = k => k ? (MOVES[k].pri || 0) : 0;
+  acts.sort((a,b)=>{
+    const dp = pri(b.key) - pri(a.key);
+    if(dp !== 0) return dp;                       // 守るなどの先制技が先
+    const d = SPD(b.unit) - SPD(a.unit);
+    return d !== 0 ? d : (rng()<.5?-1:1);
+  });
+
+  for(const a of acts){
+    if(B.over) break;
+    // 倒れた個体、および場から下がった個体の行動は消える
+    if(a.unit.dead || active(a.side) !== a.unit) continue;
+    const target = a.side === "you" ? FOE() : YOU();
+    if(target.dead) continue;
+    await doMove(a.unit, target, a.key);
+    await markFaints();
+  }
+
+  if(B.over) return;
+
+  // 3. ターン終了処理
+  await endTurn();
+  await markFaints();          // やけど・寄生でターン終了時に倒れる場合がある
+  if(B.over) return;
+
+  // 4. 交代要員はここで初めて場に出る（同ターン中に殴られない）
+  await sendReplacements();
+  if(B.over) return;
+
+  B.turn++;
+  B.busy = false;
+  paint(); renderCmd();
+}
+
+/* 同じ属性の状態異常は効かない。炎はやけど、雷は麻痺、草は寄生を受け付けない */
+const STATUS_IMMUNE = {"やけど":"炎", "麻痺":"雷"};
+
+const RANK_LABEL = {atk:"攻撃", def:"防御", acc:"命中", spd:"素早さ", eva:"回避"};
+
+/* 能力ランクを下げる。鏡膜での無効化と反骨での反撃をここに集約する。
+   source を渡すと「相手による低下」として扱う（自分で下げる技は対象外）。 */
+function lowerRank(target, key, n, source){
+  const byFoe = source && source !== target;
+  if(byFoe && target.sub > 0){ say(`${nm(target)} の身代わりが守った。`); return false; }
+  if(byFoe && hasVs(target,"mirror",source)){
+    say(`${nm(target)} の鏡膜が能力低下を防いだ！`);
+    return false;
+  }
+  if(target.rank[key] <= -6){ say("これ以上は下がらない。"); return false; }
+  target.rank[key] = Math.max(-6, target.rank[key] - n);
+  say(`${nm(target)} の${RANK_LABEL[key]}が${n>1?"がくんと":""}下がった。`);
+  if(byFoe && hasVs(target,"spite",source) && target.rank.atk < 6){
+    target.rank.atk++;
+    say(`${nm(target)} は反骨で攻撃が上がった！`);
+  }
+  return true;
+}
+
+/* 技の追加効果の抽選。好機なら発動率2倍 */
+function rollFx(u, target, m){
+  let pr = m.pr;
+  if(has(u,"tempo") && SPD(u) > SPD(target)) pr *= 2;
+  return rng() < pr;
+}
+
+/* 場に出たときの特性 */
+function onEnter(u){
+  if(u.equip === "bell" && !u.bellUsed && u.status){
+    u.bellUsed = true;
+    say(`${nm(u)} の癒しの鈴が鳴り、${u.status}が治った。`);
+    u.status = null; u.statusTurns = 0;
+  }
+  const foe = u.side === "you" ? FOE() : YOU();
+  if(has(u,"pressure") && foe && !foe.dead){
+    say(`${nm(u)} の威圧！`);
+    lowerRank(foe, "atk", 1, u);
+  }
+}
+
+const HAZARD_NAME = {rock:"岩棘", sand:"痺れ砂"};
+
+/* 場に出てきた個体に設置が作用する。戦闘開始時の初手には効かない */
+async function applyHazards(u){
+  const hz = B.hazard[u.side];
+  if(!hz || u.dead) return;
+  if(hz.rock){
+    const e = eff("岩", u.type);
+    if(e > 0){
+      const d = Math.max(1, Math.floor(u.maxhp/8 * e));
+      if(!indirect(u, d, "岩棘")){ paint(); return; }
+      flash(u.side); spark(u.side, "岩", 9); popDmg(u.side, "-"+d, "#bab2a4");
+      say(`${nm(u)} は岩の棘に傷ついた (-${d})`
+        + (e>1 ? ' <span class="good">効果はばつぐんだ！</span>' : e<1 ? ' <span class="bad">効果はいまひとつ</span>' : ""));
+      paint(); await sleep(520);
+    }
+  }
+  if(hz.sand){
+    // 空は踏まない。雷技が通らないタイプ（地）も電流が流れず無効
+    if(u.type === "空") say(`${nm(u)} は宙に浮いていて痺れ砂を踏まない。`);
+    else if(eff("雷", u.type) === 0) say(`${nm(u)} には電流が流れない。`);
+    else if(inflict(u, "麻痺")){
+      say(`${nm(u)} は痺れ砂で麻痺した！`);
+      paint(); await sleep(520);
+    }
+  }
+}
+
+/* 状態異常は1個だけ。既にかかっていれば上書きしない */
+function inflict(u, st){
+  if(u.sub > 0 || u.status || u.hp <= 0) return false;
+  if(STATUS_IMMUNE[st] === u.type) return false;
+  u.status = st; u.statusTurns = 0; return true;
+}
+
+/* 変化技の効果が相手に通らないか（コマンドの「効果なし」表示にも使う） */
+function fxNullified(m, target){
+  if(m.fx === "burnsure") return target.type === "炎" || !!target.status;
+  if(m.fx === "seedfx")   return target.type === "草" || target.seedTurns > 0;
+  return false;
+}
+
+async function doMove(u, target, key){
+  if(u.actionCancelled){
+    u.actionCancelled = false;
+    say(`${nm(u)} は怯んで ${MOVES[key].n} を出せなかった！`);
+    await sleep(500); return;                 // 気力は消費しない
+  }
+  if(u.restTurns > 0){
+    u.restTurns--;
+    say(`${nm(u)} は静養の反動で動けない。`);
+    await sleep(500); return;
+  }
+  if(u.flinch){ u.flinch=false; say(`${nm(u)} はひるんで動けない！`); await sleep(500); return; }
+  if(u.status === "麻痺" && rng() < PARA_FAIL){ say(`${nm(u)} は痺れて動けない！`); await sleep(500); return; }
+  if(!key){
+    u.guardStreak = 0;                       // 守る以外を挟んだ扱い。lastMove は保持する
+    const gain = has(u,"focus2") ? EN_FOCUS*2 : EN_FOCUS;
+    u.en = Math.min(u.maxen, u.en + gain);
+    say(`${nm(u)} は息を整えた (+${gain})`);
+    paint(); await sleep(450); return;
+  }
+
+  // 選んだ後に相手から制限をかけられた場合、このターンの行動もその影響を受ける。
+  // 反響は「上書き」、挑発と封技は「不発」。いずれも気力は消費しない。
+  if(u.encore && u.encore.key !== key){
+    say(`${nm(u)} は反響に引きずられた！`);
+    key = u.encore.key;
+  }
+  const m = MOVES[key];
+
+  if(u.tauntTurns > 0 && m.p === 0){
+    say(`${nm(u)} は挑発に気を取られ ${m.n} を出せなかった！`);
+    await sleep(500); return;
+  }
+  if(u.disabled && u.disabled.key === key){
+    say(`${nm(u)} は ${m.n} を封じられていて出せなかった！`);
+    await sleep(500); return;
+  }
+  if(EQUIPS[u.equip].lock && u.lastMove === key){
+    // 反響で強制された技が連続禁止と噛み合わず、何もできない
+    say(`${nm(u)} は ${EQUIPS[u.equip].n} のせいで ${m.n} を続けられず、何もできなかった！`);
+    await sleep(560); return;
+  }
+  if(u.en < enCost(u, key)){
+    say(`${nm(u)} は気力が足りず ${m.n} を出せなかった！`);
+    await sleep(500); return;
+  }
+
+  u.en -= enCost(u, key);
+  u.lastMove = key;                          // 外しても「使った」扱い
+  if(m.fx !== "guard") u.guardStreak = 0;   // 守る以外を挟めば連続扱いは切れる
+  say(`${nm(u)} の ${m.n}！`);
+  await sleep(360);
+
+  if(m.acc){
+    // 命中ランク - 相手の回避ランク。回避を上げる技はまだ無いが、足せば自動で効く
+    const stage = Math.max(-6, Math.min(6, u.rank.acc - target.rank.eva));
+    const blur = hasVs(target,"blur",u) ? 0.9 : 1;               // 見切り
+    if(rng()*100 > m.acc * accMul(stage) * blur){
+      playFx(u, target, m, "miss");
+      say("しかし外れた。"); await sleep(450); return;
+    }
+  }
+
+  if(m.fx === "ambush"){
+    const t = target.plannedMove;
+    if(!t || MOVES[t].p <= 0){
+      say(`しかし ${nm(target)} は攻撃してこなかった。不意打ちは失敗した。`);
+      await sleep(500); return;
+    }
+  }
+  if(m.fx === "startle"){
+    const t = target.plannedMove;
+    if(!t || MOVES[t].p > 0){
+      say(`しかし ${nm(target)} は変化技を使わなかった。おどかすは失敗した。`);
+      await sleep(500); return;
+    }
+    target.actionCancelled = true;
+    say(`${nm(target)} は ${MOVES[t].n} をくじかれた！`);
+  }
+
+  if(m.fx === "counter"){
+    if(u.dmgTaken <= 0){
+      say("しかし 何も返せなかった。");
+      await sleep(450); return;
+    }
+    const taken = u.dmgTaken;
+    let d = Math.max(1, Math.floor(taken * 1.5));
+    if(target.guarding) d = Math.max(1, Math.floor(d * 0.2));
+    playFx(u, target, m, "attack");
+    await sleep(180);
+    const dealtC = Math.min(d, Math.max(0, target.hp));
+    hurt(target, d);
+    target.dmgTaken += dealtC;
+    flash(target.side); popDmg(target.side, "-"+d, "#e9e5d8");
+    say(`${nm(u)} は受けた ${taken} を ${d} にして返した！`);
+    if(target.guarding) say(`${nm(target)} は守りに徹していた。`);
+    if(target.equip === "thorn" && target.hp > 0){
+      const t = Math.max(1, Math.floor(target.maxhp*.05));
+      hurt(u, t); flash(u.side); popDmg(u.side, "-"+t, "#b58cf0");
+      say(`毒棘が ${nm(u)} を刺した (-${t})`);
+    }
+    paint(); await sleep(560); return;
+  }
+
+  if(m.p > 0){
+    playFx(u, target, m, "attack");
+    await sleep(180);
+    const r = damage(u, target, m);
+    if(r.e === 0){
+      say(`${nm(target)} には 効果がないようだ…`);
+      paint(); await sleep(560); return;
+    }
+    if(target.sub > 0){
+      const absorbed = Math.min(target.sub, r.dmg);
+      target.sub -= absorbed;
+      flash(target.side); popDmg(target.side, "-"+absorbed, "#a8b0cc");
+      say(`${nm(target)} の身代わりが ${absorbed} を肩代わりした。`);
+      if(target.sub <= 0) say(`${nm(target)} の身代わりは壊れた！`);
+      if(has(u,"glutton") && u.hp < u.maxhp){
+        const h = Math.max(1, Math.floor(absorbed*.15));
+        u.hp = Math.min(u.maxhp, u.hp+h); popDmg(u.side,"+"+h,"#63c07d");
+      }
+      if(m.fx === "drain"){
+        const h = Math.max(1, Math.floor(absorbed * m.dr));
+        u.hp = Math.min(u.maxhp, u.hp+h); popDmg(u.side,"+"+h,"#63c07d");
+      }
+      paint(); await sleep(560); return;        // 身代わりの裏には何も届かない
+    }
+    // 計算上のダメージではなく、実際に削れた分を基準にする。
+    // 残りHPを超えた過剰分で吸収・反動・仕返しが伸びないようにするため。
+    const dealt = Math.min(r.dmg, Math.max(0, target.hp));
+    hurt(target, r.dmg);
+    target.dmgTaken += dealt;
+    flash(target.side); popDmg(target.side, "-"+r.dmg, r.e>1?"#ffd66b":r.e<1?"#9aa2c4":"#fff");
+    paint();
+    if(r.crit) say("急所に当たった！");
+    if(r.e > 1) say('<span class="good">効果はばつぐんだ！</span>');
+    if(r.e < 1) say('<span class="bad">効果はいまひとつのようだ。</span>');
+    if(target.guarding) say(`${nm(target)} は守りに徹していた。`);
+
+    if(has(u,"glutton") && dealt > 0 && u.hp < u.maxhp){
+      const h = Math.max(1, Math.floor(dealt*.15));
+      u.hp = Math.min(u.maxhp, u.hp+h);
+      popDmg(u.side, "+"+h, "#63c07d");
+      say(`${nm(u)} は貪食で体力を得た (+${h})`);
+    }
+    if(m.fx === "drain"){
+      const h = Math.max(1, Math.floor(dealt * m.dr));
+      u.hp = Math.min(u.maxhp, u.hp+h);
+      say(`${nm(u)} は体力を吸い取った (+${h})`);
+      popDmg(u.side, "+"+h, "#63c07d");
+    }
+    if(m.fx === "endrain" && target.hp > 0){
+      const g = Math.min(15, target.en);
+      target.en -= g;
+      u.en = Math.min(u.maxen, u.en + g);
+      say(`${nm(target)} は気力を ${g} 奪われた。`);
+    }
+    if(m.fx === "recoil"){
+      const t = Math.max(1, Math.floor(dealt/3));
+      if(indirect(u, t, "反動")){ flash(u.side); popDmg(u.side, "-"+t, "#ff9450");
+        say(`${nm(u)} は反動を受けた (-${t})`); }
+    }
+    if(target.equip === "thorn" && target.hp > 0){
+      const t = Math.max(1, Math.floor(target.maxhp*.05));
+      if(indirect(u, t, "毒棘")){ flash(u.side); popDmg(u.side, "-"+t, "#b58cf0");
+        say(`毒棘が ${nm(u)} を刺した (-${t})`); }
+    }
+    if(m.fx === "para" && rollFx(u, target, m) && inflict(target, "麻痺")){
+      say(`${nm(target)} は麻痺した！`);
+    }
+    if(m.fx === "burn" && rollFx(u, target, m) && inflict(target, "やけど")){
+      say(`${nm(target)} はやけどを負った！`);
+    }
+    if(m.fx === "accdownfx" && rollFx(u, target, m) && target.hp>0){
+      lowerRank(target, "acc", 1, u);
+    }
+    if(m.fx === "spddown" && rollFx(u, target, m) && target.hp>0){
+      lowerRank(target, "spd", 1, u);
+    }
+    if(m.fx === "flinch" && rollFx(u, target, m) && target.hp>0){
+      target.flinch = true;
+    }
+    if(m.fx === "defdown" && target.hp>0){
+      lowerRank(target, "def", 1, u);
+    }
+    if(m.fx === "startle" && target.hp>0){
+      lowerRank(target, "atk", 1, u);
+    }
+  } else {
+    playFx(u, target, m, (m.fx === "heal" || m.fx === "repose") ? "heal" : "status");
+    await sleep(200);
+    if(m.fx === "heal"){
+      const h = Math.floor(u.maxhp*.35);
+      u.hp = Math.min(u.maxhp, u.hp+h);
+      popDmg(u.side, "+"+h, "#63c07d");
+      say(`${nm(u)} は体力を回復した (+${h})`);
+    }
+    if(m.fx === "guard"){
+      u.guarding = true; u.guardStreak++;
+      say(`${nm(u)} は身を固めた。`);
+      const next = MOVES.guard.en * Math.pow(2, u.guardStreak);
+      if(next <= u.maxen) say(`<span class="sys">次に続けて守るなら気力 ${next} が要る。</span>`);
+      else say(`<span class="sys">これ以上は続けて守れない。</span>`);
+    }
+    if(m.fx === "rootup"){
+      if(u.rank.def < 6) u.rank.def++;
+      if(u.rank.spd > -6) u.rank.spd--;     // 自分で下げる分は鏡膜・反骨の対象外
+      say(`${nm(u)} は地面に根を張った。防御が上がり、素早さが下がった。`);
+    }
+    if(m.fx === "soar"){
+      if(u.rank.eva < 6) u.rank.eva++;
+      if(u.rank.spd < 6) u.rank.spd++;
+      say(`${nm(u)} は高く舞い上がった。回避と素早さが上がった！`);
+    }
+    if(m.fx === "sub"){
+      const cost = Math.floor(u.maxhp/4);
+      if(u.sub > 0) say("しかし すでに身代わりがいる。");
+      else if(u.hp <= cost) say("しかし 体力が足りなかった。");
+      else { hurt(u, cost); u.sub = cost; popDmg(u.side,"-"+cost,"#a8b0cc");
+        say(`${nm(u)} は身代わりを立てた！（耐久 ${cost}）`); }
+    }
+    if(m.fx === "repose"){
+      const h = Math.floor(u.maxhp*.5);
+      u.hp = Math.min(u.maxhp, u.hp+h); popDmg(u.side,"+"+h,"#63c07d");
+      say(`${nm(u)} は静養した (+${h})`);
+      if(u.status){ say(`${nm(u)} の${u.status}は治った。`); u.status = null; u.statusTurns = 0; }
+      u.restTurns = 1;
+      say(`<span class="sys">${u.name} は次のターン動けない。</span>`);
+    }
+    if(m.fx === "haze"){
+      [YOU(), FOE()].forEach(x=>{ x.rank = {atk:0,def:0,acc:0,spd:0,eva:0}; });
+      say("白い霧が満ちた。両者の能力変化が元に戻った。");
+    }
+    if(m.fx === "bond"){
+      u.bond = true;
+      say(`${nm(u)} は相手を道連れにしようとしている！`);
+    }
+    if(m.fx === "perish"){
+      let any = false;
+      [u, target].forEach(x=>{ if(!x.perish){ x.perish = 3; any = true; } });
+      say(any ? "滅びの唄が響いた！ 3ターン後、唄を聞いた者は倒れる。" : "しかし すでに唄は響いている。");
+    }
+    if(m.fx === "swapitem"){
+      if(u.equip === "none" && target.equip === "none") say("しかし 交換するものがなかった。");
+      else {
+        const mine = u.equip, theirs = target.equip;
+        u.equip = theirs; target.equip = mine;
+        const nameOf = k => k === "none" ? "何も持たない状態" : EQUIPS[k].n;
+        say(`${nm(u)} は持ち物を入れ替えた！`);
+        say(`<span class="sys">${u.name} → ${nameOf(theirs)} ／ ${target.side==="foe"?"相手の":""}${target.name} → ${nameOf(mine)}</span>`);
+        if(abilOff(target)) say(`${nm(target)} の ${ABILITIES[target.ability].n} は封じられた！`);
+        if(abilOff(u))      say(`${nm(u)} の ${ABILITIES[u.ability].n} は封じられた！`);
+      }
+    }
+    if(m.fx === "encore"){
+      const t = target.lastMove;
+      if(target.sub > 0) say(`${nm(target)} の身代わりが反響を防いだ。`);
+      else if(!t) say("しかし 失敗した。相手はまだ技を使っていない。");
+      else if(target.encore) say("しかし すでに反響がかかっている。");
+      else {
+        target.encore = {key:t, turns:3};
+        say(`${nm(target)} は ${MOVES[t].n} の反響に囚われた！`);
+      }
+    }
+    if(m.fx === "disable"){
+      const t = target.lastMove;
+      if(target.sub > 0) say(`${nm(target)} の身代わりが封技を防いだ。`);
+      else if(!t) say("しかし 失敗した。相手はまだ技を使っていない。");
+      else if(target.disabled) say("しかし すでに封技がかかっている。");
+      else {
+        target.disabled = {key:t, turns:3};
+        say(`${nm(target)} の ${MOVES[t].n} は封じられた！`);
+      }
+    }
+    if(m.fx === "taunt"){
+      if(target.sub > 0) say(`${nm(target)} の身代わりが挑発を防いだ。`);
+      else if(target.tauntTurns > 0) say("しかし すでに挑発されている。");
+      else { target.tauntTurns = 3; say(`${nm(target)} は挑発に乗った！ 3ターン変化技が出せない。`); }
+    }
+    if(m.fx === "hzRock" || m.fx === "hzSand"){
+      const key = m.fx === "hzRock" ? "rock" : "sand";
+      const hz = B.hazard[target.side];
+      if(hz[key]) say("しかし すでに設置されている。");
+      else {
+        hz[key] = true;
+        say(`${nm(u)} は相手の足元に ${HAZARD_NAME[key]} を撒いた！`);
+      }
+    }
+    if(m.fx === "hzClear"){
+      const hz = B.hazard[u.side];
+      const had = Object.keys(hz).filter(k=>hz[k]);
+      if(!had.length) say("しかし 吹き飛ばすものがなかった。");
+      else {
+        had.forEach(k=> hz[k] = false);
+        say(`${nm(u)} は ${had.map(k=>HAZARD_NAME[k]).join("と")} を吹き飛ばした！`);
+      }
+    }
+    if(m.fx === "burnsure"){
+      if(inflict(target, "やけど")) say(`${nm(target)} はやけどを負った！`);
+      else if(target.type === "炎") say(`${nm(target)} には 効果がないようだ…`);
+      else say("しかし 効果がなかった。");
+    }
+    if(m.fx === "bind"){
+      lowerRank(target, "spd", 1, u);
+      if(target.sub > 0) say(`${nm(target)} の身代わりが渦を防いだ。`);
+      else if(isBound(target)) say("すでに渦に捕らえられている。");
+      else {
+        target.bindTurns = BIND_TURNS; target.boundBy = u;
+        say(`${nm(target)} は渦に巻かれた！ ${BIND_TURNS}ターン交代できない。`);
+      }
+    }
+    if(m.fx === "seedfx"){
+      if(target.sub > 0) say(`${nm(target)} の身代わりが種を防いだ。`);
+      else if(target.type === "草") say(`${nm(target)} には 効果がないようだ…`);
+      else if(target.seedTurns > 0) say("しかし 効果がなかった。");
+      else {
+        target.seedTurns = SEED_TURNS;
+        say(`${nm(target)} に種が植え付けられた！`);
+      }
+    }
+    if(m.fx === "atkup"){
+      if(u.rank.atk < 6){ u.rank.atk++; say(`${nm(u)} の攻撃が上がった！`); }
+      else say("これ以上は上がらない。");
+    }
+    if(m.fx === "accdown") lowerRank(target, "acc", 1, u);
+  }
+  paint();
+  await sleep(560);
+
+  // 翻し: 攻撃したあと控えと入れ替わる
+  if(m.fx === "pivot" && !u.dead && !B.over){
+    const team = u.side === "you" ? B.you : B.foe;
+    const alive = team.map((x,i)=>({x,i})).filter(o=>!o.x.dead && o.x !== u);
+    if(!alive.length) say(`<span class="sys">${u.name} は入れ替わる相手がいない。</span>`);
+    else {
+      leaveField(u).forEach(t => say(`<span class="sys">${u.side==="foe"?"相手の":""}${u.name} ${t}</span>`));
+      const to = await decideSwitch(u.side, B.pickSeq++, alive, "翻しで入れ替わる相手を選んでください");
+      if(u.side === "you") B.yi = to; else B.fi = to;
+      const now = u.side === "you" ? YOU() : FOE();
+      say(`${nm(u)} は身を翻し、${nm(now)} と入れ替わった！`);
+      paint(true); await sleep(450);
+      await applyHazards(now);
+      if(!now.dead) onEnter(now);
+      paint(); await sleep(300);
+    }
+  }
+}
+
+/* 倒れた個体に印をつけるだけ。交代要員はまだ出さない */
+async function markFaints(){
+  for(const u of [YOU(), FOE()]){
+    if(u.hp <= 0 && !u.dead){
+      // 護りの札は「HP50%以上から倒されたとき」だけ発動する。
+      // 条件を満たさなければ使用済みにはならず、次の機会に持ち越す。
+      if(u.equip === "charm" && !u.charmUsed && u.preHitHp >= u.maxhp*0.5){
+        u.charmUsed = true; u.hp = 1;
+        say(`<span class="good">護りの札が</span> ${nm(u)} <span class="good">を踏みとどまらせた！</span>`);
+        paint(); await sleep(600); continue;
+      }
+      u.dead = true; u.hp = 0;
+      sprite(u.side).classList.add("faint");  // 交代要員が出るまで伏せたまま
+      say(`${nm(u)} <span class="${u.side==='you'?'bad':'good'}">は倒れた！</span>`);
+      paint(); await sleep(700);
+      if(u.bond){
+        const killer = u.side === "you" ? FOE() : YOU();
+        if(killer && !killer.dead){
+          killer.dead = true; killer.hp = 0;
+          sprite(killer.side).classList.add("faint");
+          say(`${nm(u)} は ${nm(killer)} を道連れにした！`);
+          paint(); await sleep(700);
+        }
+      }
+    }
+  }
+  if(B.you.every(u=>u.dead)) finish("foe");
+  else if(B.foe.every(u=>u.dead)) finish("you");
+}
+
+/* 交代要員の選択UI。選ばれるまで待つ */
+function chooseReplacement(title){
+  return new Promise(resolve=>{
+    const cmd = $("#cmd"), bench = $("#bench");
+    bench.innerHTML = "";
+    cmd.innerHTML = "";
+    const foeUp = !OP().dead;
+    cmd.appendChild(el("div","wide count", title ||
+      (foeUp ? `次に出すモンスターを選んでください（相手は ${FOE().name} ${FOE().type}）`
+             : "次に出すモンスターを選んでください")));
+    myTeam().forEach((u,i)=>{
+      if(u.dead) return;
+      let tag = "";
+      if(foeUp){
+        const dmgMoves = OP().moves.filter(k=>MOVES[k].p>0).map(k=>eff(MOVES[k].t,u.type));
+        const worst = Math.max(...dmgMoves, 0);
+        tag = worst > 1 ? '<span class="eff dn">弱点を突かれる</span>'
+            : worst === 0 ? '<span class="eff up">攻撃が通らない</span>' : "";
+      }
+      const b = el("button",null,
+        `<span class="mv"><span class="mvn">${chip(u.type)} ${u.name}</span>
+         <span class="mvd">HP ${Math.ceil(u.hp)}/${u.maxhp} ・ 気力 ${Math.floor(u.en)}${u.status?" ・ "+u.status:""}${u.seedTurns>0?" ・ 寄生残"+u.seedTurns:""} ・ ${eqLine(u)}</span></span>${tag}`);
+      b.onclick = ()=>{ cmd.innerHTML = ""; resolve(i); };
+      cmd.appendChild(b);
+    });
+  });
+}
+
+/* ターン終了後、倒れた枠に交代要員を出す。
+   相手より先に自分が選ぶ ＝ 相手の交代先は見えない（対人戦と同じ条件） */
+async function sendReplacements(){
+  // 設置で出た直後に倒れることがあるので、落ち着くまで繰り返す
+  for(let guard = 0; guard < 6; guard++){
+    if(B.over) return;
+    if(!(await sendOnce())) return;
+    await markFaints();
+  }
+}
+
+/* 交代先の決定。自分の担当なら選択UI、相手の担当なら通信待ち、ソロならAI。
+   seq は両端末で必ず同じ順に振られるので、待ち合わせがずれない。 */
+async function decideSwitch(side, seq, alive, title){
+  if(alive.length === 1) return alive[0].i;
+  if(side === ME){
+    const i = await chooseReplacement(title);
+    if(NET.on) NET.send({t:"pick", seq, i});
+    return i;
+  }
+  if(NET.on){
+    waitingMsg("相手が交代先を選んでいます…");
+    const i = await NET.wait("pick:"+seq);
+    clearWaiting();
+    return i == null ? alive[0].i : i;
+  }
+  return pick(alive).i;
+}
+
+async function sendOnce(){
+  const youNeed = YOU().dead, foeNeed = FOE().dead;
+  if(!youNeed && !foeNeed) return false;
+
+  const aliveY = B.you.map((u,i)=>({u,i})).filter(o=>!o.u.dead);
+  const aliveF = B.foe.map((u,i)=>({u,i})).filter(o=>!o.u.dead);
+  if(youNeed && !aliveY.length){ finish("foe"); return false; }
+  if(foeNeed && !aliveF.length){ finish("you"); return false; }
+
+  // 双方が同時に選ぶ。相手の交代先を見てから決められないようにする
+  let seq = B.pickSeq;
+  const jobs = [];
+  if(youNeed){ const q = seq++; jobs.push(decideSwitch("you", q, aliveY).then(i=>{ B.yi = i; })); }
+  if(foeNeed){ const q = seq++; jobs.push(decideSwitch("foe", q, aliveF).then(i=>{ B.fi = i; })); }
+  B.pickSeq = seq;
+  await Promise.all(jobs);
+  if(B.over) return false;
+  if(youNeed){ sprite("you").classList.remove("faint"); say(`ゆけ、${nm(YOU())}！`); }
+  if(foeNeed){ sprite("foe").classList.remove("faint"); say(`${nm(FOE())} が現れた！`); }
+  paint(true); await sleep(550);
+  if(youNeed) await applyHazards(YOU());
+  if(foeNeed) await applyHazards(FOE());
+  if(youNeed && !YOU().dead) onEnter(YOU());
+  if(foeNeed && !FOE().dead) onEnter(FOE());
+  paint();
+  return true;
+}
+
+/* 寄生の吸い取り1回分。植え付け時とターン終了時の両方から呼ぶ */
+function siphon(victim, host){
+  const d = Math.max(1, Math.floor(victim.maxhp/10));
+  const drained = Math.min(d, Math.max(0, victim.hp));   // 実際に吸えた分
+  if(!indirect(victim, d, "寄生")) return "";
+  popDmg(victim.side, "-"+d, "#7ed08a");
+  let msg = `${nm(victim)} は種に体力を吸い取られた (-${d})`;
+  if(host && !host.dead && host.hp < host.maxhp && drained > 0){
+    const h = Math.min(drained, host.maxhp - host.hp);
+    host.hp += h;
+    popDmg(host.side, "+"+h, "#63c07d");
+    msg += ` → ${nm(host)} が回復 (+${h})`;
+  }
+  return msg;
+}
+
+async function endTurn(){
+  let shown = false;
+  for(const u of [YOU(), FOE()]){
+    if(u.dead) continue;
+    u.guarding = false;                                  // 守るはそのターン限り
+    u.en = Math.min(u.maxen, u.en + EN_REGEN + (u.equip==="belt" ? 10 : 0));
+
+    if(u.equip === "berry" && u.hp < u.maxhp){
+      const h = Math.max(1, Math.floor(u.maxhp*.05));
+      u.hp = Math.min(u.maxhp, u.hp+h);
+      popDmg(u.side, "+"+h, "#63c07d"); shown = true;
+    }
+    u.bond = false;                       // 道連れはそのターン限り
+    if(u.perish > 0){
+      if(--u.perish === 0){
+        ringAt(u.side, "#f0937d"); screenFlash("#6b3b3466");
+        say(`${nm(u)} は滅びの唄に呑まれた！`);
+        u.hp = 0; shown = true;
+      } else { say(`<span class="sys">${u.name} の滅びのカウント: あと${u.perish}</span>`); shown = true; }
+    }
+    if(u.encore   && --u.encore.turns   <= 0){ u.encore = null;   say(`<span class="sys">${u.name} の反響は収まった。</span>`); shown = true; }
+    if(u.disabled && --u.disabled.turns <= 0){ u.disabled = null; say(`<span class="sys">${u.name} の封技は解けた。</span>`); shown = true; }
+    if(u.tauntTurns > 0 && --u.tauntTurns <= 0){ say(`<span class="sys">${u.name} は冷静さを取り戻した。</span>`); shown = true; }
+    if(u.bindTurns > 0){
+      if(!isBound(u)){ u.bindTurns = 0; u.boundBy = null; }
+      else if(--u.bindTurns === 0){
+        u.boundBy = null;
+        say(`<span class="sys">${u.name} を捕らえていた渦が消えた。</span>`);
+        shown = true;
+      }
+    }
+    if(u.status && has(u,"quick")){
+      if(++u.statusTurns >= 3){
+        say(`${nm(u)} の${u.status}は自然に治った。`);
+        u.status = null; u.statusTurns = 0; shown = true;
+      }
+    }
+    if(u.status === "やけど"){
+      const d = Math.max(1, Math.floor(u.maxhp/16));
+      if(indirect(u, d, "やけどのダメージ")){ popDmg(u.side, "-"+d, "#ff9450");
+        say(`${nm(u)} はやけどのダメージを受けた (-${d})`); }
+      shown = true;
+    }
+    if(u.seedTurns > 0){
+      { const msg = siphon(u, u.side === "you" ? FOE() : YOU()); if(msg) say(msg); }
+      if(--u.seedTurns === 0) say(`<span class="sys">${u.name} に植えられた種は枯れ落ちた。</span>`);
+      shown = true;
+    }
+  }
+  paint();
+  if(shown) await sleep(650);
+}
+
+function finish(winner){
+  B.over = true; B.busy = true;
+  const win = winner === ME;
+  $("#resTitle").textContent = win ? "勝利" : "敗北";
+  $("#resTitle").className = "big " + (win?"win":"lose");
+  const left = myTeam().filter(u=>!u.dead).length;
+  $("#resBody").textContent = win
+    ? `${B.turn}ターンで決着。手持ちは ${left}体 残りました。`
+    : `${B.turn}ターンで全滅。技構成か装備を見直してみてください。`;
+  if(NET.on){ NET.send({t:"bye"}); NET.on = false; }
+  setTimeout(()=>{
+    $("#btnAgain").style.display = NET.host === null ? "" : "";
+    show("scResult");
+  }, 900);
+}
+
+/* ================= 通信（PeerJS / ロックステップ） =================
+   盤面は両端末で同じ計算をする。やり取りするのは
+   ・開始時: シードと双方の構築
+   ・毎ターン: 自分が選んだ行動
+   ・交代が要るとき: 選んだ控えの番号
+   だけで、状態そのものは送らない。 */
+const NET = {
+  on:false, peer:null, conn:null, host:false, pass:"",
+  q:{}, waiters:{},
+
+  send(msg){ try{ if(this.conn && this.conn.open) this.conn.send(msg); }catch(e){} },
+
+  deliver(key, val){
+    if(this.waiters[key]){ const w = this.waiters[key]; delete this.waiters[key]; w(val); }
+    else this.q[key] = val;
+  },
+  wait(key){
+    return new Promise(res=>{
+      if(key in this.q){ const v = this.q[key]; delete this.q[key]; res(v); }
+      else this.waiters[key] = res;
+    });
+  },
+  /* 切断時は待っている全員を null で起こす */
+  abortAll(){
+    Object.keys(this.waiters).forEach(k=>{ const w=this.waiters[k]; delete this.waiters[k]; w(null); });
+  },
+
+  onData(msg){
+    if(!msg || !msg.t) return;
+    if(msg.t === "act")   return this.deliver("act:"+msg.turn, msg.act);
+    if(msg.t === "pick")  return this.deliver("pick:"+msg.seq, msg.i);
+    if(msg.t === "team")  return this.deliver("team", msg.team);
+    if(msg.t === "start") return this.deliver("start", msg);
+    if(msg.t === "bye"){ this.on = false; this.abortAll(); netLost("相手が退出しました。"); }
+  },
+
+  reset(){
+    this.on = false; this.q = {}; this.abortAll();
+    try{ if(this.conn) this.conn.close(); }catch(e){}
+    try{ if(this.peer)  this.peer.destroy(); }catch(e){}
+    this.conn = null; this.peer = null;
+  }
+};
+
+function netLost(msg){
+  if(B && !B.over){ B.over = true; B.busy = true; }
+  clearWaiting();
+  lobbyStatus(msg, true);
+  if($("#scBattle").classList.contains("on")) say(`<span class="bad">${msg}</span>`);
+}
+function waitingMsg(t){
+  const box = $("#cmd");
+  if(box) box.innerHTML = `<div class="wait wide">${t}</div>`;
+  const b = $("#bench"); if(b) b.innerHTML = "";
+}
+function clearWaiting(){ const w = document.querySelector(".wait"); if(w) w.remove(); }
+function lobbyStatus(t, bad){
+  const e = $("#lobbyStatus");
+  if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
+}
+
+const PEER_PREFIX = "genju-battle-";
+const teamPayload = () => party.map(p=>({id:p.id, moves:p.moves.slice(), equip:p.equip, ability:p.ability}));
+
+/* 相手から届いた構築を検証する。壊れていれば null */
+function sanitizeTeam(t){
+  if(!Array.isArray(t) || t.length !== 3) return null;
+  const out = [];
+  for(const e of t){
+    const sp = SPECIES.find(x=>x.id === e.id);
+    if(!sp) return null;
+    const pool = learnable(sp);
+    const mv = Array.isArray(e.moves) ? e.moves.filter(k=>pool.includes(k)) : [];
+    if(mv.length !== 4 || new Set(mv).size !== 4) return null;
+    const ab = ABIL_OF[e.id].includes(e.ability) ? e.ability : ABIL_OF[e.id][0];
+    const eq = EQUIPS[e.equip] ? e.equip : "none";
+    out.push({id:e.id, moves:mv, equip:eq, ability:ab});
+  }
+  return out;
+}
+
+async function hostGame(pass){
+  NET.reset(); NET.host = true; NET.pass = pass;
+  lobbyStatus("合言葉で待機しています。相手の接続を待っています…");
+  NET.peer = new Peer(PEER_PREFIX + pass);
+  NET.peer.on("error", e => lobbyStatus("接続できません（合言葉が使用中かもしれません）: " + e.type, true));
+  NET.peer.on("connection", conn => {
+    NET.conn = conn;
+    conn.on("data", m => NET.onData(m));
+    conn.on("close", () => { NET.on = false; NET.abortAll(); netLost("接続が切れました。"); });
+    conn.on("open", async () => {
+      lobbyStatus("接続しました。構築を交換しています…");
+      const raw = await NET.wait("team");
+      const guest = sanitizeTeam(raw);
+      if(!guest){ lobbyStatus("相手の構築が不正でした。", true); return; }
+      const seed = (Date.now() ^ 0x9e3779b9) >>> 0;
+      NET.send({t:"start", seed, team:teamPayload()});
+      NET.on = true;
+      beginBattle(party, guest, seed, "you");
+    });
+  });
+}
+
+async function joinGame(pass){
+  NET.reset(); NET.host = false; NET.pass = pass;
+  lobbyStatus("接続しています…");
+  NET.peer = new Peer();
+  NET.peer.on("error", e => lobbyStatus("接続できません（相手が待機していないかも）: " + e.type, true));
+  NET.peer.on("open", () => {
+    const conn = NET.peer.connect(PEER_PREFIX + pass, {reliable:true});
+    NET.conn = conn;
+    conn.on("data", m => NET.onData(m));
+    conn.on("close", () => { NET.on = false; NET.abortAll(); netLost("接続が切れました。"); });
+    conn.on("open", async () => {
+      lobbyStatus("接続しました。構築を交換しています…");
+      NET.send({t:"team", team:teamPayload()});
+      const st = await NET.wait("start");
+      if(!st) return;
+      const hostTeam = sanitizeTeam(st.team);
+      if(!hostTeam){ lobbyStatus("相手の構築が不正でした。", true); return; }
+      NET.on = true;
+      beginBattle(hostTeam, party, st.seed, "foe");
+    });
+  });
+}
+
+/* ================= nav ================= */
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
+  document.getElementById(id).classList.add("on");
+  window.scrollTo(0,0);
+}
+const passOk = () => /^[A-Za-z0-9]{3,24}$/.test($("#passIn").value.trim());
+function syncLobby(){
+  const ready = party.length===3 && party.every(p=>p.moves.length===4);
+  const ok = ready && passOk();
+  $("#btnHost").disabled = !ok;
+  $("#btnJoin").disabled = !ok;
+  if(!ready) lobbyStatus("先に手持ちと技を決めてください。");
+  else if(!passOk()) lobbyStatus("合言葉を英数字3〜24文字で入れてください。");
+}
+$("#passIn").oninput = syncLobby;
+$("#btnHost").onclick = ()=> hostGame($("#passIn").value.trim());
+$("#btnJoin").onclick = ()=> joinGame($("#passIn").value.trim());
+$("#btnCancelNet").onclick = ()=>{ NET.reset(); lobbyStatus("中止しました。"); };
+
+$("#btnStart").onclick = startBattle;
+$("#btnRand").onclick = ()=>{ party = randBuild(); renderAll(); };
+$("#btnClearDraft").onclick = ()=>{
+  party = [];
+  try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
+  renderAll();
+};
+$("#btnAgain").onclick = startBattle;
+$("#btnBack").onclick  = ()=>{ NET.reset(); ME = "you"; show("scBuild"); renderAll(); };
+
+drawField(document.getElementById("fieldCanvas"));
+renderChart();
+party = loadDraft() || randBuild();
+renderAll();
+</script>
+</body>
+</html>
