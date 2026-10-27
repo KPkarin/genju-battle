@@ -115,6 +115,11 @@ select{
 }
 .hint{font-size:11px;color:var(--dim);margin:4px 0 0;line-height:1.5}
 
+.team-save{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:11px;margin:10px 0}
+.team-save label{font-size:12px;color:var(--gold)}
+.team-save select{margin:6px 0 8px}
+.team-save .hint.err{color:#f0937d}
+
 /* ---------- lobby ---------- */
 .lobby{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:11px}
 .pass{width:100%;background:#0a0d1c;color:var(--bone);border:1px solid var(--line);border-radius:2px;
@@ -369,6 +374,7 @@ canvas.actor.foe.lunge{animation:lgF .3s ease-out}
 .st-拘束{color:#66b6ee;border-color:#1b4b73}
 .st-幻{color:#f09ad8;border-color:#6b2a58}
 .st-挑発{color:#b58cf0;border-color:#452a70}
+.st-我慢{color:#e9ce8d;border-color:#806c3d}
 .st-身代{color:#a8b0cc;border-color:#3a4266}
 .st-滅び{color:#f0937d;border-color:#6b3b34}
 .rk{font-family:var(--mono);font-size:9px;padding:0 3px;border-radius:2px;margin-left:2px}
@@ -431,6 +437,13 @@ canvas.actor.foe.move-recoil{animation:move-recoil-foe .52s steps(5)}
   <div class="eyebrow">02 ─ 技4つと装備を決める</div>
   <div id="slots"></div>
   <p class="hint" id="buildHint"></p>
+  <div class="team-save">
+    <label for="teamSaveSlot">編成の保存枠</label>
+    <select id="teamSaveSlot" aria-label="編成の保存枠"><option value="0">編成1</option><option value="1">編成2</option><option value="2">編成3</option></select>
+    <div class="row"><button id="btnSaveTeam">この枠に保存</button><button id="btnLoadTeam">この枠を読み込む</button></div>
+    <p class="hint" id="saveStatus" role="status" aria-live="polite"></p>
+    <p class="hint">編集中の内容は自動保存。保存枠は途中の編成も3つまで残せます。同じ端末・同じブラウザのこのサイト内に保存されます。</p>
+  </div>
   <div class="row" style="margin-top:12px">
     <button class="primary" id="btnStart" disabled>AIと戦う</button>
     <button class="ghost" id="btnRand">ランダム構築</button>
@@ -649,7 +662,7 @@ const MOVES = {
   swap  :{category:"status",n:"奇術",   t:"幻",p:0,  acc:100,en:25,fx:"swapitem",
           d:"自分と相手の持ち物を入れ替える。両者とも持っていなければ失敗"},
   perish:{category:"status",n:"滅びの唄",t:"幻",p:0, acc:null,en:35,fx:"perish",
-          d:"3ターン後、唄を聞いた両者の場のモンスターが倒れる。交代すれば逃れられる"},
+          d:"使用ターン終了時にカウント3。その後のターン終了ごとに2→1→0となり、0で倒れる。交代すれば逃れられる"},
   encore:{category:"status",n:"反響",   t:"幻",p:0,  acc:100,en:30,fx:"encore",
           d:"相手は3ターン、直前に使った技しか出せない。技を使っていなければ失敗"},
   disable:{category:"status",n:"封技",  t:"幻",p:0,  acc:100,en:25,fx:"disable",
@@ -709,7 +722,8 @@ const ABILITIES = {
   hide    :{n:"岩肌", d:"効果ばつぐんの被ダメ0.85倍"},
   breaker :{n:"型破り", d:"相手の特性を無視して技を出す"},
   ghost   :{n:"霊体", d:"やけど・寄生・設置・反動・毒棘など、直接攻撃以外のダメージを受けない"},
-  heavy   :{n:"重圧", d:"相手の技の消費気力+8"}
+  heavy   :{n:"重圧", d:"相手の技の消費気力+8"},
+  stoic   :{n:"やせ我慢", d:"状態異常を受けても、次のターン終了時まで発症を遅らせる。それまでに交代・翻しで退くと発症予約が消える"}
 };
 /* 特性の判定はすべてここを通る。無垢の仮面を持っている間は全特性が沈黙する */
 const abilOff = u => !!EQUIPS[u.equip].mask;
@@ -2656,16 +2670,16 @@ const SPECIES = [
   {"id":"mubaku","n":"夢貘","t":"幻","hp":145,"atk":60,"spatk":85,"def":95,"spdef":115,"spd":65,"aff":"影","role":"特殊受け・行動妨害","roleDesc":"特殊耐久と封技・反響で相手を止め、幻痛で気力を削る。"},
   {"id":"oborogi","n":"朧狐","t":"幻","hp":105,"atk":65,"spatk":115,"def":60,"spdef":80,"spd":110,"aff":"雷","role":"高速特殊アタッカー","roleDesc":"幻月・迅雷で攻め、見切りや好機を活かして先手を取る。"}
 ];
-/* 各種族が選べる特性は2つ。役割に合うものを割り当ててある */
+/* 基本の2特性に加え、4種族は3つ目の選択肢「やせ我慢」を選べる */
 const ABIL_OF = {
-  homura:["grit","tempo"],      youcho:["hide","ballast"],
-  shiogame:["ballast","mirror"], soukou:["glutton","tempo"],
+  homura:["grit","tempo","stoic"],      youcho:["hide","ballast"],
+  shiogame:["ballast","mirror","stoic"], soukou:["glutton","tempo"],
   kokejyu:["regen","quick"],     tsutazaru:["glutton","tempo"],
   raitachi:["tempo","blur"],     rainen:["ballast","quick"],
-  iwaushi:["hide","mirror"],     saikaku:["grit","spite"],
+  iwaushi:["hide","mirror"],     saikaku:["grit","spite","stoic"],
   fukurou:["tempo","glutton"],   yoigumo:["blur","ghost"],
   doryu:["hide","focus2"],       sarou:["grit","breaker"],
-  fuen:["blur","regen"],         ungei:["pressure","heavy"],
+  fuen:["blur","regen","stoic"],         ungei:["pressure","heavy"],
   mubaku:["mirror","glutton"],   oborogi:["blur","tempo"]
 };
 const spec = id => SPECIES.find(s => s.id === id);
@@ -3342,34 +3356,89 @@ let foeParty = [];
    このHTMLを開いているブラウザだけに保存される（PeerJS通信では送らない）。
    編成画面を閉じてもタブを閉じても、次に開いたときに続きから始められる。 */
 const DRAFT_KEY = "genju_battle_draft_v1";
-
-function saveDraft(){
-  try{ localStorage.setItem(DRAFT_KEY, JSON.stringify(party)); }catch(e){}
+const TEAM_LIBRARY_KEY = "genju_battle_teams_v1";
+let draftReadFailed=false;
+function saveMessage(message,error=false){
+  const node=document.getElementById("saveStatus");
+  if(node){node.textContent=message;node.className="hint"+(error?" err":"");}
 }
-
-/* 保存されたデータを検証しながら読み込む。壊れていたり仕様が変わっていても
-   読める範囲だけ復元し、読めない部分は静かに捨てる（画面を壊さないため）。 */
+function normalizeDraft(data){
+  if(!Array.isArray(data)) return null;
+  if(data.length===0) return [];
+  const out=[],seen=new Set();
+  for(const entry of data){
+    if(!entry || typeof entry.id!=="string" || seen.has(entry.id)) continue;
+    const species=spec(entry.id);if(!species) continue;
+    const pool=learnable(species);
+    const moves=Array.isArray(entry.moves)?[...new Set(entry.moves.filter(key=>pool.includes(key)))].slice(0,4):[];
+    const equip=Object.hasOwn(EQUIPS,entry.equip)?entry.equip:"none";
+    const ability=ABIL_OF[entry.id].includes(entry.ability)?entry.ability:ABIL_OF[entry.id][0];
+    out.push({id:entry.id,moves,equip,ability});seen.add(entry.id);
+    if(out.length===3)break;
+  }
+  return out.length?out:null;
+}
+function saveDraft(){
+  if(draftReadFailed){saveMessage("保存済みの編成を読み取れません。ブラウザの保存設定を確認してから再読み込みしてください。",true);return false;}
+  try{
+    localStorage.setItem(DRAFT_KEY,JSON.stringify(party));
+    saveMessage("自動保存済み。このブラウザで次回も続きから編成できます。");
+    return true;
+  }catch(error){saveMessage("このブラウザでは保存できません。保存の許可・空き容量を確認してください。",true);return false;}
+}
 function loadDraft(){
   let raw;
-  try{ raw = localStorage.getItem(DRAFT_KEY); }catch(e){ return null; }
-  if(!raw) return null;
-  let data;
-  try{ data = JSON.parse(raw); }catch(e){ return null; }
-  if(!Array.isArray(data)) return null;
-  const out = [];
-  for(const e of data.slice(0,3)){
-    if(!e || typeof e.id !== "string") continue;
-    const sp = SPECIES.find(x=>x.id === e.id);
-    if(!sp) continue;                                  // 削除・改名された種族は捨てる
-    const pool = learnable(sp);
-    const moves = Array.isArray(e.moves)
-      ? [...new Set(e.moves.filter(k=>pool.includes(k)))].slice(0,4)
-      : [];
-    const ability = ABIL_OF[sp.id].includes(e.ability) ? e.ability : ABIL_OF[sp.id][0];
-    const equip = EQUIPS[e.equip] ? e.equip : "none";
-    out.push({id:sp.id, moves, equip, ability});
-  }
-  return out.length ? out : null;
+  try{raw=localStorage.getItem(DRAFT_KEY);}
+  catch(error){draftReadFailed=true;return null;}
+  if(raw===null)return null;
+  try{return normalizeDraft(JSON.parse(raw));}catch(error){return null;}
+}
+function readTeamLibrary(){
+  const raw=localStorage.getItem(TEAM_LIBRARY_KEY);
+  if(!raw)return [null,null,null];
+  let data;try{data=JSON.parse(raw);}catch(error){return [null,null,null];}
+  return Array.from({length:3},(_,index)=>{
+    const entry=Array.isArray(data)?normalizeDraft(data[index]):null;
+    return entry?.length?entry:null;
+  });
+}
+function selectedTeamSlot(){
+  const value=Number(document.getElementById("teamSaveSlot")?.value);
+  return Number.isInteger(value)&&value>=0&&value<3?value:0;
+}
+function renderTeamStorage(){
+  const select=document.getElementById("teamSaveSlot");if(!select)return;
+  const selected=selectedTeamSlot();
+  let library;try{library=readTeamLibrary();}catch(error){library=[null,null,null];}
+  select.innerHTML=library.map((entry,index)=>`<option value="${index}">編成${index+1}：${entry?entry.map(build=>spec(build.id).n).join("・"):"未保存"}</option>`).join("");
+  select.value=String(selected);
+  const save=document.getElementById("btnSaveTeam"),load=document.getElementById("btnLoadTeam");
+  if(save)save.disabled=party.length===0;
+  if(load)load.disabled=!library[selected];
+}
+function initTeamStorage(){
+  const select=document.getElementById("teamSaveSlot");
+  if(select){select.value="0";select.onchange=()=>renderTeamStorage();}
+  const save=document.getElementById("btnSaveTeam"),load=document.getElementById("btnLoadTeam");
+  if(save)save.onclick=()=>{
+    if(!party.length){saveMessage("保存する幻獣を選んでください。");return;}
+    const slot=selectedTeamSlot();
+    try{
+      const library=readTeamLibrary();library[slot]=normalizeDraft(party);
+      localStorage.setItem(TEAM_LIBRARY_KEY,JSON.stringify(library));
+      renderTeamStorage();saveMessage(`編成${slot+1}に保存しました。変更後はもう一度「この枠に保存」で更新できます。`);
+    }catch(error){saveMessage("編成を保存できませんでした。元の保存枠は変更していません。",true);}
+  };
+  if(load)load.onclick=()=>{
+    const slot=selectedTeamSlot();
+    try{
+      const saved=readTeamLibrary()[slot];
+      if(!saved){saveMessage("この枠には保存されていません。");return;}
+      party=normalizeDraft(saved);
+      const persisted=renderAll();
+      if(persisted)saveMessage(`編成${slot+1}を読み込みました。`);
+    }catch(error){saveMessage("保存した編成を読み込めませんでした。",true);}
+  };
 }
 
 function randBuild(){
@@ -3578,7 +3647,8 @@ function renderAll(){
     ? `手持ちをあと ${3-party.length} 体えらんでください`
     : party.filter(p=>p.moves.length<4).map(p=>spec(p.id).n+"の技").join(" / ") + " が未設定";
   $("#buildHint").textContent = ready ? "準備完了。相手はランダム構築のAIです。" : need;
-  saveDraft();
+  renderTeamStorage();
+  return saveDraft();
 }
 
 function renderChart(){
@@ -3645,9 +3715,11 @@ function makeUnit(b, side){
     status:null,          // null / "麻痺" / "やけど" ─ 重複しない。交代でも治らない
     seedTurns:0,          // 寄生種の残り。交代でも消えず、場に出ている間だけ減る
     statusTurns:0,        // 状態異常の経過ターン。早熟が参照する
+    pendingStatus:null,    // やせ我慢の発症予約 {status,turn}。交代で解除
     bindTurns:0, boundBy:null,  // 渦潮による拘束。縛った側が場を離れれば解ける
     sub:0,                // 身代わりの残り耐久
-    perish:0,             // 滅びの唄の残りターン
+    perish:0,             // 滅びの唄のカウント
+    perishStartTurn:null,  // 使用ターン終了時は3のまま表示する
     bond:false,           // 道連れを宣言しているか
     restTurns:0,          // 静養の反動で動けない残りターン
     bellUsed:false,       // 癒しの鈴を使ったか
@@ -3699,6 +3771,8 @@ function leaveField(u){
   u.encore = null; u.disabled = null; u.tauntTurns = 0;
   if(u.sub > 0){ u.sub = 0; msgs.push("の身代わりは消えた。"); }
   if(u.perish > 0){ u.perish = 0; msgs.push("は滅びの唄から逃れた。"); }
+  u.perishStartTurn=null;
+  if(u.pendingStatus){u.pendingStatus=null;msgs.push("のやせ我慢の発症予約は消えた。");}
   u.bond = false;
   return msgs;
 }
@@ -3706,6 +3780,7 @@ function leaveField(u){
 /* HUDの状態表示 */
 function tags(u){
   let h = u.status ? `<span class="st-tag st-${u.status}">${u.status}</span>` : "";
+  if(u.pendingStatus) h += `<span class="st-tag st-我慢">やせ我慢：${u.pendingStatus.status}予約</span>`;
   if(u.seedTurns > 0) h += `<span class="st-tag st-寄生">寄生${u.seedTurns}</span>`;
   if(isBound(u)) h += `<span class="st-tag st-拘束">拘束${u.bindTurns}</span>`;
   if(u.encore)   h += `<span class="st-tag st-幻">反響${u.encore.turns}</span>`;
@@ -3835,6 +3910,7 @@ function renderStrip(){
     const pct = Math.max(0, u.hp/u.maxhp);
     const col = u.dead ? "#3a4266" : pct<.25 ? "var(--red)" : pct<.5 ? "var(--gold)" : "var(--green)";
     const marks = (u.status?`<i class="mk s">${u.status[0]}</i>`:"")
+      + (u.pendingStatus?'<i class="mk s">我慢</i>':"")
       + (u.sub>0?'<i class="mk b">代</i>':"")
       + (u.perish>0?`<i class="mk p">${u.perish}</i>`:"")
       + (isBound(u)?'<i class="mk w">縛</i>':"")
@@ -4360,7 +4436,7 @@ function aiChoose(){
     } else if(m.fx === "seedfx"){
       v = (y.seedTurns > 0 || y.type === "草") ? 3 : 100;
     } else if(m.fx === "burnsure"){
-      v = (y.status || y.type === "炎") ? 3 : 90;
+      v = (y.status || y.pendingStatus || y.type === "炎" || y.sub>0) ? 3 : hasVs(y,"stoic",f)?45:90;
     } else if(m.fx === "rootup"){
       v = lowHp > .5 ? 55 : 15;
     } else if(m.fx === "soar"){
@@ -4387,7 +4463,7 @@ function aiChoose(){
     } else if(m.fx === "sub"){
       v = (f.sub > 0 || f.hp <= f.maxhp/4) ? 3 : (lowHp > .6 ? 95 : 25);
     } else if(m.fx === "repose"){
-      v = (lowHp < .45 || f.status) ? 200 : 5;
+      v = (lowHp < .45 || f.status || f.pendingStatus) ? 200 : 5;
     } else if(m.fx === "haze"){
       const setup = Math.max(y.rank.atk, y.rank.def, y.rank.spatk, y.rank.spdef, y.rank.spd, y.rank.eva);
       v = setup >= 2 ? 120 : 5;
@@ -4578,16 +4654,21 @@ async function applyHazards(u){
     if(u.type === "空") say(`${nm(u)} は宙に浮いていて痺れ砂を踏まない。`);
     else if(eff("雷", u.type) === 0) say(`${nm(u)} には電流が流れない。`);
     else if(inflict(u, "麻痺")){
-      say(`${nm(u)} は痺れ砂で麻痺した！`);
+      if(u.status==="麻痺") say(`${nm(u)} は痺れ砂で麻痺した！`);
       paint(); await sleep(520);
     }
   }
 }
 
 /* 状態異常は1個だけ。既にかかっていれば上書きしない */
-function inflict(u, st){
-  if(u.sub > 0 || u.status || u.hp <= 0) return false;
+function inflict(u, st, source=null){
+  if(u.sub > 0 || u.status || u.pendingStatus || u.dead || u.hp <= 0) return false;
   if(STATUS_IMMUNE[st] === u.type) return false;
+  if(hasVs(u,"stoic",source)){
+    u.pendingStatus={status:st,turn:B.turn};
+    say(`${nm(u)} はやせ我慢している！`);
+    return true; // The attempt was accepted, but its ailment is not active yet.
+  }
   u.status = st; u.statusTurns = 0;
   StatusEffects.pulse(u,st);
   return true;
@@ -4595,7 +4676,7 @@ function inflict(u, st){
 
 /* 変化技の効果が相手に通らないか（コマンドの「効果なし」表示にも使う） */
 function fxNullified(m, target){
-  if(m.fx === "burnsure") return target.sub > 0 || target.type === "炎" || !!target.status;
+  if(m.fx === "burnsure") return target.sub > 0 || target.type === "炎" || !!target.status || !!target.pendingStatus;
   if(m.fx === "seedfx")   return target.sub > 0 || target.type === "草" || target.seedTurns > 0;
   if(m.fx === "accdown")  return target.sub > 0;
   return false;
@@ -4762,8 +4843,8 @@ async function doMove(u, target, key){
       // Only status ailments, rank drops, and new parasitic seeds are stopped by a shield.
       // A shield broken by this hit still blocks this hit's status/rank additions.
       if(!shielded){
-        if(m.fx==="para" && rollFx(u,target,m) && inflict(target,"麻痺")) say(`${nm(target)} は麻痺した！`);
-        if(m.fx==="burn" && rollFx(u,target,m) && inflict(target,"やけど")) say(`${nm(target)} はやけどを負った！`);
+        if(m.fx==="para" && rollFx(u,target,m) && inflict(target,"麻痺",u) && target.status==="麻痺") say(`${nm(target)} は麻痺した！`);
+        if(m.fx==="burn" && rollFx(u,target,m) && inflict(target,"やけど",u) && target.status==="やけど") say(`${nm(target)} はやけどを負った！`);
         if(m.fx==="accdownfx" && rollFx(u,target,m) && target.hp>0) lowerRank(target,"acc",1,u);
         if(m.fx==="spddown" && rollFx(u,target,m) && target.hp>0) lowerRank(target,"spd",1,u);
         if(m.fx==="defdown" && target.hp>0) lowerRank(target,"def",1,u);
@@ -4816,6 +4897,7 @@ async function doMove(u, target, key){
       u.hp = Math.min(u.maxhp, u.hp+h); popDmg(u.side,"+"+h,"#63c07d");
       say(`${nm(u)} は静養した (+${h})`);
       if(u.status){ say(`${nm(u)} の${u.status}は治った。`); u.status = null; u.statusTurns = 0; }
+      if(u.pendingStatus){u.pendingStatus=null;say(`${nm(u)} の発症予約も消えた。`);}
       u.restTurns = 1;
       say(`<span class="sys">${u.name} は次のターン動けない。</span>`);
     }
@@ -4833,8 +4915,8 @@ async function doMove(u, target, key){
     }
     if(m.fx === "perish"){
       let any = false;
-      [u, target].forEach(x=>{ if(!x.perish){ x.perish = 3; any = true; } });
-      say(any ? "滅びの唄が響いた！ 3ターン後、唄を聞いた者は倒れる。" : "しかし すでに唄は響いている。");
+      [u, target].forEach(x=>{ if(!x.perish){ x.perish = 3; x.perishStartTurn=B.turn; any = true; } });
+      say(any ? "滅びの唄が響いた！ このターン終了時から3のカウントが始まる。" : "しかし すでに唄は響いている。");
     }
     if(m.fx === "swapitem"){
       if(u.equip === "none" && target.equip === "none") say("しかし 交換するものがなかった。");
@@ -4889,7 +4971,7 @@ async function doMove(u, target, key){
       }
     }
     if(m.fx === "burnsure"){
-      if(inflict(target, "やけど")) say(`${nm(target)} はやけどを負った！`);
+      if(inflict(target, "やけど",u)){if(target.status==="やけど") say(`${nm(target)} はやけどを負った！`);}
       else if(target.type === "炎") say(`${nm(target)} には 効果がないようだ…`);
       else say("しかし 効果がなかった。");
     }
@@ -4956,14 +5038,14 @@ async function markFaints(){
       if(tryCharm(u)){
         paint(); await sleep(600); continue;
       }
-      u.dead = true; u.hp = 0;
+      u.dead = true; u.hp = 0;u.pendingStatus=null;
       sprite(u.side).classList.add("faint");  // 交代要員が出るまで伏せたまま
       say(`${nm(u)} <span class="${u.side==='you'?'bad':'good'}">は倒れた！</span>`);
       paint(); await sleep(700);
       if(u.bond){
         const killer = u.side === "you" ? FOE() : YOU();
         if(killer && !killer.dead){
-          killer.dead = true; killer.hp = 0;
+          killer.dead = true; killer.hp = 0;killer.pendingStatus=null;
           sprite(killer.side).classList.add("faint");
           say(`${nm(u)} は ${nm(killer)} を道連れにした！`);
           paint(); await sleep(700);
@@ -5062,12 +5144,13 @@ async function sendOnce(){
 
 /* 寄生の吸い取り1回分。植え付け時とターン終了時の両方から呼ぶ */
 function siphon(victim, host){
+  if(victim.dead || victim.hp<=0) return "";
   const d = Math.max(1, Math.floor(victim.maxhp/10));
   const drained = Math.min(d, Math.max(0, victim.hp));   // 実際に吸えた分
   if(!indirect(victim, d, "寄生")) return "";
   popDmg(victim.side, "-"+d, "#7ed08a");
   let msg = `${nm(victim)} は種に体力を吸い取られた (-${d})`;
-  if(host && !host.dead && host.hp < host.maxhp && drained > 0){
+  if(host && !host.dead && host.hp>0 && host.hp < host.maxhp && drained > 0){
     const h = Math.min(drained, host.maxhp - host.hp);
     host.hp += h;
     popDmg(host.side, "+"+h, "#63c07d");
@@ -5079,7 +5162,7 @@ function siphon(victim, host){
 async function endTurn(){
   let shown = false;
   for(const u of [YOU(), FOE()]){
-    if(u.dead) continue;
+    if(u.dead || u.hp<=0) continue;
     u.guarding = false;                                  // 守るはそのターン限り
     u.en = Math.min(u.maxen, u.en + EN_REGEN + (u.equip==="belt" ? 10 : 0));
 
@@ -5090,11 +5173,14 @@ async function endTurn(){
     }
     u.bond = false;                       // 道連れはそのターン限り
     if(u.perish > 0){
-      if(--u.perish === 0){
-        ringAt(u.side, "#f0937d"); screenFlash("#6b3b3466");
+      if(u.perishStartTurn!==B.turn) u.perish--;
+      say(`<span class="sys">${u.name} の滅びのカウント: あと${u.perish}</span>`);shown=true;
+      if(u.perish===0){
+        ringAt(u.side,"#f0937d");screenFlash("#6b3b3466");
         say(`${nm(u)} は滅びの唄に呑まれた！`);
-        u.hp = 0; shown = true;
-      } else { say(`<span class="sys">${u.name} の滅びのカウント: あと${u.perish}</span>`); shown = true; }
+        u.hp=0;u.preHitHp=0;u.pendingStatus=null; // A perish knockout cannot use a survival charm.
+        continue;
+      }
     }
     if(u.encore   && --u.encore.turns   <= 0){ u.encore = null;   say(`<span class="sys">${u.name} の反響は収まった。</span>`); shown = true; }
     if(u.disabled && --u.disabled.turns <= 0){ u.disabled = null; say(`<span class="sys">${u.name} の封技は解けた。</span>`); shown = true; }
@@ -5124,6 +5210,14 @@ async function endTurn(){
       { const msg = siphon(u, u.side === "you" ? FOE() : YOU()); if(msg) say(msg); }
       if(--u.seedTurns === 0) say(`<span class="sys">${u.name} に植えられた種は枯れ落ちた。</span>`);
       shown = true;
+    }
+  }
+  // Delayed ailments arrive after ALL ordinary end-of-turn damage/healing.
+  // Their burn chip and action penalties therefore begin on the following turn.
+  for(const u of [YOU(),FOE()]){
+    if(u.pendingStatus && !u.dead && u.hp>0 && u.pendingStatus.turn<B.turn){
+      const st=u.pendingStatus.status;u.pendingStatus=null;
+      if(!u.status){u.status=st;u.statusTurns=0;StatusEffects.pulse(u,st);say(`${nm(u)} はやせ我慢しきれず、${st}になった！`);shown=true;}
     }
   }
   if(B.reverseTurns>0){
@@ -5226,7 +5320,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "balance-room-multihit-v3";
+const BATTLE_RULES_VERSION = "stoic-perish-v4";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});
@@ -5337,7 +5431,8 @@ $("#btnBack").onclick  = ()=>{ NET.reset(); ME = "you"; show("scBuild"); renderA
 
 drawField(document.getElementById("fieldCanvas"));
 renderChart();
-party = loadDraft() || randBuild();
+party = loadDraft() ?? randBuild();
+initTeamStorage();
 renderAll();
 StatusPreview.init();
 BattleMusic.init();
