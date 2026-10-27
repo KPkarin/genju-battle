@@ -42,7 +42,7 @@ assert.equal(run('typeof drawMoveMotion'),'function','pure move renderer exists'
 assert.equal(run('typeof MoveMotion'),'object','move controller exists');
 assert.match(html,/<canvas\s+[^>]*id="moveCanvas"[^>]*width="384"[^>]*height="216"/,'native effect overlay is mounted');
 const profiles=json('MOVE_MOTION_PROFILES'),moves=json('MOVES');
-assert.equal(Object.keys(moves).length,58,'current catalog has all 58 moves');
+assert.equal(Object.keys(moves).length,60,'current catalog has all 60 moves');
 assert.deepEqual(Object.keys(profiles).sort(),Object.keys(moves).sort(),'every move has an explicit motion profile');
 assert.ok(new Set(Object.values(profiles).map(p=>p.shape)).size>=12,'moves use varied geometry families');
 assert.ok(new Set(Object.values(profiles).map(p=>p.actor)).size>=4,'source body gestures vary');
@@ -82,7 +82,7 @@ for(const [key,p] of Object.entries(profiles)){
 assert.equal(run('_seed'),23456789,'pure drawing never consumes combat RNG');
 context.drawProbe.calls=[];run("drawMoveMotion(drawProbe,'removed-move',.5,{x:100,y:130},{x:288,y:83})");
 assert.equal(context.drawProbe.calls.length,0,'unknown move leaves canvas transparent');
-console.log('PASS all 58 explicit profiles, varied geometry/gestures, integer transparent frames, both directions, and miss paths');
+console.log('PASS all 60 explicit profiles, varied geometry/gestures, integer transparent frames, both directions, and miss paths');
 
 function advance(ms){
   now+=ms;

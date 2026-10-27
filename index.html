@@ -306,6 +306,7 @@ canvas.actor.foe.lunge{animation:lgF .3s ease-out}
 @keyframes fly{0%{transform:translateY(0);opacity:1}100%{transform:translateY(-38px);opacity:0}}
 
 /* ---------- team strip ---------- */
+.field-state{color:#f0b6e2;background:#30203b;border:1px solid #6b3a68;padding:7px 10px;margin:0 0 8px;font-size:12px}
 .strip{display:grid;gap:4px;margin-bottom:8px}
 .srow{display:flex;align-items:stretch;gap:4px}
 .slb{font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;width:34px;flex:none;
@@ -459,7 +460,7 @@ canvas.actor.foe.move-recoil{animation:move-recoil-foe .52s steps(5)}
   <details>
     <summary>タイプ相性表</summary>
     <div id="chartBox" style="margin-top:8px;overflow-x:auto"></div>
-    <p class="hint">縦が攻撃側、横が受け側。<b>影</b>だけは自分自身に2倍が入る高リスク型。</p>
+    <p class="hint">通常時の相性表。縦が攻撃側、横が受け側。空にも無属性の攻撃が等倍で通ります。<b>アベコベルーム</b>中は攻撃技の2倍と0.5倍が逆になり、無効は4倍になります。岩棘・痺れ砂や状態異常の耐性は通常のままです。</p>
   </details>
   <details id="statusPreview">
     <summary>状態異常の演出見本</summary>
@@ -497,6 +498,7 @@ canvas.actor.foe.move-recoil{animation:move-recoil-foe .52s steps(5)}
       <div class="eqline" id="youEq"></div>
     </div>
   </div>
+  <p id="fieldState" class="field-state" role="status" aria-live="polite" hidden></p>
   <div class="strip" id="strip"></div>
   <div class="log" id="log"></div>
   <div class="cmd" id="cmd"></div>
@@ -549,9 +551,17 @@ const CHART = {
   地:{炎:2 ,水:1 ,草:1 ,雷:2 ,岩:2 ,影:1 ,地:1 ,空:0 ,幻:1 ,無:1},
   空:{炎:1 ,水:1 ,草:2 ,雷:1 ,岩:1 ,影:1 ,地:1 ,空:1 ,幻:1 ,無:1},
   幻:{炎:1 ,水:1 ,草:1 ,雷:2 ,岩:.5,影:2 ,地:1 ,空:1 ,幻:0 ,無:1},
-  無:{炎:1 ,水:1 ,草:1 ,雷:1 ,岩:1 ,影:1 ,地:1 ,空:0 ,幻:.5,無:1}
+  無:{炎:1 ,水:1 ,草:1 ,雷:1 ,岩:1 ,影:1 ,地:1 ,空:1 ,幻:.5,無:1}
 };
 const eff = (a,d) => CHART[a][d];
+const inverseEff = value => value === 0 ? 4 : 1/value;
+function attackEff(a,d){
+  const normal=eff(a,d);
+  return B && B.reverseTurns>0 ? inverseEff(normal) : normal;
+}
+// One draw per multihit move, after its single accuracy check.
+function chooseHitCount(roll){ return roll<.35 ? 2 : roll<.70 ? 3 : roll<.85 ? 4 : 5; }
+const expectedHits = m => m.fx === "multi" ? 3.1 : 1;
 
 /* ================= moves ================= */
 /* ── 技の優先度 ──────────────────────────────
@@ -580,7 +590,7 @@ const MOVES = {
   startle:{category:"special",n:"おどかす",t:"無",p:45,acc:100,en:25,pri:PRI.startle,fx:"startle",
           d:"相手が変化技を選んでいれば先制し、その技を失敗させて物理攻撃-1。そうでなければ失敗"},
   sub   :{category:"status",n:"身代わり",t:"無",p:0, acc:null,en:30,fx:"sub",
-          d:"最大HPの1/4を払って盾を作る。壊れるまで状態異常・能力ダウン・行動制限・拘束を受けない"},
+          d:"最大HPの1/4を払って盾を作る。攻撃を肩代わりし、状態異常・能力低下・新たな寄生種を防ぐ。反響・封技・挑発・拘束は防げない"},
   repose:{category:"status",n:"静養",   t:"無",p:0, acc:null,en:40,fx:"repose",
           d:"最大HPの50%を回復し状態異常を治すが、次のターン行動できない"},
   revenge:{category:"physical",n:"仕返し",t:"無",p:0, acc:100, en:30,pri:PRI.counter,fx:"counter",d:"このターンに物理・特殊技から受けたダメージの1.5倍を返す固定ダメージ。攻防値を使わず、必ず後攻"},
@@ -611,6 +621,8 @@ const MOVES = {
 
   spikes:{category:"status",n:"岩棘",   t:"岩",p:0, acc:null,en:30,fx:"hzRock",
           d:"相手側に設置。交代で出てきた相手に最大HPの1/8×岩相性のダメージ"},
+  crushrock:{category:"physical",n:"粉砕岩",t:"岩",p:20,acc:100,en:30,fx:"multi",minHits:2,maxHits:5,
+          d:"威力20で2〜5回攻撃。2回35%・3回35%・4回15%・5回15%。身代わりが壊れた次の一撃から本体へ当たる"},
   rock  :{category:"physical",n:"岩投げ", t:"岩",p:50, acc:100,en:20},
   slide :{category:"physical",n:"岩雪崩", t:"岩",p:80, acc:90, en:35,fx:"flinch",pr:.20,d:"20%でひるみ"},
   edge  :{category:"physical",n:"岩の刃", t:"岩",p:110,acc:75, en:45},
@@ -627,8 +639,10 @@ const MOVES = {
   sweep :{category:"status",n:"払い風", t:"空",p:0, acc:null,en:20,fx:"hzClear",
           d:"自分側に置かれた設置をすべて吹き飛ばす"},
   dive  :{category:"physical",n:"翔撃",   t:"空",p:110,acc:85, en:45},
-  soar  :{category:"status",n:"舞い上がる",t:"空",p:0,acc:null,en:25,fx:"soar",d:"自分の回避+1、素早さ+1"},
+  soar  :{category:"status",n:"舞い上がる",t:"空",p:0,acc:null,en:25,fx:"soar",d:"自分の回避+1"},
 
+  reverseRoom:{category:"status",n:"アベコベルーム",t:"幻",p:0,acc:null,en:30,fx:"reverseRoom",
+          d:"使用ターンを含む3ターン、双方の攻撃技の相性を反転。2倍→0.5倍、0.5倍→2倍、無効→4倍。再使用で残り3ターンに戻る"},
   phantom:{category:"special",n:"幻痛",  t:"幻",p:45, acc:100,en:25,fx:"endrain",d:"相手の気力を15奪う"},
   mirage:{category:"physical",n:"虚像斬", t:"幻",p:80, acc:95, en:35},
   lunacy:{category:"special",n:"幻月",   t:"幻",p:110,acc:80, en:45},
@@ -3415,7 +3429,7 @@ function moveRow(m, k, on, disabled, onclick){
   const badges =
       (pr>0 ? `<b class="bd pri">先制+${pr}</b>` : pr<0 ? `<b class="bd late">後攻${pr}</b>` : "")
     + (m.own ? '<b class="bd own">専用</b>' : "");
-  const stat = `${m.fx === "counter" ? "固定ダメージ　" : m.p>0 ? `威力 ${m.p}　` : ""}${m.acc?`命中 ${m.acc}　`:""}気力 ${m.en}`;
+  const stat = `${m.fx === "counter" ? "固定ダメージ　" : m.p>0 ? `威力 ${m.p}${m.fx==="multi"?" ×2〜5回":""}　` : ""}${m.acc?`命中 ${m.acc}　`:""}気力 ${m.en}`;
   const row = el("div","mrow"+(on?" on":"")+(disabled?" off":""));
   row.innerHTML = `
     <div class="mhead">${chip(m.t)}<span class="mn">${m.n}</span>${moveBadge(m)}${badges}
@@ -3729,6 +3743,7 @@ function beginBattle(youTeam, foeTeam, seed, meSide){
     you: youTeam.map(b=>makeUnit(b,"you")),
     foe: foeTeam.map(b=>makeUnit(b,"foe")),
     hazard: {you:{rock:false, sand:false}, foe:{rock:false, sand:false}},
+    reverseTurns:0,
     yi:0, fi:0, turn:1, over:false, busy:false, pickSeq:0
   };
   StatusEffects.clear();
@@ -3787,6 +3802,8 @@ function paint(enter){
       setTimeout(()=>sprite(s).classList.remove("enter"), 320);
     });
   }
+  const fieldState=$("#fieldState");
+  if(fieldState){fieldState.hidden=!(B.reverseTurns>0);fieldState.textContent=B.reverseTurns>0?`アベコベルーム：相性反転中（残り${B.reverseTurns}ターン）`:"";}
   $("#youName").innerHTML = `${y.name} ${chip(y.type)}`;
   $("#foeName").innerHTML = `<span class="pfx">相手の</span>${f.name} ${chip(f.type)}`;
   $("#youTags").innerHTML = tags(y);
@@ -3871,7 +3888,7 @@ function renderCmd(){
   let anyMove = false;
   y.moves.forEach(k=>{
     const m = MOVES[k];
-    const e = m.p>0 ? eff(m.t, f.type) : 1;
+    const e = m.p>0 ? attackEff(m.t, f.type) : 1;
     const pr = m.pri || 0;
     const prTag = pr > 0 ? `<span class="eff pri">先制+${pr}</span>`
                 : pr < 0 ? `<span class="eff late">後攻${pr}</span>` : "";
@@ -3879,8 +3896,8 @@ function renderCmd(){
     const tag = prTag + stab + (
                 isStatusMove(m) && fxNullified(m, f) ? '<span class="eff no">効果なし</span>'
               : m.p>0 && e===0 ? '<span class="eff no">効果なし</span>'
-              : m.p>0 && e>1   ? '<span class="eff up">ばつぐん</span>'
-              : m.p>0 && e<1   ? '<span class="eff dn">いまひとつ</span>' : "");
+              : m.p>0 && e>1   ? '<span class="eff up">ばつぐん ×${e}</span>'
+              : m.p>0 && e<1   ? '<span class="eff dn">いまひとつ ×${e}</span>' : "");
     const cost = enCost(y, k);
     const lockMsg = moveLock(y, k);
     const blocked = !!lockMsg;
@@ -3888,7 +3905,7 @@ function renderCmd(){
       ? lockMsg
       : (cost > m.en ? `気力 ${cost}（連続${y.guardStreak+1}回目）` : `気力 ${cost}`);
     const info = blocked ? `<span class="lockmsg">${costTxt}</span>`
-      : `<span class="mvd">${m.p>0 ? `威力 ${m.p}　${costTxt}${m.acc&&m.acc<100?`　命中 ${m.acc}`:""}`
+      : `<span class="mvd">${m.p>0 ? `威力 ${m.p}${m.fx==="multi"?" ×2〜5回":""}　${costTxt}${m.acc&&m.acc<100?`　命中 ${m.acc}`:""}`
                                   : `${costTxt}${m.acc&&m.acc<100?`　命中 ${m.acc}`:""}`}</span>`
         + (m.d ? `<span class="mvx">${m.d}</span>` : "");
     const b = el("button",null,
@@ -3937,7 +3954,7 @@ function lockCmd(){ B.busy=true; renderCmd(); }
 /* ---- damage ---- */
 function damage(att, def, m){
   let base = Math.floor(Math.floor(22 * m.p * moveAttack(att,m) / moveDefense(def,m)) / 55) + 2;
-  let e = eff(m.t, def.type);
+  let e = attackEff(m.t, def.type);
   if(e > 0 && e < 1 && def.equip === "ward") e = 0.75;   // 無効(0)は緩和しない
   const crit = rng() < 0.0625;
   if(e === 0) return {dmg:0, e:0, crit:false, stab:false};
@@ -4030,6 +4047,8 @@ function lunge(side){
 
 /* Every move owns a gesture and a native-grid effect. This layer never uses battle RNG. */
 const MOVE_MOTION_PROFILES = {
+  crushrock:{shape:"rock",actor:"brace",scale:21,count:3,tilt:2},
+  reverseRoom:{shape:"room",actor:"cast",scale:33,count:4,both:true},
   firefang:{shape:"bite",actor:"lunge",scale:19,count:7,tilt:1},
   waterfang:{shape:"bite",actor:"lunge",scale:22,count:5,tilt:-1},
   thunderclaw:{shape:"claw",actor:"lunge",scale:27,count:3,tilt:1},
@@ -4230,6 +4249,17 @@ function drawMoveMotion(ctx,key,progress,from,to,kind="attack"){
     case "song":
       for(let j=0;j<p.count;j++){const q=pos((t+j/p.count)%1),y=q.y+Math.sin(t*5+j)*size*.5;px(q.x,y,5,3,j%2);line(q.x+4,y,q.x+4,y-11,2,1);line(q.x+4,y-11,q.x+9,y-9,2,j%2);}
       break;
+    case "room":{
+      const inset=15+Math.round((1-fade)*16),top=22,bottom=194;
+      line(inset,top,384-inset,top,2,1);line(inset,bottom,384-inset,bottom,2,0);
+      line(inset,top,inset,bottom,2,0);line(384-inset,top,384-inset,bottom,2,1);
+      for(let j=1;j<6;j++){
+        const x=inset+(384-inset*2)*j/6;
+        for(let y=top+6;y<bottom;y+=12)px(x+Math.sin(t*8+j)*5,y,2,5,j%3);
+      }
+      ring(from.x,from.y,size,size*.6,0,t*4);ring(to.x,to.y,size,size*.6,1,-t*4);
+      const middle=pos(t);line(middle.x-dir*14,middle.y-7,middle.x+dir*14,middle.y+7,3,1);
+      break;}
     case "swap":{
       const a=pos(t),b=pos(1-t);ring(a.x,a.y-Math.sin(t*Math.PI)*size,7,7,0,t);ring(b.x,b.y+Math.sin(t*Math.PI)*size,5,5,1,-t);break;}
     case "seal":
@@ -4291,10 +4321,10 @@ function aiChoose(){
   const f = FOE(), y = YOU();
   const usable = f.moves.filter(k => f.en >= enCost(f, k) && !moveBlocked(f, k));
   // 交代判断: 今の相手に2倍を取られていて、控えに有利な子がいる
-  if(!isBound(f) && rng() < .35 && eff(y.type, f.type) > 1){
+  if(!isBound(f) && rng() < .35 && attackEff(y.type, f.type) > 1){
     const cand = B.foe.map((u,i)=>({u,i}))
-      .filter(o => !o.u.dead && o.i !== B.fi && eff(y.type, o.u.type) <= 1
-                   && o.u.moves.some(k => MOVES[k].p>0 && eff(MOVES[k].t, y.type) > 1));
+      .filter(o => !o.u.dead && o.i !== B.fi && attackEff(y.type, o.u.type) <= 1
+                   && o.u.moves.some(k => MOVES[k].p>0 && attackEff(MOVES[k].t, y.type) > 1));
     if(cand.length) return {kind:"switch", to:pick(cand).i};
   }
   if(f.encore) return {kind:"move", key:f.encore.key};   // 強制。出せなければ不発
@@ -4309,12 +4339,12 @@ function aiChoose(){
     const m = MOVES[k];
     let v;
     if(m.p > 0){
-      v = m.p * moveAttack(f,m) / moveDefense(y,m) * eff(m.t, y.type) * (m.acc||100)/100;
+      v = m.p * expectedHits(m) * moveAttack(f,m) / moveDefense(y,m) * attackEff(m.t, y.type) * (m.acc||100)/100;
       if(m.fx === "ambush") v *= .75;
       if(m.fx === "startle") v *= .35;
       if(m.fx === "pivot") v *= 1.1;
       if(hasVs(y,"ballast",f) && SPD(f)>SPD(y)) v *= .8;
-      if(hasVs(y,"hide",f) && eff(m.t,y.type)>1) v *= .85;
+      if(hasVs(y,"hide",f) && attackEff(m.t,y.type)>1) v *= .85;
       if(m.t === f.type) v *= 1.5;               // タイプ一致補正
       if(m.en > f.en * 0.7) v *= 0.8;            // 気力を使い切るのは渋る
     } else if(m.fx === "heal"){
@@ -4334,7 +4364,17 @@ function aiChoose(){
     } else if(m.fx === "rootup"){
       v = lowHp > .5 ? 55 : 15;
     } else if(m.fx === "soar"){
-      v = f.rank.eva >= 2 ? 10 : 60;
+      v = f.rank.eva >= 2 ? 10 : 45;
+    } else if(m.fx === "reverseRoom"){
+      if(B.reverseTurns>1) v=3;
+      else {
+        const bestAgainst=(att,def,reverse)=>Math.max(0,...att.moves.filter(k=>MOVES[k].p>0).map(k=>{
+          const move=MOVES[k],mult=reverse?inverseEff(eff(move.t,def.type)):eff(move.t,def.type);
+          return move.p*expectedHits(move)*moveAttack(att,move)/moveDefense(def,move)*mult*(move.t===att.type?1.5:1);
+        }));
+        const swing=bestAgainst(f,y,true)-bestAgainst(f,y,false)+bestAgainst(y,f,false)-bestAgainst(y,f,true);
+        v=swing>0?Math.min(130,35+swing*.45):3;
+      }
     } else if(m.fx === "counter"){
       // 選択時点では被弾するか分からない。耐えられる体力があるときだけ狙う
       v = lowHp > .35 ? 65 : 15;
@@ -4555,8 +4595,9 @@ function inflict(u, st){
 
 /* 変化技の効果が相手に通らないか（コマンドの「効果なし」表示にも使う） */
 function fxNullified(m, target){
-  if(m.fx === "burnsure") return target.type === "炎" || !!target.status;
-  if(m.fx === "seedfx")   return target.type === "草" || target.seedTurns > 0;
+  if(m.fx === "burnsure") return target.sub > 0 || target.type === "炎" || !!target.status;
+  if(m.fx === "seedfx")   return target.sub > 0 || target.type === "草" || target.seedTurns > 0;
+  if(m.fx === "accdown")  return target.sub > 0;
   return false;
 }
 
@@ -4669,90 +4710,75 @@ async function doMove(u, target, key){
   }
 
   if(m.p > 0){
-    playFx(u, target, m, "attack");
-    await sleep(180);
-    const r = damage(u, target, m);
-    if(r.e === 0){
-      say(`${nm(target)} には 効果がないようだ…`);
-      paint(); await sleep(560); return;
-    }
-    if(target.sub > 0){
-      const absorbed = Math.min(target.sub, r.dmg);
-      target.sub -= absorbed;
-      flash(target.side); popDmg(target.side, "-"+absorbed, "#a8b0cc");
-      say(`${nm(target)} の身代わりが ${absorbed} を肩代わりした。`);
-      if(target.sub <= 0) say(`${nm(target)} の身代わりは壊れた！`);
-      if(has(u,"glutton") && u.hp < u.maxhp){
-        const h = Math.max(1, Math.floor(absorbed*.15));
-        u.hp = Math.min(u.maxhp, u.hp+h); popDmg(u.side,"+"+h,"#63c07d");
+    const total=m.fx==="multi"?chooseHitCount(rng()):1;
+    let landed=0;
+    for(let hit=0;hit<total;hit++){
+      if(B.over || u.dead || u.hp<=0 || target.dead || target.hp<=0) break;
+      playFx(u,target,m,"attack");
+      await sleep(180);
+      if(B.over) return;
+      const r=damage(u,target,m);
+      if(r.e===0){say(`${nm(target)} には 効果がないようだ…`);paint();await sleep(560);return;}
+      landed++;
+      const shielded=target.sub>0;
+      let dealt;
+      if(shielded){
+        dealt=Math.min(target.sub,r.dmg);target.sub-=dealt;
+        flash(target.side);popDmg(target.side,"-"+dealt,"#a8b0cc");
+        say(`${nm(target)} の身代わりが ${dealt} を肩代わりした。`);
+        if(target.sub===0) say(`${nm(target)} の身代わりは壊れた！`);
+      } else {
+        const before=Math.max(0,target.hp);
+        hurt(target,r.dmg);tryCharm(target);
+        dealt=before-Math.max(0,target.hp);target.dmgTaken+=dealt;
+        flash(target.side);popDmg(target.side,"-"+dealt,r.e>1?"#ffd66b":r.e<1?"#9aa2c4":"#fff");
       }
-      if(m.fx === "drain"){
-        const h = Math.max(1, Math.floor(absorbed * m.dr));
-        u.hp = Math.min(u.maxhp, u.hp+h); popDmg(u.side,"+"+h,"#63c07d");
+      if(r.crit) say("急所に当たった！");
+      if(hit===0){
+        if(r.e>1) say('<span class="good">効果はばつぐんだ！</span>');
+        if(r.e<1) say('<span class="bad">効果はいまひとつのようだ。</span>');
+        if(target.guarding) say(`${nm(target)} は守りに徹していた。`);
       }
-      paint(); await sleep(560); return;        // 身代わりの裏には何も届かない
+      if(has(u,"glutton") && dealt>0 && u.hp<u.maxhp){
+        const heal=Math.max(1,Math.floor(dealt*.15));u.hp=Math.min(u.maxhp,u.hp+heal);
+        popDmg(u.side,"+"+heal,"#63c07d");say(`${nm(u)} は貪食で体力を得た (+${heal})`);
+      }
+      if(m.fx==="drain" && dealt>0){
+        const heal=Math.max(1,Math.floor(dealt*m.dr));u.hp=Math.min(u.maxhp,u.hp+heal);
+        popDmg(u.side,"+"+heal,"#63c07d");say(`${nm(u)} は体力を吸い取った (+${heal})`);
+      }
+      if(m.fx==="endrain" && target.hp>0){
+        const gain=Math.min(15,target.en);target.en-=gain;u.en=Math.min(u.maxen,u.en+gain);
+        say(`${nm(target)} は気力を ${gain} 奪われた。`);
+      }
+      if(m.fx==="recoil" && dealt>0){
+        const recoil=Math.max(1,Math.floor(dealt/3));
+        if(indirect(u,recoil,"反動")){flash(u.side);popDmg(u.side,"-"+recoil,"#ff9450");say(`${nm(u)} は反動を受けた (-${recoil})`);}
+      }
+      if(!shielded && target.equip==="thorn" && target.hp>0){
+        const thorn=Math.max(1,Math.floor(target.maxhp*.05));
+        if(indirect(u,thorn,"毒棘")){flash(u.side);popDmg(u.side,"-"+thorn,"#b58cf0");say(`毒棘が ${nm(u)} を刺した (-${thorn})`);}
+      }
+      // Only status ailments, rank drops, and new parasitic seeds are stopped by a shield.
+      // A shield broken by this hit still blocks this hit's status/rank additions.
+      if(!shielded){
+        if(m.fx==="para" && rollFx(u,target,m) && inflict(target,"麻痺")) say(`${nm(target)} は麻痺した！`);
+        if(m.fx==="burn" && rollFx(u,target,m) && inflict(target,"やけど")) say(`${nm(target)} はやけどを負った！`);
+        if(m.fx==="accdownfx" && rollFx(u,target,m) && target.hp>0) lowerRank(target,"acc",1,u);
+        if(m.fx==="spddown" && rollFx(u,target,m) && target.hp>0) lowerRank(target,"spd",1,u);
+        if(m.fx==="defdown" && target.hp>0) lowerRank(target,"def",1,u);
+        if(m.fx==="startle" && target.hp>0) lowerRank(target,"atk",1,u);
+      }
+      if(m.fx==="flinch" && rollFx(u,target,m) && target.hp>0) target.flinch=true;
+      if(total>1){
+        say(`<span class="sys">${landed}回目の攻撃！</span>`);
+        await markFaints(); // Resolve survival items, retaliatory KOs, and bonds before the next hit.
+        if(B.over || u.dead || target.dead) break;
+      }
+      paint();
+      if(hit<total-1) await sleep(250);
     }
-    // 計算上のダメージではなく、実際に削れた分を基準にする。
-    // 残りHPを超えた過剰分で吸収・反動・仕返しが伸びないようにするため。
-    const dealt = Math.min(r.dmg, Math.max(0, target.hp));
-    hurt(target, r.dmg);
-    target.dmgTaken += dealt;
-    flash(target.side); popDmg(target.side, "-"+r.dmg, r.e>1?"#ffd66b":r.e<1?"#9aa2c4":"#fff");
-    paint();
-    if(r.crit) say("急所に当たった！");
-    if(r.e > 1) say('<span class="good">効果はばつぐんだ！</span>');
-    if(r.e < 1) say('<span class="bad">効果はいまひとつのようだ。</span>');
-    if(target.guarding) say(`${nm(target)} は守りに徹していた。`);
-
-    if(has(u,"glutton") && dealt > 0 && u.hp < u.maxhp){
-      const h = Math.max(1, Math.floor(dealt*.15));
-      u.hp = Math.min(u.maxhp, u.hp+h);
-      popDmg(u.side, "+"+h, "#63c07d");
-      say(`${nm(u)} は貪食で体力を得た (+${h})`);
-    }
-    if(m.fx === "drain"){
-      const h = Math.max(1, Math.floor(dealt * m.dr));
-      u.hp = Math.min(u.maxhp, u.hp+h);
-      say(`${nm(u)} は体力を吸い取った (+${h})`);
-      popDmg(u.side, "+"+h, "#63c07d");
-    }
-    if(m.fx === "endrain" && target.hp > 0){
-      const g = Math.min(15, target.en);
-      target.en -= g;
-      u.en = Math.min(u.maxen, u.en + g);
-      say(`${nm(target)} は気力を ${g} 奪われた。`);
-    }
-    if(m.fx === "recoil"){
-      const t = Math.max(1, Math.floor(dealt/3));
-      if(indirect(u, t, "反動")){ flash(u.side); popDmg(u.side, "-"+t, "#ff9450");
-        say(`${nm(u)} は反動を受けた (-${t})`); }
-    }
-    if(target.equip === "thorn" && target.hp > 0){
-      const t = Math.max(1, Math.floor(target.maxhp*.05));
-      if(indirect(u, t, "毒棘")){ flash(u.side); popDmg(u.side, "-"+t, "#b58cf0");
-        say(`毒棘が ${nm(u)} を刺した (-${t})`); }
-    }
-    if(m.fx === "para" && rollFx(u, target, m) && inflict(target, "麻痺")){
-      say(`${nm(target)} は麻痺した！`);
-    }
-    if(m.fx === "burn" && rollFx(u, target, m) && inflict(target, "やけど")){
-      say(`${nm(target)} はやけどを負った！`);
-    }
-    if(m.fx === "accdownfx" && rollFx(u, target, m) && target.hp>0){
-      lowerRank(target, "acc", 1, u);
-    }
-    if(m.fx === "spddown" && rollFx(u, target, m) && target.hp>0){
-      lowerRank(target, "spd", 1, u);
-    }
-    if(m.fx === "flinch" && rollFx(u, target, m) && target.hp>0){
-      target.flinch = true;
-    }
-    if(m.fx === "defdown" && target.hp>0){
-      lowerRank(target, "def", 1, u);
-    }
-    if(m.fx === "startle" && target.hp>0){
-      lowerRank(target, "atk", 1, u);
-    }
+    if(total>1) say(`<span class="sys">${landed}回 当たった！</span>`);
   } else {
     playFx(u, target, m, (m.fx === "heal" || m.fx === "repose") ? "heal" : "status");
     await sleep(200);
@@ -4775,9 +4801,8 @@ async function doMove(u, target, key){
       say(`${nm(u)} は地面に根を張った。物理防御が上がり、素早さが下がった。`);
     }
     if(m.fx === "soar"){
-      if(u.rank.eva < 6) u.rank.eva++;
-      if(u.rank.spd < 6) u.rank.spd++;
-      say(`${nm(u)} は高く舞い上がった。回避と素早さが上がった！`);
+      if(u.rank.eva < 6){u.rank.eva++;say(`${nm(u)} は高く舞い上がった。回避が上がった！`);}
+      else say("これ以上は上がらない。");
     }
     if(m.fx === "sub"){
       const cost = Math.floor(u.maxhp/4);
@@ -4793,6 +4818,10 @@ async function doMove(u, target, key){
       if(u.status){ say(`${nm(u)} の${u.status}は治った。`); u.status = null; u.statusTurns = 0; }
       u.restTurns = 1;
       say(`<span class="sys">${u.name} は次のターン動けない。</span>`);
+    }
+    if(m.fx === "reverseRoom"){
+      B.reverseTurns=3;
+      say("アベコベルームが広がった！ 使用ターンを含む3ターン、双方の技相性が反転する！");
     }
     if(m.fx === "haze"){
       [YOU(), FOE()].forEach(x=>{ x.rank = {atk:0,def:0,spatk:0,spdef:0,acc:0,spd:0,eva:0}; });
@@ -4821,8 +4850,7 @@ async function doMove(u, target, key){
     }
     if(m.fx === "encore"){
       const t = target.lastMove;
-      if(target.sub > 0) say(`${nm(target)} の身代わりが反響を防いだ。`);
-      else if(!t) say("しかし 失敗した。相手はまだ技を使っていない。");
+      if(!t) say("しかし 失敗した。相手はまだ技を使っていない。");
       else if(target.encore) say("しかし すでに反響がかかっている。");
       else {
         target.encore = {key:t, turns:3};
@@ -4831,8 +4859,7 @@ async function doMove(u, target, key){
     }
     if(m.fx === "disable"){
       const t = target.lastMove;
-      if(target.sub > 0) say(`${nm(target)} の身代わりが封技を防いだ。`);
-      else if(!t) say("しかし 失敗した。相手はまだ技を使っていない。");
+      if(!t) say("しかし 失敗した。相手はまだ技を使っていない。");
       else if(target.disabled) say("しかし すでに封技がかかっている。");
       else {
         target.disabled = {key:t, turns:3};
@@ -4840,8 +4867,7 @@ async function doMove(u, target, key){
       }
     }
     if(m.fx === "taunt"){
-      if(target.sub > 0) say(`${nm(target)} の身代わりが挑発を防いだ。`);
-      else if(target.tauntTurns > 0) say("しかし すでに挑発されている。");
+      if(target.tauntTurns > 0) say("しかし すでに挑発されている。");
       else { target.tauntTurns = 3; say(`${nm(target)} は挑発に乗った！ 3ターン変化技が出せない。`); }
     }
     if(m.fx === "hzRock" || m.fx === "hzSand"){
@@ -4869,8 +4895,7 @@ async function doMove(u, target, key){
     }
     if(m.fx === "bind"){
       lowerRank(target, "spd", 1, u);
-      if(target.sub > 0) say(`${nm(target)} の身代わりが渦を防いだ。`);
-      else if(isBound(target)) say("すでに渦に捕らえられている。");
+      if(isBound(target)) say("すでに渦に捕らえられている。");
       else {
         target.bindTurns = BIND_TURNS; target.boundBy = u;
         say(`${nm(target)} は渦に巻かれた！ ${BIND_TURNS}ターン交代できない。`);
@@ -4914,15 +4939,21 @@ async function doMove(u, target, key){
   }
 }
 
+function tryCharm(u){
+  if(u.hp>0 || u.dead || u.equip!=="charm" || u.charmUsed || u.preHitHp<u.maxhp*.5) return false;
+  u.charmUsed=true;u.hp=1;
+  say(`<span class="good">護りの札が</span> ${nm(u)} <span class="good">を踏みとどまらせた！</span>`);
+  return true;
+}
+
 /* 倒れた個体に印をつけるだけ。交代要員はまだ出さない */
 async function markFaints(){
+  if(B.over) return; // A multihit move may already have resolved the final knockout.
   for(const u of [YOU(), FOE()]){
     if(u.hp <= 0 && !u.dead){
       // 護りの札は「HP50%以上から倒されたとき」だけ発動する。
       // 条件を満たさなければ使用済みにはならず、次の機会に持ち越す。
-      if(u.equip === "charm" && !u.charmUsed && u.preHitHp >= u.maxhp*0.5){
-        u.charmUsed = true; u.hp = 1;
-        say(`<span class="good">護りの札が</span> ${nm(u)} <span class="good">を踏みとどまらせた！</span>`);
+      if(tryCharm(u)){
         paint(); await sleep(600); continue;
       }
       u.dead = true; u.hp = 0;
@@ -4958,7 +4989,7 @@ function chooseReplacement(title){
       if(u.dead) return;
       let tag = "";
       if(foeUp){
-        const dmgMoves = OP().moves.filter(k=>MOVES[k].p>0).map(k=>eff(MOVES[k].t,u.type));
+        const dmgMoves = OP().moves.filter(k=>MOVES[k].p>0).map(k=>attackEff(MOVES[k].t,u.type));
         const worst = Math.max(...dmgMoves, 0);
         tag = worst > 1 ? '<span class="eff dn">弱点を突かれる</span>'
             : worst === 0 ? '<span class="eff up">攻撃が通らない</span>' : "";
@@ -5095,6 +5126,10 @@ async function endTurn(){
       shown = true;
     }
   }
+  if(B.reverseTurns>0){
+    B.reverseTurns--;
+    if(B.reverseTurns===0){say("アベコベルームが消え、技相性が元に戻った。");shown=true;}
+  }
   paint();
   if(shown) await sleep(650);
 }
@@ -5191,7 +5226,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "physical-special-motion-v2";
+const BATTLE_RULES_VERSION = "balance-room-multihit-v3";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});
