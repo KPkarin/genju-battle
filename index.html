@@ -3,7 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>幻獣闘記 ─ 戦闘エンジン試作</title>
+<title>幻獣闘記 — 月下の闘技場</title>
+<meta name="theme-color" content="#0b1821">
+<meta name="description" content="18体の幻獣から三体を選び、技・特性・装備で勝負するターン制対戦ゲーム。月下の闘技場で、一手を読み勝て。">
 <style>
 :root{
   --bg:#0d1020;
@@ -412,14 +414,199 @@ canvas.actor.foe.move-recoil{animation:move-recoil-foe .52s steps(5)}
 @keyframes move-recoil-you{0%,100%{transform:none}25%{transform:translate(-10px,5px) scale(.97)}55%{transform:translate(17px,-8px)}}
 @keyframes move-recoil-foe{0%,100%{transform:none}25%{transform:translate(10px,-5px) scale(.97)}55%{transform:translate(-17px,8px)}}
 
+
+:root{--bg:#080f18;--panel:#101f2a;--panel2:#182d38;--line:#2d4650;--gold:#dfbd77;--bone:#f2ead7;--dim:#9cb0b9;--red:#df775f;--green:#86cba3;--blue:#83bed6;--serif:"Yu Mincho","Hiragino Mincho ProN","Noto Serif JP",serif}
+html{background:var(--bg);scroll-padding-top:24px}
+body{max-width:none;margin:0;padding:0 24px 20px;min-height:100svh;color:var(--bone);font-size:14px;line-height:1.65;background:radial-gradient(ellipse at 12% 0%,#1d41432e,transparent 55%),radial-gradient(ellipse at 95% 22%,#6e53371a,transparent 40%),var(--bg)}
+.app-shell{width:min(1120px,100%);margin:auto;position:relative}
+button,select,input{font:inherit}
+button{min-height:44px;border:1px solid #3b5360;border-radius:7px;background:#152833;color:var(--bone);padding:10px 15px;font-size:12px;line-height:1.45;transition:background .16s,border-color .16s,box-shadow .16s,transform .16s}
+button:hover:not(:disabled){background:#213e47;border-color:#9cae9a;transform:translateY(-1px)}
+button:active:not(:disabled){transform:translateY(1px);}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible{outline:2px solid #f3cc80;outline-offset:4px}
+button.primary,.primary{color:#fff7e6;background:#b94e35;border-color:#df8a60;font-weight:700;box-shadow:inset 0 1px #f8bd8555,0 3px #673223}
+button.primary:hover:not(:disabled){background:#d05c3c;border-color:#f0ad70;}
+button.ghost{background:#11202a88;border-color:#324954}
+select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px solid #3a5260;padding:10px 12px;font-size:13px}@keyframes ui-screen-in{from{opacity:.45;translate:0 5px}to{opacity:1;translate:0 0}}
+.game-header{display:flex;justify-content:space-between;align-items:center;gap:24px;padding:24px 0 22px;border-bottom:1px solid #42575b80;margin-bottom:25px}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand-mark{width:44px;height:44px;display:grid;place-items:center;flex:none;color:#edcc8a;border:1px solid #b4935c;border-radius:3px;background:#1c3036;font:700 23px var(--serif)}
+.brand h1{font:800 24px/1.25 var(--serif);letter-spacing:.18em;color:#f7ebd1;margin:0}
+.brand-kicker{font:8px/1.5 var(--mono);letter-spacing:.24em;color:#b5aa8c;margin-top:4px;display:block}
+.header-actions{display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end}
+.header-actions button{background:transparent;color:#c2cdcc;font-size:11px;padding:8px 12px;border-color:#334b56}
+.guild-hero{display:grid;grid-template-columns:1fr 1.15fr;min-height:280px;position:relative;isolation:isolate;border:1px solid #4b605e;border-radius:12px;overflow:hidden;background:#10232b;margin-bottom:34px;box-shadow:0 16px 40px #0004,inset 0 0 0 5px #0e1a22}
+.hero-copy{position:relative;z-index:2;padding:35px 0 32px 34px;align-self:center}
+.hero-eyebrow,.section-kicker{display:block;font:9px/1.6 var(--mono);letter-spacing:.2em;color:#d2b274;text-transform:uppercase}
+.hero-copy h2{font:800 clamp(27px,3.6vw,42px)/1.5 var(--serif);letter-spacing:.075em;margin:11px 0 12px;color:#f8edd6;text-shadow:0 3px 8px #0005}
+.hero-copy p{font-size:12px;line-height:1.9;color:#b4c2c3;margin:0;max-width:320px}
+.hero-art{position:relative;min-width:0;overflow:hidden;min-height:265px}
+#hallCanvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;object-fit:cover;opacity:.72;mask-image:linear-gradient(90deg,transparent,#000 25%)}
+.hero-mon{position:absolute;z-index:2;height:auto;image-rendering:pixelated;filter:drop-shadow(0 8px #030a1166)}
+.hero-mon.homura{width:132px;left:15%;bottom:25px}.hero-mon.oborogi{width:126px;right:7%;bottom:49px}.hero-mon.shiogame{width:102px;left:47%;bottom:39px}
+.hero-stamp{position:absolute;right:24px;top:18px;color:#d7bd8a;writing-mode:vertical-rl;font:10px var(--serif);z-index:4;opacity:.8}
+.section-heading,.squad-heading{display:flex;align-items:center;justify-content:space-between;gap:18px;margin:30px 0 16px}
+.section-heading h2,.squad-heading h2{font:700 24px/1.5 var(--serif);color:#f2e5c9;letter-spacing:.08em;margin:2px 0 0}
+.section-heading small,.squad-heading small{display:block;font:400 11px/1.8 var(--gothic);color:var(--dim);margin-top:4px}
+.section-count{border:1px solid #786b4a;border-radius:6px;padding:7px 12px;background:#302e2077;font:11px var(--mono);color:#e5cc91;white-space:nowrap}
+.roster-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:13px}
+#typeFilter.tfbar{gap:6px;margin:0}.tfbar .tf{font-size:11px;min-height:44px;padding:7px 11px;border-radius:5px;background:#111f2a;color:#abc0c5;border-color:#2a444f;flex:none;line-height:1.3}
+.tfbar .tf.on{border-color:#d1b16c;color:#ffe3a7;background:#3b3525;}
+.mongrid{grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.moncard{isolation:isolate;padding:15px 8px 13px;border:1px solid #314a54;border-radius:9px;background:linear-gradient(155deg,#1b303b,#10202b 72%);overflow:hidden;transition:transform .17s,border-color .17s,box-shadow .17s;min-width:0;min-height:181px}
+.moncard:hover:not(.dim){transform:translateY(-4px);border-color:#a69562;}
+.moncard.sel{border-color:#e7bd69;background:linear-gradient(155deg,#403b28,#1b2a2c 75%);box-shadow:inset 0 0 0 1px #d6b05f66,0 4px 16px #a2782920}
+.moncard .pick{top:8px;left:auto;right:7px;width:auto;padding:2px 5px;border-radius:3px;line-height:1.4;font-size:8px;background:#e2bb70}
+.moncard canvas.sp{width:80px;height:80px;margin:10px auto 7px;filter:drop-shadow(0 5px #0004)}
+.moncard .nm{font:700 16px/1.6 var(--serif);color:#f1e6cd;margin:0}.moncard .role-label{font-size:9px;line-height:1.5;color:#cbb681;margin-top:8px;min-height:14px}.moncard .stats{display:none}
+.party-dock,#slots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0 5px}
+#slots>.ordbar,#slots>.hint{grid-column:1/-1}.formation-section{margin-top:28px}
+.slot.loadout-card{padding:16px;margin:0;border:1px solid #3e555e;background:#142630;border-radius:9px;min-width:0}
+.slot.loadout-card.lead{border-color:#b59a5c;background:linear-gradient(150deg,#29332c,#142630 60%)}
+.shead{gap:9px;margin-bottom:12px}.shead canvas.sm{width:64px;height:64px;image-rendering:pixelated}
+.sn{font:700 17px/1.5 var(--serif);flex-wrap:wrap;gap:5px;}
+.loadout-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}.loadout-actions button{min-height:44px;font-size:11px;padding:8px 10px;flex:1}.loadout-actions .edit-loadout{border-color:#a18e5b;color:#f1d89c;background:#3d3726}
+.loadout-moves{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:12px}
+.mini-move{display:flex;align-items:center;gap:4px;min-height:33px;background:#0b1b25;border:1px solid #2a4550;border-radius:5px;padding:5px 6px;font-size:10px;line-height:1.5;min-width:0;flex-wrap:wrap}
+.utility-actions{display:flex;flex-wrap:wrap;gap:8px}
+.empty-state{padding:30px 18px;text-align:center;border:1px dashed #40575d;border-radius:8px;background:#10212a;color:#9db7bc;font-size:12px;line-height:1.9}
+.slot.empty-state{margin:0;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:235px}.slot.empty-state::before{content:"＋";font:32px var(--serif);color:#bba36b;margin-bottom:10px}
+.launchbar{position:sticky;bottom:12px;z-index:8;display:flex;align-items:center;gap:13px;flex-wrap:wrap;padding:15px 18px;margin:24px 0 12px;background:#132a32f5;border:1px solid #796d48;border-radius:9px;box-shadow:0 8px 32px #0009,inset 0 1px #e1cb8a12}
+.launch-copy{flex:1;min-width:160px;font-size:12px;color:#d3dfda;line-height:1.6}.launch-copy strong{display:block;font:700 17px var(--serif);color:#f6e6c6}.launch-copy .hint{font-size:10px;margin:3px 0 0}
+.launchbar>.primary{min-height:52px;min-width:172px;font-size:15px}.launchbar>button:not(.primary){min-height:52px}
+.game-footer{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:24px 2px 8px;color:#829ba3;border-top:1px solid #2d424a;margin-top:31px;font-size:9px;line-height:1.8}
+.battle-topbar{display:flex;align-items:center;justify-content:space-between;gap:15px;margin:22px 0 15px}.battle-topbar h2{font:700 23px/1.4 var(--serif);letter-spacing:.08em;margin:0}.turn-badge{border:1px solid #ad945d;border-radius:5px;background:#302e24;color:#ebce8d;font:11px var(--mono);padding:8px 13px;white-space:nowrap}
+.battle-layout{display:grid;grid-template-columns:minmax(0,1fr) 315px;gap:18px;align-items:start}.battle-arena{min-width:0}.battle-sidebar{min-width:0;display:grid;gap:12px}
+.stage{border:1px solid #8b8058;border-radius:8px;margin-bottom:13px;isolation:isolate}
+.hud{background:#0a1720ed;border:1px solid #6b7863;border-radius:6px;backdrop-filter:none;padding:8px 10px;width:46%}.hud .nm{font:700 13px/1.5 var(--serif);gap:4px}
+.battle-command-panel{padding:16px;border:1px solid #40575f;background:#11232e;border-radius:9px;}.command-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid #2e4951;font:18px var(--serif);color:#eee2c3;}
+.cmd{grid-template-columns:1fr 1fr;gap:8px;margin-top:0}.cmd button{position:relative;min-height:101px;padding:12px 11px;border-radius:7px;background:#1a303b;border-color:#42606c;overflow:hidden}.cmd button:hover:not(:disabled){background:#2b4146;border-color:#d1b877;}.cmd button.wide{min-height:67px;background:#142b33;border-color:#3c6064}
+.battle-info-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.battle-info-actions button{flex:1;padding:7px 10px;font-size:10px;background:#0c1d27}
+.log{height:132px;max-height:132px;border-radius:7px;border-color:#3b5358;background:#0a1822;padding:11px 13px;font-size:11px;line-height:1.75;scrollbar-color:#45686c #0a1822}.cell{padding:7px 8px;border-radius:5px;border-color:#314a52;background:#0e202a}.cell.act{border-color:#d2b475;background:#2c3329}.field-state{font-size:11px;line-height:1.7;color:#f3dfaa;background:#3c3424;border-color:#8f7949;border-radius:6px;padding:9px 12px}
+.result-scene{position:relative;text-align:center;margin:34px auto;padding:38px 26px;border:1px solid #9c8655;border-radius:12px;background:radial-gradient(ellipse at top,#3e432633,transparent 70%),#11232c;max-width:800px;}.result-emblem{font:40px/1 var(--serif);color:#d8b570;display:grid;place-items:center;width:75px;height:75px;border:1px solid #93794d;border-radius:50%;margin:0 auto 18px;}.result-scene .big{font:40px/1.6 var(--serif);margin:0 0 10px}.result-team{display:flex;gap:26px;justify-content:center;align-items:flex-end;margin:28px 0}.result-team canvas{width:90px;height:90px;image-rendering:pixelated;filter:drop-shadow(0 7px #0004)}
+.ui-modal[hidden],.editor-panel[hidden],.toast[hidden]{display:none!important}.ui-modal{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:24px;isolation:isolate}.modal-backdrop{position:absolute;inset:0;background:#030a11d9;backdrop-filter:blur(5px)}.modal-panel{position:relative;z-index:1;display:flex;flex-direction:column;width:min(780px,100%);max-height:min(88dvh,960px);border:1px solid #9f8d61;border-radius:11px;background:#11232d;box-shadow:0 22px 90px #000c;overflow:hidden;animation:ui-dialog-in .18s ease-out}@keyframes ui-dialog-in{from{opacity:.3;translate:0 10px}to{opacity:1;translate:0 0}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px 23px 17px;border-bottom:1px solid #49605d;background:#1a2e37}.modal-header h2{font:700 23px/1.5 var(--serif);letter-spacing:.06em;margin:4px 0 0;color:#f7e5bd}.modal-header button{flex:none;min-width:44px;min-height:44px;border-radius:50%;font-size:21px;line-height:1;padding:7px;background:#10212a;border-color:#637062;color:#ead8b5}.modal-body{padding:22px 23px 24px;overflow-y:auto;overscroll-behavior:contain;scrollbar-color:#536f70 #0e202a;min-height:0}.modal-footer{padding:13px 23px;border-top:1px solid #395158;background:#0e1d28;display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.editor-summary{display:flex;align-items:center;gap:19px;padding-bottom:19px;margin-bottom:17px;border-bottom:1px solid #344e55}.editor-summary canvas{width:85px;height:85px;image-rendering:pixelated;flex:none}.editor-summary h3{font:700 26px/1.5 var(--serif);letter-spacing:.06em;margin:0 0 5px;color:#f8e9c9}.editor-tabs{display:flex;gap:6px;border-bottom:1px solid #6e7358;padding:4px 0 9px;margin-bottom:17px;position:sticky;top:-23px;z-index:2;background:#11232d}.editor-tab{flex:1;border-color:#3c5761;background:#152c38;color:#b8c9c9;font-size:12px;padding:9px 11px}.editor-tab.on,.editor-tab[aria-selected="true"]{background:#d2b875;border-color:#eed296;color:#1b2426;font-weight:700}.mrow{min-height:64px;border-radius:7px;padding:11px 12px;margin-bottom:8px;background:#142a35;border-color:#35545e}.mrow.on,.card.on{background:#373729;border-color:#d5b773;}
+.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.card{min-height:86px;border-color:#3a5661;border-radius:7px;padding:13px 14px;background:#152b36}
+.detail-hero{display:flex;align-items:center;gap:22px;margin-bottom:20px}.detail-hero canvas{width:112px;height:112px;flex:none;image-rendering:pixelated;filter:drop-shadow(0 6px #0004)}.detail-hero h3{font:700 29px/1.5 var(--serif);margin:0 0 6px;letter-spacing:.08em;color:#f4e6c6}.detail-stats,.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 19px;margin-top:16px}
+.resource-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.modal-body .team-save,.modal-body .lobby{padding:18px;border-radius:8px;border-color:#455e67;background:#152b35;margin:0}.modal-body .bgm-controls{padding:15px;background:#182f39;border:1px solid #3f5963;border-radius:7px;gap:14px;margin-bottom:14px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:150;max-width:min(92vw,460px);padding:12px 19px;background:#e5d2a5;color:#17262a;border:1px solid #fff0c7;border-radius:7px;font-size:12px;text-align:center}
+.card-index{position:absolute;top:10px;left:10px;color:#8caaa9;font:8px var(--mono)}
+.mon-aura{position:absolute;width:80px;height:24px;left:calc(50% - 40px);top:86px;border-radius:50%;background:#71937920;z-index:-1}
+.mbody{max-height:none;padding:0;overflow:visible}.editor-panel .mpick{border:0;background:none}.editor-panel .selslot{min-height:44px;border-radius:6px}.modal-body details{background:#142a34;border-color:#39545e;border-radius:7px}.modal-body summary{color:#d9c28d}.bgm-volume input{min-height:40px;accent-color:var(--gold)}
+@media(min-width:1000px){.battle-layout .cmd{grid-template-columns:1fr}.battle-layout .cmd button{min-height:75px}.battle-layout .bench{display:grid;grid-template-columns:1fr}}
+@media(max-width:999px){.battle-layout{grid-template-columns:1fr}#slots{grid-template-columns:1fr}.loadout-moves{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:720px){body{padding:0 15px 16px}.game-header{padding:17px 0;margin-bottom:18px;gap:12px}.brand{gap:9px}.brand-mark{width:38px;height:38px;font-size:20px}.brand h1{font-size:21px}.brand-kicker{font-size:7px}.header-actions{gap:5px}.header-actions button{padding:8px;font-size:10px}.guild-hero{grid-template-columns:1fr 1fr;min-height:236px;margin-bottom:26px}.hero-copy{padding:25px 0 25px 23px}.hero-copy h2{font-size:28px}.hero-copy p{font-size:10px}.hero-eyebrow{font-size:8px}.hero-art{min-height:236px}.hero-mon.homura{width:102px;left:2%}.hero-mon.oborogi{width:96px;right:0}.hero-mon.shiogame{width:78px;left:39%;bottom:21px}.hero-stamp{right:15px;font-size:8px}.section-heading h2,.squad-heading h2{font-size:21px}.section-count{font-size:10px;padding:6px}.mongrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.moncard{min-height:167px;padding:14px 5px 10px}.moncard canvas.sp{width:74px;height:74px;margin:8px auto 6px}.moncard .role-label{font-size:8px}.loadout-moves{grid-template-columns:1fr 1fr}.launchbar{bottom:9px;gap:9px;padding:12px}.launch-copy{flex-basis:100%;min-width:0}.launchbar>.primary{flex:1;min-width:0;font-size:14px}.game-footer{flex-direction:column;gap:10px}.hud{padding:6px 8px}.hud .nm{font-size:11px}.hud .val{font-size:8px}.eqline{font-size:7px}.cell .cn{font-size:9px;flex-wrap:wrap}.ui-modal{padding:16px}.modal-panel{max-height:91dvh}.modal-header{padding:16px 17px}.modal-body{padding:18px 17px 22px}.editor-tabs{top:-18px}.editor-summary canvas{width:72px;height:72px}.result-team{gap:18px}.result-team canvas{width:80px;height:80px}}
+@media(max-width:420px){body{padding-inline:11px}.game-header{gap:8px}.brand h1{font-size:19px}.brand-mark{width:34px;height:37px}.brand-kicker{font-size:6px}.header-actions{max-width:155px;gap:4px}.header-actions button{padding:7px 8px;font-size:9px}.guild-hero{min-height:218px}.hero-copy{padding:21px 0 24px 19px}.hero-copy h2{font-size:24px;letter-spacing:.02em}.hero-copy p{font-size:9px}.hero-art{min-height:218px}.hero-mon.homura{width:86px;left:-4%}.hero-mon.oborogi{width:82px;right:-6%}.hero-mon.shiogame{width:65px;left:36%}.moncard{min-height:159px}.moncard canvas.sp{width:68px;height:68px}.moncard .nm{font-size:15px}.loadout-actions button{min-width:0;padding-inline:9px;font-size:10px}.slot.loadout-card{padding:12px}.battle-layout .cmd,.cmd{grid-template-columns:1fr 1fr;gap:7px}.cmd button{min-height:104px;padding:10px 9px}.cmd .mvn{font-size:11px}.cmd .mvx,.cmd .mvd{font-size:8px}.hud .eqline{font-size:6px}.hud .nm{font-size:10px}.hud .val{font-size:7px}.ui-modal{padding:8px}.modal-panel{max-height:95dvh}.modal-body{padding:16px 13px 20px}.editor-tabs{top:-16px}.cards,.resource-grid{grid-template-columns:1fr}.result-team{gap:9px}.result-team canvas{width:76px;height:76px}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.screen.on,.modal-panel{animation:none}.moncard:hover:not(.dim),button:hover:not(:disabled),button:active:not(:disabled){transform:none}*{scroll-behavior:auto!important}}
+.hero-orbit{display:none}.resource-grid button,.resource-grid a{padding:14px;text-align:left;min-height:68px}.result-scene #resBody{color:var(--dim)}
+
+
+/* Final viewport and readability pass. */
+.moncard{opacity:1}
+.loadout-meta{display:flex;gap:6px 12px;flex-wrap:wrap;margin-top:10px;color:#bbcabf;font-size:11px}
+.party-position{font:9px var(--mono);letter-spacing:.09em;color:#c9b98c;margin-bottom:4px}
+.draft-feedback{align-self:center;margin-left:auto;color:#a5c4ad;font-size:10px}
+.draft-feedback.error{color:#f2a38c}
+.loadout-card>.utility-actions{margin-top:10px;gap:5px}
+.loadout-card>.utility-actions .ob{font-size:10px;min-height:34px;padding:5px 9px}
+.slot.empty-state::before{display:none}.empty-sigil{font:36px var(--serif);color:#d6bb7d}
+.launchbar .row{margin-left:auto;flex-wrap:nowrap;gap:8px}
+.launchbar .primary{min-height:52px;min-width:174px;font-size:14px}
+.launchbar .ghost{min-height:52px}
+.game-footer a{color:#cdb681;text-underline-offset:3px}.game-footer a:hover{color:#ffe4a8}
+.game-footer>span{display:flex;gap:7px;align-items:baseline;font:14px var(--serif)}
+.game-footer>span small{font:8px var(--mono);letter-spacing:.12em}
+.battle-topbar h2 small{display:block;font:11px var(--gothic);color:var(--dim);margin-top:5px;letter-spacing:.05em}
+.turn-badge{display:flex;align-items:center;gap:9px}.turn-badge b{font-size:21px;line-height:1.1}
+.cmd .mvd,.cmd .mvx{font-size:10px;line-height:1.55}.cmd .mvn{font-size:12px}
+.cmd button,.card,.mrow{text-align:left}.card .cn{line-height:1.6}.card .cd{line-height:1.7}
+.mrow{width:100%;display:block}.modal-body .wide{display:block;width:100%;margin-top:16px}
+.audio-notice{display:block;width:100%;background:#273c38;border-color:#958257;margin-bottom:15px;text-align:left}
+.audio-notice[hidden]{display:none}
+.modal-backdrop{border-radius:0;border:0}.modal-backdrop:hover:not(:disabled){background:#030a11d9;transform:none}
+.ui-modal .detail-stats .sb{font-size:11px}.ui-modal .detail-stats .sb span{width:42px}.ui-modal .detail-stats .sb i{height:7px}
+.result-mon span{display:block;margin-top:6px;font-size:12px}
+@media(max-width:720px){
+ .launch-copy{display:none}.launchbar{padding:9px;bottom:max(8px,env(safe-area-inset-bottom));flex-wrap:nowrap}
+ .launchbar .row{width:100%;margin:0}.launchbar .primary{flex:1;min-width:0;font-size:14px}.launchbar .ghost{flex:1;font-size:12px}
+ .cmd .mvd,.cmd .mvx{font-size:10px}.cmd .mvn{font-size:12px}.hud .nm{font-size:12px}.hud .val{font-size:10px}.hud .eqline{font-size:8px}
+ .header-actions button{font-size:10px}.hero-copy p{font-size:11px}.hero-stamp{display:none}
+ .moncard .role-label{font-size:10px}.moncard .aff{font-size:9px}.draft-feedback{margin-left:0;width:100%}
+ .loadout-card>.utility-actions .ob{min-height:44px}
+ .battle-topbar h2{font-size:21px}.battle-topbar h2 small{font-size:10px}
+}
+
+
+.hero-short{display:none}@media(max-width:720px){.hero-long{display:none}.hero-short{display:inline}}
 </style>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 <body>
-
-<h1>幻獣闘記</h1>
-<div class="sub">BATTLE ENGINE PROTOTYPE / 3 vs 3</div>
-<div class="bgm-controls" aria-label="戦闘BGMの設定">
+<div class="app-shell" id="appShell">
+<header class="game-header">
+  <div class="brand"><span class="brand-mark" aria-hidden="true">幻</span><div><h1>幻獣闘記</h1><span class="brand-kicker">GENJU TOUKI · THREE BEASTS, ONE BOND</span></div></div>
+  <nav class="header-actions" aria-label="ゲームメニュー">
+    <button id="btnOpenSaves">◇ 編成の記録</button><button id="btnOpenGuide">？ 遊び方</button><button id="btnOpenSound"><span id="soundSummary">音 ON</span> ♫</button>
+  </nav>
+</header>
+<button id="audioNotice" class="audio-notice" hidden></button>
+<main>
+<section id="scBuild" class="screen on" aria-label="幻獣の編成">
+  <div class="guild-hero">
+    <div class="hero-copy"><span class="hero-eyebrow">月下の闘技場 / 3 vs 3</span><h2>選べ。組め。<br>読み勝て。</h2><p><span class="hero-long">幻獣と挑む、三対三の読み合い。<br>三体の個性と四つの技が、勝負を変える。</span><span class="hero-short">三対三の読み合い。<br>君だけの三体で挑め。</span></p></div>
+    <div class="hero-art" aria-hidden="true"><canvas id="hallCanvas" width="384" height="216"></canvas><canvas id="hero-homura" class="hero-mon homura" width="32" height="32"></canvas><canvas id="hero-shiogame" class="hero-mon shiogame" width="32" height="32"></canvas><canvas id="hero-oborogi" class="hero-mon oborogi" width="32" height="32"></canvas></div>
+    <span class="hero-stamp" aria-hidden="true">月が満ちる。闘いが始まる。</span>
+  </div>
+  <section class="formation-section" aria-labelledby="formationHeading">
+    <div class="squad-heading"><div><span class="section-kicker">01 / YOUR COMPANIONS</span><h2 id="formationHeading">ともに戦う、三体。</h2><small id="formationState">3体の幻獣に、それぞれ4つの技を。</small></div><span id="partyCount" class="section-count">0 / 3</span></div>
+    <div id="slots" class="party-dock"></div>
+    <div class="utility-actions"><button class="ghost" id="btnRand">↻ おまかせ編成</button><button class="ghost" id="btnClearDraft">編成をクリア</button><span class="draft-feedback" id="draftStatus">自動保存</span></div>
+    <p class="hint" id="buildHint"></p>
+    <details class="coverage-panel"><summary>編成の相性を見る</summary><div id="coverage"></div></details>
+  </section>
+  <section id="rosterSection" aria-labelledby="rosterHeading">
+    <div class="section-heading"><div><span class="section-kicker">02 / THE BESTIARY</span><h2 id="rosterHeading">出会いが、戦略になる。</h2><small>気になる幻獣をタップして、能力や得意な戦い方を見てみよう。</small></div><span class="section-count" id="rosterCount">18体の幻獣</span></div>
+    <div class="roster-toolbar"><div class="tfbar" id="typeFilter" aria-label="属性で絞り込む"></div></div>
+    <div class="mongrid" id="roster"></div>
+  </section>
+  <div class="launchbar"><div class="launch-copy"><span class="section-kicker">READY FOR BATTLE?</span><strong>今の三体で、勝負へ。</strong></div><div class="row"><button id="btnOpenLobby" class="ghost">友だちと対戦</button><button class="primary" id="btnStart" disabled>闘技場へ出撃 <span aria-hidden="true">→</span></button></div></div>
+</section>
+<section id="scBattle" class="screen" aria-label="戦闘">
+  <div class="battle-topbar"><div><span class="section-kicker">MOONLIT ARENA</span><h2>月下の闘技場 <small id="battleMode">AIチャレンジ</small></h2></div><div class="turn-badge"><span>TURN</span><b id="battleTurn">01</b></div></div>
+  <div class="battle-layout"><section class="battle-arena" aria-label="戦場">  <div class="stage" id="stage">
+    <canvas id="fieldCanvas" width="384" height="216" aria-hidden="true"></canvas>
+    <canvas class="actor foe" id="spFoe" width="32" height="32"></canvas>
+    <canvas class="actor you" id="spYou" width="32" height="32"></canvas>
+    <canvas id="statusCanvas" width="384" height="216" aria-hidden="true"></canvas>
+    <canvas id="moveCanvas" width="384" height="216" aria-hidden="true"></canvas>
+    <div class="hud foe">
+      <div class="nm"><span id="foeName"></span><span id="foeTags"></span></div>
+      <div class="bar"><i id="foeHp"></i></div>
+      <div class="val" id="foeHpV"></div>
+      <div class="eqline" id="foeEq"></div>
+    </div>
+    <div class="hud you">
+      <div class="nm"><span id="youName"></span><span id="youTags"></span></div>
+      <div class="bar"><i id="youHp"></i></div>
+      <div class="bar en"><i id="youEn"></i></div>
+      <div class="val" id="youHpV"></div>
+      <div class="eqline" id="youEq"></div>
+    </div>
+  </div>
+  <p id="fieldState" class="field-state" role="status" aria-live="polite" hidden></p>
+  <div class="strip" id="strip"></div>
+</section>
+    <aside class="battle-sidebar"><div class="battle-command-panel"><div class="command-heading"><h3>次の一手を。</h3><button class="ghost" id="btnLeaveBattle">退出</button></div><div class="cmd" id="cmd"></div><div class="eyebrow">控えの幻獣</div><div class="bench" id="bench"></div></div><div class="battle-info-actions"><button id="btnBattleTeam" class="ghost">◇ 戦況の詳細</button><button id="btnBattleGuide" class="ghost">？ 相性・ルール</button></div><div class="eyebrow">BATTLE LOG</div><div class="log" id="log" role="log" aria-live="polite"></div></aside>
+  </div>
+</section>
+<section id="scResult" class="screen" aria-label="対戦結果"><div class="result result-scene"><div class="result-emblem" aria-hidden="true">✦</div><span class="hero-eyebrow">THE BATTLE IS OVER</span><div class="big" id="resTitle"></div><p class="hint" id="resBody"></p><div class="result-team" id="resultTeam"></div><div class="row" style="justify-content:center"><button class="primary" id="btnAgain">もう一度、闘技場へ →</button><button class="ghost" id="btnBack">編成を見直す</button></div></div></section>
+</main>
+<footer class="game-footer"><span>幻獣闘記 <small>GENJU TOUKI</small></span><p>BGM「イクスゲイナー」／ <a href="https://musmus.main.jp/" target="_blank" rel="noopener noreferrer">MusMus</a><br>勝利音「Jingle#24」／ <a href="https://www.senses-circuit.com/" target="_blank" rel="noopener noreferrer">BGM：hitoshi by Senses Circuit</a></p></footer>
+</div>
+<div id="uiResources" hidden>
+  <section id="resourceSound"><div class="bgm-controls" aria-label="戦闘BGMの設定">
   <button type="button" id="btnBgm" aria-pressed="true">BGM：ON</button>
   <label class="bgm-volume">音量 <input id="bgmVolume" type="range" min="0" max="100" value="30" aria-label="BGM音量"><output id="bgmVolumeValue" for="bgmVolume">30%</output></label>
   <button type="button" id="btnBgmPlay" hidden>再生</button>
@@ -427,31 +614,16 @@ canvas.actor.foe.move-recoil{animation:move-recoil-foe .52s steps(5)}
 <p class="hint" id="bgmStatus" role="status" aria-live="polite" hidden></p>
 <div class="bgm-credit">BGM「イクスゲイナー」／ <a href="https://musmus.main.jp/" target="_blank" rel="noopener noreferrer">MusMus</a><br>勝利音「Jingle#24」／ <a href="https://www.senses-circuit.com/" target="_blank" rel="noopener noreferrer">BGM：hitoshi by Senses Circuit</a></div>
 
-<!-- ============ BUILD ============ -->
-<div id="scBuild" class="screen on">
-  <div class="eyebrow">01 ─ 手持ちを3体えらぶ</div>
-  <p class="hint">物理技は「物攻」と相手の「物防」、特殊技は「特攻」と相手の「特防」でダメージが決まります。役割を参考に3体を組み合わせよう。</p>
-  <div class="tfbar" id="typeFilter"></div>
-  <div class="mongrid" id="roster"></div>
-  <div id="coverage"></div>
-  <div class="eyebrow">02 ─ 技4つと装備を決める</div>
-  <div id="slots"></div>
-  <p class="hint" id="buildHint"></p>
-  <div class="team-save">
+</section>
+  <section id="resourceSaves">  <div class="team-save">
     <label for="teamSaveSlot">編成の保存枠</label>
     <select id="teamSaveSlot" aria-label="編成の保存枠"><option value="0">編成1</option><option value="1">編成2</option><option value="2">編成3</option></select>
     <div class="row"><button id="btnSaveTeam">この枠に保存</button><button id="btnLoadTeam">この枠を読み込む</button></div>
     <p class="hint" id="saveStatus" role="status" aria-live="polite"></p>
     <p class="hint">編集中の内容は自動保存。保存枠は途中の編成も3つまで残せます。同じ端末・同じブラウザのこのサイト内に保存されます。</p>
   </div>
-  <div class="row" style="margin-top:12px">
-    <button class="primary" id="btnStart" disabled>AIと戦う</button>
-    <button class="ghost" id="btnRand">ランダム構築</button>
-    <button class="ghost" id="btnClearDraft">編成をクリア</button>
-  </div>
-
-  <div class="eyebrow">03 ─ 友達と対戦する</div>
-  <div class="lobby">
+</section>
+  <section id="resourceLobby">  <div class="lobby">
     <p class="hint">同じ合言葉を入れて、片方が「部屋を作る」、もう片方が「部屋に入る」を押してください。
       構築とシードを交換したあと、毎ターンお互いの選択だけをやり取りします。</p>
     <input id="passIn" class="pass" type="text" inputmode="latin" autocomplete="off"
@@ -463,7 +635,8 @@ canvas.actor.foe.move-recoil{animation:move-recoil-foe .52s steps(5)}
     </div>
     <p class="hint" id="lobbyStatus"></p>
   </div>
-  <details>
+</section>
+  <section id="resourceGuide"><p class="role-desc">幻獣を三体選び、一体につき四つの技、ひとつの特性と装備を決めて出撃。交代も大切な一手です。</p>  <details>
     <summary>物理・特殊と役割について</summary>
     <p class="hint">HP・物攻（物理攻撃）・物防（物理防御）・特攻（特殊攻撃）・特防（特殊防御）・素早さの6能力です。技の属性とは別に、各技に「物理」「特殊」「変化」の分類があります。</p>
     <p class="hint">物理アタッカーは物防の低い相手へ、特殊アタッカーは特防の低い相手へ。両刀は両方の技を使い分け、受け役やサポート役で味方を支えます。装備や選ぶ技で役割を変えることもできます。</p>
@@ -486,52 +659,15 @@ canvas.actor.foe.move-recoil{animation:move-recoil-foe .52s steps(5)}
     </div>
     <canvas id="statusDemo" width="192" height="112" role="img" aria-label="朧狐の状態異常の演出見本"></canvas>
     <p class="status-preview-note" id="statusCaption" aria-live="polite"></p>
-  </details>
-</div>
-
-<!-- ============ BATTLE ============ -->
-<div id="scBattle" class="screen">
-  <div class="stage" id="stage">
-    <canvas id="fieldCanvas" width="384" height="216" aria-hidden="true"></canvas>
-    <canvas class="actor foe" id="spFoe" width="32" height="32"></canvas>
-    <canvas class="actor you" id="spYou" width="32" height="32"></canvas>
-    <canvas id="statusCanvas" width="384" height="216" aria-hidden="true"></canvas>
-    <canvas id="moveCanvas" width="384" height="216" aria-hidden="true"></canvas>
-    <div class="hud foe">
-      <div class="nm"><span id="foeName"></span><span id="foeTags"></span></div>
-      <div class="bar"><i id="foeHp"></i></div>
-      <div class="val" id="foeHpV"></div>
-      <div class="eqline" id="foeEq"></div>
-    </div>
-    <div class="hud you">
-      <div class="nm"><span id="youName"></span><span id="youTags"></span></div>
-      <div class="bar"><i id="youHp"></i></div>
-      <div class="bar en"><i id="youEn"></i></div>
-      <div class="val" id="youHpV"></div>
-      <div class="eqline" id="youEq"></div>
-    </div>
-  </div>
-  <p id="fieldState" class="field-state" role="status" aria-live="polite" hidden></p>
-  <div class="strip" id="strip"></div>
-  <div class="log" id="log"></div>
-  <div class="cmd" id="cmd"></div>
-  <div class="bench" id="bench"></div>
+  </details></section>
   <details id="teamPanel">
     <summary>手持ちの詳細（特性・持ち物・足元）</summary>
     <div id="teamBox" style="margin-top:8px"></div>
   </details>
 </div>
-
-<!-- ============ RESULT ============ -->
-<div id="scResult" class="screen">
-  <div class="result">
-    <div class="big" id="resTitle"></div>
-    <p class="hint" id="resBody" style="margin-bottom:16px"></p>
-    <div class="row" style="justify-content:center">
-      <button class="primary" id="btnAgain">同じ構築でもう一度</button>
-      <button class="ghost" id="btnBack">編成に戻る</button>
-    </div>
-  </div>
+<div id="uiModal" class="ui-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" hidden>
+  <button class="modal-backdrop" type="button" tabindex="-1" aria-label="ウィンドウを閉じる"></button>
+  <section class="modal-panel"><header class="modal-header"><div><span class="section-kicker">GENJU TOUKI</span><h2 id="modalTitle">幻獣闘記</h2></div><button id="btnModalClose" aria-label="ウィンドウを閉じる">×</button></header><div class="modal-body" id="modalBody"></div></section>
 </div>
 
 <script>
@@ -3278,6 +3414,7 @@ const BattleMusic = {
     if(status){
       status.textContent=this.enabled && wanted ? (loading?`${label}を読み込み中…`:error || (needsGesture?`「再生」を押すと${label}が始まります。`:"")) : "";
       status.hidden=!status.textContent;
+      GameUI.audio();
     }
   }
 };
@@ -3361,6 +3498,7 @@ let draftReadFailed=false;
 function saveMessage(message,error=false){
   const node=document.getElementById("saveStatus");
   if(node){node.textContent=message;node.className="hint"+(error?" err":"");}
+  GameUI.saveBadge(message,error);
 }
 function normalizeDraft(data){
   if(!Array.isArray(data)) return null;
@@ -3471,23 +3609,19 @@ function renderRoster(){
   SPECIES.filter(s=> rosterFilter==="all" || s.t===rosterFilter).forEach(s=>{
     const on = party.some(p=>p.id===s.id);
     const full = party.length>=3 && !on;
-    const c = el("div","moncard"+(on?" sel":"")+(full?" dim":""));
+    const c = el("button","moncard"+(on?" sel":""));
     const bars = [["HP","hp",s.hp],["物攻","atk",s.atk],["物防","def",s.def],["特攻","spatk",s.spatk],["特防","spdef",s.spdef],["速","spd",s.spd]]
       .map(([l,k,v])=>`<div class="sb ${k}"><span>${l}</span><i><u style="width:${statPct(k,v)}%"></u></i><b>${v}</b></div>`)
       .join("");
-    c.innerHTML = `${on?'<div class="pick">選択中</div>':""}
+    c.innerHTML = `<span class="card-index">NO. ${String(SPECIES.indexOf(s)+1).padStart(2,"0")}</span>${on?'<div class="pick">契約中</div>':""}
       <canvas class="sp" width="32" height="32"></canvas>
       <div class="nm">${s.n}</div>
       <div class="tl">${chip(s.t)}<span class="aff">適性 ${s.aff}</span></div>
       <div class="role-label">${s.role}</div>
       <div class="stats">${bars}</div>`;
     drawSprite(c.querySelector("canvas"), s.id);
-    c.onclick = ()=>{
-      const at = party.findIndex(p=>p.id===s.id);
-      if(at>=0) party.splice(at,1);
-      else if(party.length<3) party.push({id:s.id, moves:[], equip:"none", ability:ABIL_OF[s.id][0]});
-      renderAll();
-    };
+    c.setAttribute?.("data-species",s.id);c.setAttribute?.("aria-label",s.n+"の能力を見る");
+    c.onclick=()=>GameUI.inspect(s.id);
     box.appendChild(c);
   });
 }
@@ -3499,120 +3633,41 @@ function moveRow(m, k, on, disabled, onclick){
       (pr>0 ? `<b class="bd pri">先制+${pr}</b>` : pr<0 ? `<b class="bd late">後攻${pr}</b>` : "")
     + (m.own ? '<b class="bd own">専用</b>' : "");
   const stat = `${m.fx === "counter" ? "固定ダメージ　" : m.p>0 ? `威力 ${m.p}${m.fx==="multi"?" ×2〜5回":""}　` : ""}${m.acc?`命中 ${m.acc}　`:""}気力 ${m.en}`;
-  const row = el("div","mrow"+(on?" on":"")+(disabled?" off":""));
+  const row = el("button","mrow"+(on?" on":"")+(disabled?" off":""));
   row.innerHTML = `
     <div class="mhead">${chip(m.t)}<span class="mn">${m.n}</span>${moveBadge(m)}${badges}
       <span class="mck">${on?"✓":""}</span></div>
     <div class="mst">${stat}</div>
     ${m.d?`<div class="mdesc">${m.d}</div>`:""}`;
+  row.disabled=disabled;
   if(onclick) row.onclick = onclick;
   return row;
 }
 
 function renderSlots(){
-  const box = $("#slots"); box.innerHTML = "";
-  if(party.length > 1){
-    const o = el("div","ordbar");
-    o.innerHTML = '<span>出す順番</span>' + party.map((p,i)=>
-      `<b class="${i===0?"lead":""}">${i===0?"先発 ":""}${spec(p.id).n}</b>`).join('<i>→</i>');
-    box.appendChild(o);
-  }
-  if(!party.length){
-    box.innerHTML = '<p class="hint">上から3体えらぶと、ここに技・特性・装備の設定が出ます。</p>';
-    return;
-  }
-  party.forEach((p,i)=>{
-    const s = spec(p.id);
-    const d = el("div","slot");
-    if(i===0) d.classList.add("lead");
-    const head = el("div","shead");
-    head.innerHTML = `<canvas class="sp sm" width="32" height="32"></canvas>
-      <div class="sinfo">
-        <div class="sn"><span class="idx">${i===0?"先発":i+1+"番手"}</span> ${s.n} ${chip(s.t)}</div>
-        <div class="role-label">${s.role}</div>
-        <div class="ssub">適性 ${s.aff}　HP ${s.hp}　物攻 ${s.atk}　物防 ${s.def}<br>特攻 ${s.spatk}　特防 ${s.spdef}　素早さ ${s.spd}</div></div>
-      <div class="ord">
-        <button class="ob" data-mv="-1" ${i===0?"disabled":""} title="上へ">▲</button>
-        <button class="ob" data-mv="1" ${i===party.length-1?"disabled":""} title="下へ">▼</button>
-      </div>
-      <div class="sdone ${p.moves.length===4?"ok":""}">技 ${p.moves.length}/4</div>`;
-    d.appendChild(head);
-    drawSprite(head.querySelector("canvas"), s.id);
-    d.appendChild(el("p","role-desc",s.roleDesc));
-    head.querySelectorAll(".ob").forEach(b=>{
-      b.onclick = ev=>{
-        ev.stopPropagation();
-        const j = i + Number(b.dataset.mv);
-        if(j < 0 || j >= party.length) return;
-        [party[i], party[j]] = [party[j], party[i]];
-        renderAll();
-      };
-    });
-    if(i > 0){
-      const lead = el("button","leadbtn","この子を先発にする");
-      lead.onclick = ()=>{ party.unshift(party.splice(i,1)[0]); renderAll(); };
-      d.appendChild(lead);
+  const box=$("#slots");box.innerHTML="";
+  for(let index=0;index<3;index++){
+    const build=party[index];
+    if(!build){
+      const empty=el("button","slot empty-state",`<span class="party-position">${index===0?"先発":index+1+"番手"}</span><span class="empty-sigil" aria-hidden="true">＋</span><strong>まだ見ぬ相棒を</strong><span>幻獣図鑑からえらぶ</span>`);
+      empty.onclick=()=>document.getElementById("rosterSection")?.scrollIntoView?.({behavior:idleMotionPreference?.matches?"auto":"smooth",block:"start"});box.appendChild(empty);continue;
     }
-
-    // 選択中の技
-    const sel = el("div","selrow");
-    for(let n=0;n<4;n++){
-      const k = p.moves[n];
-      const b = el("div","selslot"+(k?"":" empty"));
-      b.innerHTML = k ? `${chip(MOVES[k].t)}<span>${MOVES[k].n}</span>${moveBadge(MOVES[k])}` : `<span class="ph">空き</span>`;
-      if(k) b.onclick = ()=>{ p.moves.splice(p.moves.indexOf(k),1); renderAll(); };
-      sel.appendChild(b);
+    const species=spec(build.id),card=el("article","slot loadout-card"+(index===0?" lead":""));
+    const head=el("div","shead",`<canvas class="sp sm" width="32" height="32"></canvas><div class="sinfo"><div class="party-position">${index===0?"先発 / LEADER":"0"+(index+1)+" / COMPANION"}</div><div class="sn">${species.n} ${chip(species.t)}</div><div class="role-label">${species.role}</div><div class="ssub">HP ${species.hp}　物攻 ${species.atk}　物防 ${species.def}<br>特攻 ${species.spatk}　特防 ${species.spdef}　素早さ ${species.spd}</div></div>`);
+    card.appendChild(head);drawSprite(head.querySelector("canvas"),species.id);
+    const moves=el("div","loadout-moves");
+    for(let slot=0;slot<4;slot++){const key=build.moves[slot];moves.appendChild(el("span","mini-move"+(key?"":" empty"),key?`${chip(MOVES[key].t)} ${MOVES[key].n}`:`＋ 技 ${slot+1}`));}
+    card.appendChild(moves);
+    card.appendChild(el("div","loadout-meta",`<span>✦ ${ABILITIES[build.ability].n}</span><span>◇ ${EQUIPS[build.equip].n}</span>`));
+    const actions=el("div","loadout-actions");
+    for(const [tab,label] of [["moves","技 "+build.moves.length+"/4"],["abilities","特性"],["equipment","装備"]]){
+      const button=el("button","edit-loadout",label);button.setAttribute?.("data-edit",String(index));button.setAttribute?.("aria-label",species.n+"の"+label+"を設定");button.onclick=()=>GameUI.edit(index,tab);actions.appendChild(button);
     }
-    d.appendChild(sel);
-
-    // タイプ別に技を並べる
-    const pool = learnable(s);
-    const byT = {};
-    pool.forEach(k=>{ (byT[MOVES[k].t] = byT[MOVES[k].t] || []).push(k); });
-    const acc = el("details","mpick");
-    acc.innerHTML = `<summary>技をえらぶ（${pool.length}種）</summary>`;
-    const body = el("div","mbody");
-    [s.t, s.aff, "無"].filter((t,ix,a)=>a.indexOf(t)===ix).forEach(t=>{
-      if(!byT[t]) return;
-      const lbl = t===s.t ? "一致（1.5倍）" : t===s.aff ? "適性" : "汎用";
-      body.appendChild(el("div","mgrp",`${chip(t)} <span>${lbl}</span>`));
-      byT[t].forEach(k=>{
-        const m = MOVES[k], on = p.moves.includes(k);
-        const full = p.moves.length>=4 && !on;
-        body.appendChild(moveRow(m, k, on, full, ()=>{
-          const at = p.moves.indexOf(k);
-          if(at>=0) p.moves.splice(at,1);
-          else if(p.moves.length<4) p.moves.push(k);
-          renderAll();
-        }));
-      });
-    });
-    acc.appendChild(body);
-    d.appendChild(acc);
-
-    // 特性
-    d.appendChild(el("div","count","特性"));
-    const ab = el("div","cards");
-    ABIL_OF[p.id].forEach(k=>{
-      const c = el("div","card"+(p.ability===k?" on":""),
-        `<div class="cn">${ABILITIES[k].n}</div><div class="cd">${ABILITIES[k].d}</div>`);
-      c.onclick = ()=>{ p.ability = k; renderAll(); };
-      ab.appendChild(c);
-    });
-    d.appendChild(ab);
-
-    // 装備
-    d.appendChild(el("div","count","装備"));
-    const eq = el("div","cards");
-    Object.keys(EQUIPS).forEach(k=>{
-      const c = el("div","card sm"+(p.equip===k?" on":""),
-        `<div class="cn">${EQUIPS[k].n}</div><div class="cd">${EQUIPS[k].d}</div>`);
-      c.onclick = ()=>{ p.equip = k; renderAll(); };
-      eq.appendChild(c);
-    });
-    d.appendChild(eq);
-    box.appendChild(d);
-  });
+    card.appendChild(actions);
+    const order=el("div","utility-actions");
+    for(const [delta,label] of [[-1,"← 前へ"],[1,"次へ →"]]){const button=el("button","ghost ob",label);button.disabled=index+delta<0||index+delta>=party.length;button.onclick=()=>GameUI.moveParty(index,delta);order.appendChild(button);}
+    const remove=el("button","ghost ob","外す");remove.setAttribute?.("aria-label",species.n+"を編成から外す");remove.onclick=()=>GameUI.removeParty(index);order.appendChild(remove);card.appendChild(order);box.appendChild(card);
+  }
 }
 
 /* 手持ち3体の弱点・打点をまとめて出す */
@@ -3648,6 +3703,7 @@ function renderAll(){
     : party.filter(p=>p.moves.length<4).map(p=>spec(p.id).n+"の技").join(" / ") + " が未設定";
   $("#buildHint").textContent = ready ? "準備完了。相手はランダム構築のAIです。" : need;
   renderTeamStorage();
+  GameUI.render();
   return saveDraft();
 }
 
@@ -3664,6 +3720,209 @@ function renderChart(){
   });
   $("#chartBox").innerHTML = h+"</table>";
 }
+
+/* Interface state is cosmetic: no battle RNG, turn state, or saved battle data lives here. */
+const GameUI = {
+  ready:false,kind:null,index:0,tab:"moves",speciesId:null,opener:null,resource:null,oldOverflow:"",
+  resources:{sound:"resourceSound",guide:"resourceGuide",saves:"resourceSaves",lobby:"resourceLobby",team:"teamPanel"},
+  titles:{sound:"音の設定",guide:"幻獣闘記の手引き",saves:"編成の記録",lobby:"友だちと対戦",team:"戦況の詳細",editor:"幻獣を仕立てる",inspect:"幻獣図鑑",leave:"対戦を終了しますか？"},
+  init(){
+    this.ready=true;
+    for(const [id,kind] of [["btnOpenSound","sound"],["btnOpenGuide","guide"],["btnOpenSaves","saves"],["btnOpenLobby","lobby"],["btnBattleTeam","team"],["btnBattleGuide","guide"],["btnLeaveBattle","leave"]]){
+      const button=document.getElementById(id);if(button)button.onclick=()=>this.open(kind);
+    }
+    const close=document.getElementById("btnModalClose");if(close)close.onclick=()=>this.close();
+    const backdrop=document.querySelector(".modal-backdrop");if(backdrop)backdrop.onclick=()=>this.close();
+    const notice=document.getElementById("audioNotice");if(notice)notice.onclick=()=>this.open("sound");
+    document.addEventListener?.("keydown",event=>{
+      if(!this.kind)return;
+      if(event.key==="Escape"){event.preventDefault();event.stopPropagation?.();this.close();return;}
+      if(event.key!=="Tab")return;
+      const modal=document.getElementById("uiModal");
+      const focusable=Array.from(modal.querySelectorAll("button, input, select, a[href], [tabindex]"))
+        .filter(node=>!node.disabled && !node.hidden && node.getAttribute?.("tabindex")!=="-1" && node.offsetParent!==null);
+      const first=focusable[0],last=focusable[focusable.length-1];
+      if(!first){event.preventDefault();close?.focus?.();return;}
+      if(event.shiftKey && (document.activeElement===first || !modal.contains(document.activeElement))){event.preventDefault();last.focus();}
+      else if(!event.shiftKey && (document.activeElement===last || !modal.contains(document.activeElement))){event.preventDefault();first.focus();}
+    });
+    const hall=document.getElementById("hallCanvas");if(hall)drawField(hall);
+    for(const id of ["homura","oborogi","shiogame"]){const canvas=document.getElementById("hero-"+id);if(canvas)drawSprite(canvas,id);}
+    this.render();this.audio();
+  },
+  release(){
+    if(this.kind==="guide"){
+      const preview=document.getElementById("statusPreview");if(preview)preview.open=false;
+      if(typeof StatusPreview!=="undefined")StatusPreview.sync();
+    }
+    if(this.resource){document.getElementById("uiResources")?.appendChild(this.resource);this.resource=null;}
+  },
+  open(kind,options={}){
+    if(!this.ready || !this.titles[kind])return;
+    if(!this.kind){this.opener=document.activeElement;this.oldOverflow=document.body?.style?.overflow||"";}
+    this.release();this.kind=kind;
+    if(Number.isInteger(options.index))this.index=options.index;
+    if(options.tab)this.tab=options.tab;
+    if(options.id)this.speciesId=options.id;
+    const modal=document.getElementById("uiModal");modal.hidden=false;
+    const app=document.getElementById("appShell");if(app){app.inert=true;app.setAttribute?.("aria-hidden","true");}
+    if(document.body?.style)document.body.style.overflow="hidden";
+    const body=document.getElementById("modalBody");body.innerHTML="";
+    if(this.resources[kind]){
+      this.resource=document.getElementById(this.resources[kind]);
+      if(this.resource){if(kind==="team")this.resource.open=true;body.appendChild(this.resource);}
+    }
+    this.render();document.getElementById("btnModalClose")?.focus?.({preventScroll:true});
+  },
+  close(restore=true){
+    if(!this.ready)return;
+    const previousKind=this.kind;
+    this.release();this.kind=null;
+    const modal=document.getElementById("uiModal");if(modal)modal.hidden=true;
+    const app=document.getElementById("appShell");if(app){app.inert=false;app.removeAttribute?.("aria-hidden");}
+    if(document.body?.style)document.body.style.overflow=this.oldOverflow;
+    if(previousKind==="lobby" && !NET.on && NET.peer)NET.reset();
+    if(restore && previousKind){
+      let target=this.opener;
+      if(!target || target.isConnected===false)target=document.querySelector(`[data-edit="${this.index}"]`) || document.getElementById("btnOpenGuide");
+      target?.focus?.({preventScroll:true});
+    }
+    this.opener=null;
+  },
+  edit(index,tab="moves"){
+    if(!party[index])return;
+    this.open("editor",{index,tab:["moves","abilities","equipment"].includes(tab)?tab:"moves"});
+  },
+  inspect(id){if(spec(id))this.open("inspect",{id});},
+  toggleSpecies(id){
+    if(!spec(id))return;
+    const index=party.findIndex(build=>build.id===id);
+    if(index>=0)party.splice(index,1);
+    else if(party.length<3)party.push({id,moves:[],equip:"none",ability:ABIL_OF[id][0]});
+    else return;
+    renderAll();
+  },
+  removeParty(index){if(party[index]){party.splice(index,1);renderAll();}},
+  moveParty(index,delta){
+    const to=index+delta;if(!party[index]||to<0||to>=party.length)return;
+    [party[index],party[to]]=[party[to],party[index]];renderAll();
+  },
+  selectMove(index,key){
+    const build=party[index];if(!build||!learnable(spec(build.id)).includes(key))return;
+    const at=build.moves.indexOf(key);
+    if(at>=0)build.moves.splice(at,1);else if(build.moves.length<4)build.moves.push(key);else return;
+    renderAll();
+  },
+  selectAbility(index,key){if(party[index]&&ABIL_OF[party[index].id].includes(key)){party[index].ability=key;renderAll();}},
+  selectEquip(index,key){if(party[index]&&Object.hasOwn(EQUIPS,key)){party[index].equip=key;renderAll();}},
+  stats(species){return [["HP","hp"],["物攻","atk"],["物防","def"],["特攻","spatk"],["特防","spdef"],["素早さ","spd"]].map(([label,key])=>`<div class="sb ${key}"><span>${label}</span><i><u style="width:${statPct(key,species[key])}%"></u></i><b>${species[key]}</b></div>`).join("");},
+  render(){
+    if(!this.ready)return;
+    const ready=party.length===3&&party.every(build=>build.moves.length===4);
+    const count=document.getElementById("partyCount");if(count)count.textContent=party.length+" / 3";
+    const state=document.getElementById("formationState");if(state)state.textContent=ready?"契約完了。いざ、闘技場へ。":"3体の幻獣に、それぞれ4つの技を。";
+    const total=document.getElementById("rosterCount");if(total)total.textContent=SPECIES.length+"体の幻獣";
+    this.battle();
+    if(!this.kind)return;
+    const title=document.getElementById("modalTitle");if(title)title.textContent=this.titles[this.kind];
+    if(this.kind==="editor")this.renderEditor();
+    else if(this.kind==="inspect")this.renderInspect();
+    else if(this.kind==="leave")this.renderLeave();
+  },
+  renderInspect(){
+    const species=spec(this.speciesId);if(!species)return;
+    const restoreChoice=document.activeElement?.getAttribute?.("data-choose-species")===species.id;
+    const body=document.getElementById("modalBody");body.innerHTML="";
+    const on=party.some(build=>build.id===species.id),full=party.length>=3&&!on;
+    const hero=el("div","detail-hero",`<canvas class="sp" width="32" height="32"></canvas><div><div class="hero-eyebrow">GENJU ${String(SPECIES.indexOf(species)+1).padStart(2,"0")}</div><h3>${species.n} ${chip(species.t)}</h3><div class="role-label">${species.role}</div><p class="hint">適性 ${species.aff}</p></div>`);
+    body.appendChild(hero);drawSprite(hero.querySelector("canvas"),species.id);
+    body.appendChild(el("p","role-desc",species.roleDesc));
+    body.appendChild(el("div","stats detail-stats",this.stats(species)));
+    body.appendChild(el("div","count","選べる特性"));
+    const traits=el("div","cards");for(const key of ABIL_OF[species.id])traits.appendChild(el("div","card",`<div class="cn">${ABILITIES[key].n}</div><div class="cd">${ABILITIES[key].d}</div>`));body.appendChild(traits);
+    const action=el("button",on?"ghost wide":"primary wide",on?"この幻獣を編成から外す":"この幻獣を編成に加える");
+    action.disabled=full;action.setAttribute?.("data-choose-species",species.id);action.onclick=()=>this.toggleSpecies(species.id);body.appendChild(action);
+    if(on){const edit=el("button","ghost wide","技・特性・装備を整える →");edit.onclick=()=>this.edit(party.findIndex(build=>build.id===species.id));body.appendChild(edit);}
+    if(full)body.appendChild(el("p","hint","手持ちは3体まで。入れ替える場合は、先に手持ちの幻獣を外してください。"));
+    if(restoreChoice)action.focus?.({preventScroll:true});
+  },
+  renderEditor(){
+    const build=party[this.index];if(!build){this.close();return;}
+    const species=spec(build.id),body=document.getElementById("modalBody"),scroll=body.scrollTop||0;
+    const active=document.activeElement,focusKey=["data-move","data-remove-move","data-ability","data-equip","data-editor-tab"].map(key=>[key,active?.getAttribute?.(key)]).find(([,value])=>value!==null&&value!==undefined);
+    body.innerHTML="";
+    const header=el("div","editor-summary",`<canvas class="sp" width="32" height="32"></canvas><div><div class="hero-eyebrow">${this.index===0?"先発の幻獣":"第"+(this.index+1)+"の幻獣"}</div><h3>${species.n} ${chip(species.t)}</h3><p class="hint">${species.role} / 適性 ${species.aff}</p></div><span class="sdone ${build.moves.length===4?"ok":""}">${build.moves.length} / 4技</span>`);
+    body.appendChild(header);drawSprite(header.querySelector("canvas"),species.id);
+    const selected=el("div","selrow");
+    for(let slot=0;slot<4;slot++){
+      const key=build.moves[slot],button=el("button","selslot"+(key?"":" empty"),key?`${chip(MOVES[key].t)}${MOVES[key].n}<span class="ph">×</span>`:`<span class="ph">${slot+1}　技をえらぶ</span>`);
+      button.disabled=!key;if(key){button.setAttribute?.("data-remove-move",key);button.setAttribute?.("aria-label",MOVES[key].n+"を外す");button.onclick=()=>this.selectMove(this.index,key);}selected.appendChild(button);
+    }
+    body.appendChild(selected);
+    const tabs=el("div","editor-tabs");tabs.setAttribute?.("role","tablist");tabs.setAttribute?.("aria-label","幻獣の設定");
+    for(const [key,label] of [["moves","技をえらぶ"],["abilities","特性"],["equipment","装備"]]){
+      const tab=el("button","editor-tab"+(this.tab===key?" on":""),label);tab.setAttribute?.("data-editor-tab",key);tab.setAttribute?.("role","tab");tab.setAttribute?.("id","editorTab-"+key);tab.setAttribute?.("aria-controls","loadoutEditorPanel");tab.setAttribute?.("aria-selected",String(this.tab===key));tab.setAttribute?.("tabindex",this.tab===key?"0":"-1");
+      tab.onclick=()=>{this.tab=key;this.renderEditor();document.querySelector(`[data-editor-tab="${key}"]`)?.focus?.({preventScroll:true});};
+      tab.onkeydown=event=>{
+        const keys=["moves","abilities","equipment"],at=keys.indexOf(key);
+        const next=event.key==="ArrowRight"?keys[(at+1)%3]:event.key==="ArrowLeft"?keys[(at+2)%3]:event.key==="Home"?keys[0]:event.key==="End"?keys[2]:null;
+        if(next){event.preventDefault();this.tab=next;this.renderEditor();document.querySelector(`[data-editor-tab="${next}"]`)?.focus?.({preventScroll:true});}
+      };tabs.appendChild(tab);
+    }
+    body.appendChild(tabs);
+    const panel=el("div","editor-panel");
+    panel.setAttribute?.("id","loadoutEditorPanel");panel.setAttribute?.("role","tabpanel");panel.setAttribute?.("aria-labelledby","editorTab-"+this.tab);
+    if(this.tab==="moves"){
+      panel.appendChild(el("p","hint",`技を4つ選びます。一致タイプの攻撃技は1.5倍。選択済みの技を押すと外せます。`));
+      const pool=learnable(species);
+      for(const type of [species.t,species.aff,"無"].filter((type,index,array)=>array.indexOf(type)===index)){
+        panel.appendChild(el("div","mgrp",`${chip(type)} <span>${type===species.t?"タイプ一致 / 1.5倍":type===species.aff?"適性の技":"共通の技"}</span>`));
+        for(const key of pool.filter(key=>MOVES[key].t===type)){
+          const on=build.moves.includes(key),disabled=build.moves.length>=4&&!on;
+          const row=moveRow(MOVES[key],key,on,disabled,()=>this.selectMove(this.index,key));
+          row.disabled=disabled;row.setAttribute?.("data-move",key);row.setAttribute?.("aria-pressed",String(on));panel.appendChild(row);
+        }
+      }
+    }else{
+      panel.appendChild(el("p","hint",this.tab==="abilities"?"この幻獣の戦い方を変える、ひとつの特性。":"得意を伸ばすか、弱点を補うか。装備はひとつ持てます。"));
+      const cards=el("div","cards"),data=this.tab==="abilities"?ABILITIES:EQUIPS,keys=this.tab==="abilities"?ABIL_OF[build.id]:Object.keys(EQUIPS);
+      for(const key of keys){
+        const on=(this.tab==="abilities"?build.ability:build.equip)===key;
+        const card=el("button","card"+(on?" on":""),`<div class="cn">${on?"✓ ":""}${data[key].n}</div><div class="cd">${data[key].d}</div>`);
+        card.setAttribute?.(this.tab==="abilities"?"data-ability":"data-equip",key);card.setAttribute?.("aria-pressed",String(on));
+        card.onclick=this.tab==="abilities"?()=>this.selectAbility(this.index,key):()=>this.selectEquip(this.index,key);cards.appendChild(card);
+      }
+      panel.appendChild(cards);
+    }
+    body.appendChild(panel);
+    const footer=el("div","modal-footer"),done=el("button","primary","設定を終える");done.onclick=()=>this.close();footer.appendChild(el("span","hint","変更は自動で保存されます"));footer.appendChild(done);body.appendChild(footer);
+    body.scrollTop=scroll;
+    if(focusKey){const selector=focusKey[0]==="data-remove-move"?`[data-move="${focusKey[1]}"]`:`[${focusKey[0]}="${focusKey[1]}"]`;body.querySelector(selector)?.focus?.({preventScroll:true});}
+  },
+  renderLeave(){
+    const body=document.getElementById("modalBody");body.innerHTML="";body.appendChild(el("p","role-desc","対戦を終了して、編成画面に戻ります。保存した編成はそのまま残ります。"));
+    const exit=el("button","primary wide","対戦を終了して戻る");exit.onclick=()=>{if(NET.on)NET.send({t:"bye"});NET.reset();if(B){B.over=true;B.busy=true;}this.close(false);ME="you";show("scBuild");renderAll();};
+    const stay=el("button","ghost wide","戦闘へ戻る");stay.onclick=()=>this.close();body.appendChild(exit);body.appendChild(stay);
+  },
+  battle(){
+    const turn=document.getElementById("battleTurn");if(turn&&B)turn.textContent=String(B.turn).padStart(2,"0");
+    const mode=document.getElementById("battleMode");if(mode)mode.textContent=NET.on?"友だちと対戦":"AIチャレンジ";
+    const saves=document.getElementById("btnOpenSaves");if(saves)saves.disabled=!!document.getElementById("scBattle")?.classList.contains("on");
+  },
+  result(win){
+    const screen=document.getElementById("scResult");if(screen)screen.setAttribute?.("data-result",win?"win":"lose");
+    const box=document.getElementById("resultTeam");if(!box||!B)return;box.innerHTML="";
+    for(const unit of myTeam()){const card=el("div","result-mon",`<canvas class="sp" width="32" height="32"></canvas><span>${unit.name}</span>`);box.appendChild(card);drawSprite(card.querySelector("canvas"),unit.id);}
+  },
+  audio(){
+    if(!this.ready)return;
+    const label=document.getElementById("soundSummary");if(label)label.textContent=BattleMusic.enabled?"音 ON":"音 OFF";
+    const status=document.getElementById("bgmStatus"),notice=document.getElementById("audioNotice");
+    if(notice&&status){notice.hidden=!status.textContent;notice.textContent=status.textContent?"♫ "+status.textContent+"　音設定を開く":"";}
+  },
+  saveBadge(message,error){const badge=document.getElementById("draftStatus");if(badge){badge.textContent=error?"保存を確認してください":"自動保存済み";badge.className="draft-feedback"+(error?" error":"");badge.setAttribute?.("title",message);}}
+};
+
 
 /* ================= battle ================= */
 const LV = 50;
@@ -3812,6 +4071,7 @@ let B = null;
 
 function beginBattle(youTeam, foeTeam, seed, meSide){
   MoveMotion.stop();VictoryAudio.stop();
+  document.getElementById("stage")?.querySelectorAll(".dmg,.pt,.ring,.flashfx,.streak,.bolt").forEach(node=>node.remove());
   setSeed(seed);
   ME = meSide;
   B = {
@@ -3894,6 +4154,7 @@ function paint(enter){
   $("#youEq").innerHTML = eqLine(y);
   $("#foeEq").innerHTML = eqLine(f);
   renderTeams(); renderStrip();
+  GameUI.battle();
   StatusEffects.sync();
 }
 
@@ -3972,8 +4233,8 @@ function renderCmd(){
     const tag = prTag + stab + (
                 isStatusMove(m) && fxNullified(m, f) ? '<span class="eff no">効果なし</span>'
               : m.p>0 && e===0 ? '<span class="eff no">効果なし</span>'
-              : m.p>0 && e>1   ? '<span class="eff up">ばつぐん ×${e}</span>'
-              : m.p>0 && e<1   ? '<span class="eff dn">いまひとつ ×${e}</span>' : "");
+              : m.p>0 && e>1   ? `<span class="eff up">ばつぐん ×${e}</span>`
+              : m.p>0 && e<1   ? `<span class="eff dn">いまひとつ ×${e}</span>` : "");
     const cost = enCost(y, k);
     const lockMsg = moveLock(y, k);
     const blocked = !!lockMsg;
@@ -3984,7 +4245,7 @@ function renderCmd(){
       : `<span class="mvd">${m.p>0 ? `威力 ${m.p}${m.fx==="multi"?" ×2〜5回":""}　${costTxt}${m.acc&&m.acc<100?`　命中 ${m.acc}`:""}`
                                   : `${costTxt}${m.acc&&m.acc<100?`　命中 ${m.acc}`:""}`}</span>`
         + (m.d ? `<span class="mvx">${m.d}</span>` : "");
-    const b = el("button",null,
+    const b = el("button","move-command command-"+m.category,
       `<span class="mv"><span class="mvn">${chip(m.t)} ${m.n} ${moveBadge(m)}${blocked?"":tag}</span>${info}</span>`);
     b.disabled = blocked || y.en < cost || B.busy;
     if(!b.disabled) anyMove = true;
@@ -4496,6 +4757,8 @@ function aiChoose(){
 /* ---- turn resolution ---- */
 /* 自分の選択を確定させ、相手の選択と突き合わせてターンを解決する */
 async function resolve(myAct){
+  const battle=B;
+  if(!battle || battle.over)return;
   if(B.over || B.busy) return;
   lockCmd();
   let opAct;
@@ -4503,6 +4766,7 @@ async function resolve(myAct){
     NET.send({t:"act", turn:B.turn, act:myAct});
     waitingMsg("相手の入力を待っています…");
     opAct = await NET.wait("act:"+B.turn);
+  if(B!==battle || battle.over)return;
     if(!opAct) return;                       // 切断
     clearWaiting();
   } else {
@@ -4512,6 +4776,8 @@ async function resolve(myAct){
 }
 
 async function takeTurn(myAct, opAct){
+  const battle=B;
+  if(!battle || battle.over)return;
   // 内部処理は常にホスト視点(you)で行う
   const playerAct = ME === "you" ? myAct : opAct;
   const foeAct    = ME === "you" ? opAct : myAct;
@@ -4524,7 +4790,9 @@ async function takeTurn(myAct, opAct){
     B.yi = playerAct.to;
     say(`ゆけ、${nm(YOU())}！`);
     paint(true); await sleep(400);
+  if(B!==battle || battle.over)return;
     await applyHazards(YOU());
+  if(B!==battle || battle.over)return;
     onEnter(YOU());
     paint();
   }
@@ -4535,7 +4803,9 @@ async function takeTurn(myAct, opAct){
     B.fi = foeAct.to;
     say(`${nm(FOE())} が現れた！`);
     paint(true); await sleep(400);
+  if(B!==battle || battle.over)return;
     await applyHazards(FOE());
+  if(B!==battle || battle.over)return;
     onEnter(FOE());
     paint();
   }
@@ -4550,7 +4820,8 @@ async function takeTurn(myAct, opAct){
   const acts = [];
   if(playerAct.kind === "move") acts.push({unit:YOU(), side:"you", key:playerAct.key});
   if(foeAct.kind === "move")    acts.push({unit:FOE(), side:"foe", key:foeAct.key});
-  await markFaints();          // 設置で交代先が倒れることがある
+  await markFaints();
+  if(B!==battle || battle.over)return;          // 設置で交代先が倒れることがある
   if(B.over) return;
 
   const pri = k => k ? (MOVES[k].pri || 0) : 0;
@@ -4568,18 +4839,23 @@ async function takeTurn(myAct, opAct){
     const target = a.side === "you" ? FOE() : YOU();
     if(target.dead) continue;
     await doMove(a.unit, target, a.key);
+  if(B!==battle || battle.over)return;
     await markFaints();
+  if(B!==battle || battle.over)return;
   }
 
   if(B.over) return;
 
   // 3. ターン終了処理
   await endTurn();
-  await markFaints();          // やけど・寄生でターン終了時に倒れる場合がある
+  if(B!==battle || battle.over)return;
+  await markFaints();
+  if(B!==battle || battle.over)return;          // やけど・寄生でターン終了時に倒れる場合がある
   if(B.over) return;
 
   // 4. 交代要員はここで初めて場に出る（同ターン中に殴られない）
   await sendReplacements();
+  if(B!==battle || battle.over)return;
   if(B.over) return;
 
   B.turn++;
@@ -4636,6 +4912,8 @@ const HAZARD_NAME = {rock:"岩棘", sand:"痺れ砂"};
 
 /* 場に出てきた個体に設置が作用する。戦闘開始時の初手には効かない */
 async function applyHazards(u){
+  const battle=B;
+  if(!battle || battle.over)return;
   const hz = B.hazard[u.side];
   if(!hz || u.dead) return;
   if(hz.rock){
@@ -4647,6 +4925,7 @@ async function applyHazards(u){
       say(`${nm(u)} は岩の棘に傷ついた (-${d})`
         + (e>1 ? ' <span class="good">効果はばつぐんだ！</span>' : e<1 ? ' <span class="bad">効果はいまひとつ</span>' : ""));
       paint(); await sleep(520);
+  if(B!==battle || battle.over)return;
     }
   }
   if(hz.sand){
@@ -4656,6 +4935,7 @@ async function applyHazards(u){
     else if(inflict(u, "麻痺")){
       if(u.status==="麻痺") say(`${nm(u)} は痺れ砂で麻痺した！`);
       paint(); await sleep(520);
+  if(B!==battle || battle.over)return;
     }
   }
 }
@@ -4683,24 +4963,31 @@ function fxNullified(m, target){
 }
 
 async function doMove(u, target, key){
+  const battle=B;
+  if(!battle || battle.over)return;
   if(u.actionCancelled){
     u.actionCancelled = false;
     say(`${nm(u)} は怯んで ${MOVES[key].n} を出せなかった！`);
-    await sleep(500); return;                 // 気力は消費しない
+    await sleep(500);
+  if(B!==battle || battle.over)return; return;                 // 気力は消費しない
   }
   if(u.restTurns > 0){
     u.restTurns--;
     say(`${nm(u)} は静養の反動で動けない。`);
-    await sleep(500); return;
+    await sleep(500);
+  if(B!==battle || battle.over)return; return;
   }
-  if(u.flinch){ u.flinch=false; say(`${nm(u)} はひるんで動けない！`); await sleep(500); return; }
-  if(u.status === "麻痺" && rng() < PARA_FAIL){ StatusEffects.pulse(u,"麻痺"); say(`${nm(u)} は痺れて動けない！`); await sleep(500); return; }
+  if(u.flinch){ u.flinch=false; say(`${nm(u)} はひるんで動けない！`); await sleep(500);
+  if(B!==battle || battle.over)return; return; }
+  if(u.status === "麻痺" && rng() < PARA_FAIL){ StatusEffects.pulse(u,"麻痺"); say(`${nm(u)} は痺れて動けない！`); await sleep(500);
+  if(B!==battle || battle.over)return; return; }
   if(!key){
     u.guardStreak = 0;                       // 守る以外を挟んだ扱い。lastMove は保持する
     const gain = has(u,"focus2") ? EN_FOCUS*2 : EN_FOCUS;
     u.en = Math.min(u.maxen, u.en + gain);
     say(`${nm(u)} は息を整えた (+${gain})`);
-    paint(); await sleep(450); return;
+    paint(); await sleep(450);
+  if(B!==battle || battle.over)return; return;
   }
 
   // 選んだ後に相手から制限をかけられた場合、このターンの行動もその影響を受ける。
@@ -4713,24 +5000,29 @@ async function doMove(u, target, key){
 
   if(u.tauntTurns > 0 && isStatusMove(m)){
     say(`${nm(u)} は挑発に気を取られ ${m.n} を出せなかった！`);
-    await sleep(500); return;
+    await sleep(500);
+  if(B!==battle || battle.over)return; return;
   }
   if(EQUIPS[u.equip].noStatus && isStatusMove(m)){
     say(`${nm(u)} は ${EQUIPS[u.equip].n} のため ${m.n} を出せなかった！`);
-    await sleep(500); return;
+    await sleep(500);
+  if(B!==battle || battle.over)return; return;
   }
   if(u.disabled && u.disabled.key === key){
     say(`${nm(u)} は ${m.n} を封じられていて出せなかった！`);
-    await sleep(500); return;
+    await sleep(500);
+  if(B!==battle || battle.over)return; return;
   }
   if(EQUIPS[u.equip].lock && u.lastMove === key){
     // 反響で強制された技が連続禁止と噛み合わず、何もできない
     say(`${nm(u)} は ${EQUIPS[u.equip].n} のせいで ${m.n} を続けられず、何もできなかった！`);
-    await sleep(560); return;
+    await sleep(560);
+  if(B!==battle || battle.over)return; return;
   }
   if(u.en < enCost(u, key)){
     say(`${nm(u)} は気力が足りず ${m.n} を出せなかった！`);
-    await sleep(500); return;
+    await sleep(500);
+  if(B!==battle || battle.over)return; return;
   }
 
   u.en -= enCost(u, key);
@@ -4738,6 +5030,7 @@ async function doMove(u, target, key){
   if(m.fx !== "guard") u.guardStreak = 0;   // 守る以外を挟めば連続扱いは切れる
   say(`${nm(u)} の ${m.n}！`);
   await sleep(360);
+  if(B!==battle || battle.over)return;
 
   if(m.acc){
     // 命中ランク - 相手の回避ランク。回避を上げる技はまだ無いが、足せば自動で効く
@@ -4745,7 +5038,8 @@ async function doMove(u, target, key){
     const blur = hasVs(target,"blur",u) ? 0.9 : 1;               // 見切り
     if(rng()*100 > m.acc * accMul(stage) * blur){
       playFx(u, target, m, "miss");
-      say("しかし外れた。"); await sleep(450); return;
+      say("しかし外れた。"); await sleep(450);
+  if(B!==battle || battle.over)return; return;
     }
   }
 
@@ -4753,14 +5047,16 @@ async function doMove(u, target, key){
     const t = target.plannedMove;
     if(!t || isStatusMove(MOVES[t])){
       say(`しかし ${nm(target)} は攻撃してこなかった。不意打ちは失敗した。`);
-      await sleep(500); return;
+      await sleep(500);
+  if(B!==battle || battle.over)return; return;
     }
   }
   if(m.fx === "startle"){
     const t = target.plannedMove;
     if(!t || !isStatusMove(MOVES[t])){
       say(`しかし ${nm(target)} は変化技を使わなかった。おどかすは失敗した。`);
-      await sleep(500); return;
+      await sleep(500);
+  if(B!==battle || battle.over)return; return;
     }
     target.actionCancelled = true;
     say(`${nm(target)} は ${MOVES[t].n} をくじかれた！`);
@@ -4769,13 +5065,15 @@ async function doMove(u, target, key){
   if(m.fx === "counter"){
     if(u.dmgTaken <= 0){
       say("しかし 何も返せなかった。");
-      await sleep(450); return;
+      await sleep(450);
+  if(B!==battle || battle.over)return; return;
     }
     const taken = u.dmgTaken;
     let d = Math.max(1, Math.floor(taken * 1.5));
     if(target.guarding) d = Math.max(1, Math.floor(d * 0.2));
     playFx(u, target, m, "attack");
     await sleep(180);
+  if(B!==battle || battle.over)return;
     const dealtC = Math.min(d, Math.max(0, target.hp));
     hurt(target, d);
     target.dmgTaken += dealtC;
@@ -4787,7 +5085,8 @@ async function doMove(u, target, key){
       hurt(u, t); flash(u.side); popDmg(u.side, "-"+t, "#b58cf0");
       say(`毒棘が ${nm(u)} を刺した (-${t})`);
     }
-    paint(); await sleep(560); return;
+    paint(); await sleep(560);
+  if(B!==battle || battle.over)return; return;
   }
 
   if(m.p > 0){
@@ -4797,9 +5096,11 @@ async function doMove(u, target, key){
       if(B.over || u.dead || u.hp<=0 || target.dead || target.hp<=0) break;
       playFx(u,target,m,"attack");
       await sleep(180);
+  if(B!==battle || battle.over)return;
       if(B.over) return;
       const r=damage(u,target,m);
-      if(r.e===0){say(`${nm(target)} には 効果がないようだ…`);paint();await sleep(560);return;}
+      if(r.e===0){say(`${nm(target)} には 効果がないようだ…`);paint();await sleep(560);
+  if(B!==battle || battle.over)return;return;}
       landed++;
       const shielded=target.sub>0;
       let dealt;
@@ -4853,16 +5154,19 @@ async function doMove(u, target, key){
       if(m.fx==="flinch" && rollFx(u,target,m) && target.hp>0) target.flinch=true;
       if(total>1){
         say(`<span class="sys">${landed}回目の攻撃！</span>`);
-        await markFaints(); // Resolve survival items, retaliatory KOs, and bonds before the next hit.
+        await markFaints();
+  if(B!==battle || battle.over)return; // Resolve survival items, retaliatory KOs, and bonds before the next hit.
         if(B.over || u.dead || target.dead) break;
       }
       paint();
       if(hit<total-1) await sleep(250);
+  if(B!==battle || battle.over)return;
     }
     if(total>1) say(`<span class="sys">${landed}回 当たった！</span>`);
   } else {
     playFx(u, target, m, (m.fx === "heal" || m.fx === "repose") ? "heal" : "status");
     await sleep(200);
+  if(B!==battle || battle.over)return;
     if(m.fx === "heal"){
       const h = Math.floor(u.maxhp*.35);
       u.hp = Math.min(u.maxhp, u.hp+h);
@@ -5001,6 +5305,7 @@ async function doMove(u, target, key){
   }
   paint();
   await sleep(560);
+  if(B!==battle || battle.over)return;
 
   // 翻し: 攻撃したあと控えと入れ替わる
   if(m.fx === "pivot" && !u.dead && !B.over){
@@ -5010,13 +5315,17 @@ async function doMove(u, target, key){
     else {
       leaveField(u).forEach(t => say(`<span class="sys">${u.side==="foe"?"相手の":""}${u.name} ${t}</span>`));
       const to = await decideSwitch(u.side, B.pickSeq++, alive, "翻しで入れ替わる相手を選んでください");
+  if(B!==battle || battle.over)return;
       if(u.side === "you") B.yi = to; else B.fi = to;
       const now = u.side === "you" ? YOU() : FOE();
       say(`${nm(u)} は身を翻し、${nm(now)} と入れ替わった！`);
       paint(true); await sleep(450);
+  if(B!==battle || battle.over)return;
       await applyHazards(now);
+  if(B!==battle || battle.over)return;
       if(!now.dead) onEnter(now);
       paint(); await sleep(300);
+  if(B!==battle || battle.over)return;
     }
   }
 }
@@ -5030,18 +5339,22 @@ function tryCharm(u){
 
 /* 倒れた個体に印をつけるだけ。交代要員はまだ出さない */
 async function markFaints(){
+  const battle=B;
+  if(!battle || battle.over)return;
   if(B.over) return; // A multihit move may already have resolved the final knockout.
   for(const u of [YOU(), FOE()]){
     if(u.hp <= 0 && !u.dead){
       // 護りの札は「HP50%以上から倒されたとき」だけ発動する。
       // 条件を満たさなければ使用済みにはならず、次の機会に持ち越す。
       if(tryCharm(u)){
-        paint(); await sleep(600); continue;
+        paint(); await sleep(600);
+  if(B!==battle || battle.over)return; continue;
       }
       u.dead = true; u.hp = 0;u.pendingStatus=null;
       sprite(u.side).classList.add("faint");  // 交代要員が出るまで伏せたまま
       say(`${nm(u)} <span class="${u.side==='you'?'bad':'good'}">は倒れた！</span>`);
       paint(); await sleep(700);
+  if(B!==battle || battle.over)return;
       if(u.bond){
         const killer = u.side === "you" ? FOE() : YOU();
         if(killer && !killer.dead){
@@ -5049,6 +5362,7 @@ async function markFaints(){
           sprite(killer.side).classList.add("faint");
           say(`${nm(u)} は ${nm(killer)} を道連れにした！`);
           paint(); await sleep(700);
+  if(B!==battle || battle.over)return;
         }
       }
     }
@@ -5088,26 +5402,35 @@ function chooseReplacement(title){
 /* ターン終了後、倒れた枠に交代要員を出す。
    相手より先に自分が選ぶ ＝ 相手の交代先は見えない（対人戦と同じ条件） */
 async function sendReplacements(){
+  const battle=B;
+  if(!battle || battle.over)return;
   // 設置で出た直後に倒れることがあるので、落ち着くまで繰り返す
   for(let guard = 0; guard < 6; guard++){
     if(B.over) return;
-    if(!(await sendOnce())) return;
+    const sent=await sendOnce();
+  if(B!==battle || battle.over)return;
+    if(!sent) return;
     await markFaints();
+  if(B!==battle || battle.over)return;
   }
 }
 
 /* 交代先の決定。自分の担当なら選択UI、相手の担当なら通信待ち、ソロならAI。
    seq は両端末で必ず同じ順に振られるので、待ち合わせがずれない。 */
 async function decideSwitch(side, seq, alive, title){
+  const battle=B;
+  if(!battle || battle.over)return;
   if(alive.length === 1) return alive[0].i;
   if(side === ME){
     const i = await chooseReplacement(title);
+    if(B!==battle || battle.over)return;
     if(NET.on) NET.send({t:"pick", seq, i});
     return i;
   }
   if(NET.on){
     waitingMsg("相手が交代先を選んでいます…");
     const i = await NET.wait("pick:"+seq);
+  if(B!==battle || battle.over)return;
     clearWaiting();
     return i == null ? alive[0].i : i;
   }
@@ -5115,6 +5438,8 @@ async function decideSwitch(side, seq, alive, title){
 }
 
 async function sendOnce(){
+  const battle=B;
+  if(!battle || battle.over)return;
   const youNeed = YOU().dead, foeNeed = FOE().dead;
   if(!youNeed && !foeNeed) return false;
 
@@ -5126,16 +5451,20 @@ async function sendOnce(){
   // 双方が同時に選ぶ。相手の交代先を見てから決められないようにする
   let seq = B.pickSeq;
   const jobs = [];
-  if(youNeed){ const q = seq++; jobs.push(decideSwitch("you", q, aliveY).then(i=>{ B.yi = i; })); }
-  if(foeNeed){ const q = seq++; jobs.push(decideSwitch("foe", q, aliveF).then(i=>{ B.fi = i; })); }
+  if(youNeed){ const q = seq++; jobs.push(decideSwitch("you", q, aliveY).then(i=>{ if(B===battle && !battle.over)battle.yi=i; })); }
+  if(foeNeed){ const q = seq++; jobs.push(decideSwitch("foe", q, aliveF).then(i=>{ if(B===battle && !battle.over)battle.fi=i; })); }
   B.pickSeq = seq;
   await Promise.all(jobs);
+  if(B!==battle || battle.over)return;
   if(B.over) return false;
   if(youNeed){ sprite("you").classList.remove("faint"); say(`ゆけ、${nm(YOU())}！`); }
   if(foeNeed){ sprite("foe").classList.remove("faint"); say(`${nm(FOE())} が現れた！`); }
   paint(true); await sleep(550);
+  if(B!==battle || battle.over)return;
   if(youNeed) await applyHazards(YOU());
+  if(B!==battle || battle.over)return;
   if(foeNeed) await applyHazards(FOE());
+  if(B!==battle || battle.over)return;
   if(youNeed && !YOU().dead) onEnter(YOU());
   if(foeNeed && !FOE().dead) onEnter(FOE());
   paint();
@@ -5160,6 +5489,8 @@ function siphon(victim, host){
 }
 
 async function endTurn(){
+  const battle=B;
+  if(!battle || battle.over)return;
   let shown = false;
   for(const u of [YOU(), FOE()]){
     if(u.dead || u.hp<=0) continue;
@@ -5226,15 +5557,18 @@ async function endTurn(){
   }
   paint();
   if(shown) await sleep(650);
+  if(B!==battle || battle.over)return;
 }
 
 function finish(winner){
+  const battle=B;
   B.over = true; B.busy = true;
   BattleMusic.stop();
   VictoryAudio.stop();
   MoveMotion.stop();
   IdleAnimation.stop();
   const win = winner === ME;
+  GameUI.result(win);
   if(win) VictoryAudio.play();
   $("#resTitle").textContent = win ? "勝利" : "敗北";
   $("#resTitle").className = "big " + (win?"win":"lose");
@@ -5244,6 +5578,7 @@ function finish(winner){
     : `${B.turn}ターンで全滅。技構成か装備を見直してみてください。`;
   if(NET.on){ NET.send({t:"bye"}); NET.on = false; }
   setTimeout(()=>{
+    if(B!==battle || !$("#scBattle").classList.contains("on"))return;
     $("#btnAgain").style.display = NET.host === null ? "" : "";
     show("scResult");
   }, 900);
@@ -5359,6 +5694,7 @@ async function hostGame(pass){
     conn.on("open", async () => {
       lobbyStatus("接続しました。構築を交換しています…");
       const raw = await NET.wait("team");
+      if(NET.conn!==conn)return;
       if(!raw) return;
       if(!rulesMatch(raw)){ rejectRulesMismatch(); return; }
       const guest = sanitizeTeam(raw.team);
@@ -5385,6 +5721,7 @@ async function joinGame(pass){
       lobbyStatus("接続しました。構築を交換しています…");
       NET.send({t:"team", rulesVersion:BATTLE_RULES_VERSION, team:teamPayload()});
       const st = await NET.wait("start");
+      if(NET.conn!==conn)return;
       if(!st) return;
       if(!rulesMatch(st)){ rejectRulesMismatch(); return; }
       const hostTeam = sanitizeTeam(st.team);
@@ -5397,8 +5734,10 @@ async function joinGame(pass){
 
 /* ================= nav ================= */
 function show(id){
+  GameUI.close(false);
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
   document.getElementById(id).classList.add("on");
+  GameUI.battle();
   window.scrollTo(0,0);
   syncIdleAnimation();
   if(id !== "scBattle") MoveMotion.stop();
@@ -5431,6 +5770,7 @@ $("#btnBack").onclick  = ()=>{ NET.reset(); ME = "you"; show("scBuild"); renderA
 
 drawField(document.getElementById("fieldCanvas"));
 renderChart();
+GameUI.init();
 party = loadDraft() ?? randBuild();
 initTeamStorage();
 renderAll();
