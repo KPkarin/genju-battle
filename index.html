@@ -540,6 +540,18 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
 
 
 .hero-short{display:none}@media(max-width:720px){.hero-long{display:none}.hero-short{display:inline}}
+
+/* Compact battle, narrative overlay, and long-press team windows. */
+.battle-active{--battle-log-height:78px}.battle-active .stage{margin-bottom:0;position:relative}.battle-active .stage .eqline{display:none}.battle-active .stage .hud{padding:5px 7px;width:43%;border-radius:5px;background:#091820ec;z-index:4}.battle-active .stage .hud.foe{left:3%;top:4%}.battle-active .stage .hud.you{right:3%;bottom:calc(var(--battle-log-height) + 7px)}.battle-active .stage .hud .nm{font:700 12px/1.25 var(--gothic);gap:4px;min-width:0}.battle-active .stage .hud .bar{height:5px;margin-top:3px}.battle-active .stage .hud .val{font-size:9px;line-height:1.3;letter-spacing:0;margin-top:2px}.battle-active .stage .hud .st-tag,.battle-active .stage .hud .rk{display:none}.battle-narration{position:absolute;bottom:0;left:0;right:0;height:var(--battle-log-height);z-index:8;padding:0;isolation:isolate;pointer-events:auto}.battle-narration::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#0a1722ec,#07121cf5);border-top:1px solid #ba9d60;box-shadow:0 -6px 18px #0003;z-index:-1}.battle-narration .log{height:100%;max-height:100%;margin:0;padding:9px 13px 10px;border:0;border-radius:0;background:none;color:#f1e8d3;font-size:12px;line-height:1.5;scrollbar-width:thin;scrollbar-color:#8c815a transparent;overscroll-behavior:contain;touch-action:pan-y;box-shadow:none}.battle-narration .log p{margin:0 0 3px}.battle-narration .log p:last-child{color:#fff4d8}#battleQuickMenu{position:absolute;top:7px;right:7px;z-index:9;min-width:36px;min-height:32px;padding:3px 8px;border-radius:5px;color:#e7cc93;background:#0b1b27e8;border-color:#8d815d;font-size:18px;line-height:1}.battle-active .stage #fieldState{position:absolute;left:3%;right:auto;top:calc(4% + 52px);z-index:5;max-width:65%;margin:0;padding:3px 6px;font-size:9px;line-height:1.4;box-shadow:0 2px 8px #0004}.battle-active .stage #fieldState[hidden]{display:none}.battle-active .battle-arena>.strip,.battle-active .battle-sidebar>.eyebrow,.battle-active .battle-command-panel>.eyebrow,.battle-active .battle-command-panel>.bench{display:none}.battle-active .battle-command-panel{padding:12px}.battle-active .command-heading{display:none}.battle-active .battle-sidebar .cmd{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0}.battle-active .battle-sidebar .cmd button{min-width:0;min-height:94px;padding:10px;line-height:1.4}.battle-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}.battle-actions>button{min-width:0;min-height:50px;padding:9px 10px;font-size:13px;font-weight:700;border-radius:7px}#btnFocusEnergy{color:#c6e3d2;background:#18332e;border-color:#547a65}#btnBattleMonsters{color:#f4dfaa;background:#383222;border-color:#a58b53}.battle-menu{display:grid;grid-template-columns:1fr 1fr;gap:10px}.battle-menu button{min-height:65px;text-align:left;padding:14px;font-size:13px}.unit-team-heading{display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px;font:700 14px var(--serif);color:#e2c78f;letter-spacing:.06em}.unit-team-heading:first-child{margin-top:0}.unit-team-heading small{font:10px var(--gothic);color:var(--dim);letter-spacing:0}.battle-unit-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.battle-unit-card{position:relative;min-width:0;overflow:hidden;border:1px solid #3d5964;border-radius:8px;background:#122a35;transition:border-color .14s,background .14s;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.battle-unit-card:focus-visible{outline:2px solid #edc67b;outline-offset:3px}.battle-unit-card.is-selected,.battle-unit-card.selected{border-color:#e2bc6c;background:#333727;box-shadow:inset 0 0 0 1px #d2b26c77}.battle-unit-card.is-active,.battle-unit-card.active{border-color:#a89362}.battle-unit-card.is-dead,.battle-unit-card.dead,.battle-unit-card.out{opacity:.48}.unit-card-main{display:flex;flex-direction:column;align-items:center;padding:10px 7px 8px;gap:5px;text-align:center;min-width:0;cursor:pointer}.unit-card-main canvas{width:62px;height:62px;image-rendering:pixelated;filter:drop-shadow(0 3px #0004)}.unit-card-main strong,.unit-card-name{font:700 14px var(--serif);color:#eee1c6;line-height:1.4}.unit-card-main .bar{width:100%;height:5px;margin:2px 0 0}.unit-card-main .unit-hp,.unit-card-hp{font:9px var(--mono);line-height:1.3;color:#b7cbd0;white-space:nowrap}.unit-card-state{font-size:9px;line-height:1.4;color:#cfb77f;min-height:13px}.battle-unit-card [data-unit-detail],.unit-detail-button{display:block;width:100%;min-height:35px;padding:6px;border:0;border-top:1px solid #314b56;border-radius:0;background:#0c1d28;color:#b8cbd0;font-size:10px}.battle-unit-card [data-unit-detail]:hover:not(:disabled){background:#203e47;transform:none;color:#e9d8ad}.unit-selection-note{margin:11px 0;font-size:11px;color:#a7c0c6;line-height:1.6}.unit-switch-footer{position:sticky;bottom:-24px;padding:13px 0 0;margin-top:14px;background:#11232df5;border-top:1px solid #3a535b;display:flex;align-items:center;gap:10px;z-index:3}.unit-switch-footer p,.unit-switch-footer .hint{margin:0;flex:1;font-size:11px}.unit-switch-footer>button{flex:1;min-height:48px;margin:0!important;min-width:0}.unit-detail-hero{display:flex;align-items:center;gap:18px;margin:8px 0 18px}.unit-detail-hero canvas{width:100px;height:100px;image-rendering:pixelated;flex:none;filter:drop-shadow(0 5px #0004)}.unit-detail-hero h3{font:700 24px/1.5 var(--serif);margin:0 0 4px;color:#f6e7c5}.unit-detail-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;margin:14px 0}.unit-detail-stats .sb{font-size:11px}.unit-detail-stats .sb span{width:42px}.unit-detail-stats .sb i{height:7px}.unit-detail-facts{display:grid;gap:8px;margin:16px 0}.unit-detail-facts>div,.unit-detail-facts>p{margin:0;padding:10px 12px;border:1px solid #354f59;border-radius:6px;background:#142b35;font-size:12px;line-height:1.6}.unit-detail-facts strong{display:block;color:#e7ce9a}.unit-detail-facts small{display:block;margin-top:3px;color:#b7cbd0;font-size:11px}.unit-detail-status{display:flex;flex-wrap:wrap;gap:5px;margin:12px 0}#btnUnitBack{min-height:44px;margin-bottom:8px}@media(max-width:999px){body.battle-active{padding:0;margin:0;min-height:100dvh;background:#09151e}.battle-active .app-shell{width:100%;margin:0}.battle-active .game-header,.battle-active .game-footer,.battle-active .battle-topbar,.battle-active #audioNotice{display:none!important}.battle-active #scBattle{padding:0;margin:0;animation:none}.battle-active .battle-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:0;margin:0;padding:0}.battle-active .stage{width:100%;aspect-ratio:16/9;margin:0;border-width:0 0 1px;border-radius:0}.battle-active .battle-sidebar{display:block;padding:10px 10px max(10px,env(safe-area-inset-bottom));margin:0}.battle-active .battle-command-panel{padding:0;border:0;border-radius:0;background:none}.battle-active .battle-info-actions{display:none}.battle-active .battle-sidebar .cmd{grid-template-columns:1fr 1fr;gap:7px}.battle-active .battle-sidebar .cmd button{min-height:79px;padding:9px 10px}.battle-active .battle-sidebar .cmd .mvn{font-size:12px;line-height:1.45}.battle-active .battle-sidebar .cmd .mvd{font-size:10px;line-height:1.4}.battle-active .battle-sidebar .cmd .mvx{display:none}.battle-active .battle-sidebar .cmd .category{font-size:8px}.battle-active .battle-sidebar .cmd button.wide{min-height:58px}.battle-active .stage .hud{padding:4px 6px;width:43%}.battle-active .stage .hud .nm{font-size:11px;line-height:1.25}.battle-active .stage .hud .val{font-size:9px}.battle-actions{margin-top:8px;gap:7px}.battle-actions>button{min-height:48px;font-size:13px;padding:8px}.battle-unit-grid{gap:7px}.unit-card-main{padding:8px 5px 6px}.unit-card-main canvas{width:55px;height:55px}.unit-card-main strong,.unit-card-name{font-size:13px}.unit-switch-footer{bottom:-20px}}@media(max-width:380px){.battle-active{--battle-log-height:70px}.battle-narration .log{font-size:11.5px;padding:7px 10px;line-height:1.5}.battle-active .battle-sidebar{padding:8px 8px max(8px,env(safe-area-inset-bottom))}.battle-active .battle-sidebar .cmd button{min-height:76px;padding:8px}.battle-active .battle-sidebar .cmd .mvn{font-size:11.5px}.battle-active .battle-sidebar .cmd .mvd{font-size:10px}.unit-card-main canvas{width:49px;height:49px}.unit-card-main strong,.unit-card-name{font-size:12px}}@media(max-width:999px) and (orientation:landscape){.battle-active{--battle-log-height:65px}.battle-active .battle-layout{grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:8px;padding:7px}.battle-active .stage{border:1px solid #84764f;border-radius:7px}.battle-active .battle-sidebar{padding:0}.battle-active .battle-sidebar .cmd button{min-height:73px;padding:7px 9px}.battle-actions>button{min-height:44px}.battle-active .stage .hud .nm{font-size:10px}.battle-active .stage .hud .val{font-size:8px}.battle-narration .log{font-size:11px;padding:7px 10px}}
+
+.stage-turn{position:absolute;top:7px;right:52px;z-index:8;color:#ead6a7;background:#0b1b27d9;border:1px solid #736746;border-radius:4px;padding:4px 7px;font:9px var(--mono)}
+.log-history-button{position:absolute;right:4px;top:1px;z-index:2;min-height:27px;padding:3px 6px;background:transparent;border:0;color:#ccb780;font-size:9px}
+.battle-narration .log{padding-right:36px}.battle-narration .log p:last-child{padding-right:0}
+.unit-stat{display:grid;grid-template-columns:1fr auto;gap:2px 8px;border:1px solid #38515b;border-radius:5px;padding:8px 10px;background:#142b35;font-size:12px}.unit-stat strong{color:#edd7a5}.unit-stat small{grid-column:1/-1;color:#9ebac1;font-size:10px}
+.battle-log-history{font-size:13px;line-height:1.8}.battle-log-history p{padding-bottom:9px;border-bottom:1px solid #29434e}.battle-log-history .u-you{color:#e2bc70}.battle-log-history .u-foe{color:#efa38b}
+.battle-active .hud #youTags,.battle-active .hud #foeTags{display:none}
+.battle-active .battle-narration .log{font-size:12px}
+@media(max-width:999px){.battle-active .ui-modal{padding-top:max(8px,env(safe-area-inset-top))}}
 </style>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -581,24 +593,25 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
     <canvas class="actor you" id="spYou" width="32" height="32"></canvas>
     <canvas id="statusCanvas" width="384" height="216" aria-hidden="true"></canvas>
     <canvas id="moveCanvas" width="384" height="216" aria-hidden="true"></canvas>
+    <button id="battleQuickMenu" aria-label="戦闘メニュー">⋯</button><span class="stage-turn" id="stageTurn">TURN 01</span>
     <div class="hud foe">
       <div class="nm"><span id="foeName"></span><span id="foeTags"></span></div>
       <div class="bar"><i id="foeHp"></i></div>
       <div class="val" id="foeHpV"></div>
-      <div class="eqline" id="foeEq"></div>
+      <div class="eqline" id="foeEq" hidden></div>
     </div>
     <div class="hud you">
       <div class="nm"><span id="youName"></span><span id="youTags"></span></div>
       <div class="bar"><i id="youHp"></i></div>
       <div class="bar en"><i id="youEn"></i></div>
       <div class="val" id="youHpV"></div>
-      <div class="eqline" id="youEq"></div>
+      <div class="eqline" id="youEq" hidden></div>
     </div>
+    <p id="fieldState" class="field-state" role="status" aria-live="polite" hidden></p>
+    <div class="battle-narration"><button id="btnBattleLog" class="log-history-button" aria-label="バトルログの履歴を開く">履歴</button><div class="log" id="log" role="log" aria-live="polite"></div></div>
   </div>
-  <p id="fieldState" class="field-state" role="status" aria-live="polite" hidden></p>
-  <div class="strip" id="strip"></div>
 </section>
-    <aside class="battle-sidebar"><div class="battle-command-panel"><div class="command-heading"><h3>次の一手を。</h3><button class="ghost" id="btnLeaveBattle">退出</button></div><div class="cmd" id="cmd"></div><div class="eyebrow">控えの幻獣</div><div class="bench" id="bench"></div></div><div class="battle-info-actions"><button id="btnBattleTeam" class="ghost">◇ 戦況の詳細</button><button id="btnBattleGuide" class="ghost">？ 相性・ルール</button></div><div class="eyebrow">BATTLE LOG</div><div class="log" id="log" role="log" aria-live="polite"></div></aside>
+    <aside class="battle-sidebar"><div class="battle-command-panel"><div class="cmd" id="cmd"></div><div class="battle-actions"><button id="btnFocusEnergy">気を溜める</button><button id="btnBattleMonsters">幻獣</button></div></div></aside>
   </div>
 </section>
 <section id="scResult" class="screen" aria-label="対戦結果"><div class="result result-scene"><div class="result-emblem" aria-hidden="true">✦</div><span class="hero-eyebrow">THE BATTLE IS OVER</span><div class="big" id="resTitle"></div><p class="hint" id="resBody"></p><div class="result-team" id="resultTeam"></div><div class="row" style="justify-content:center"><button class="primary" id="btnAgain">もう一度、闘技場へ →</button><button class="ghost" id="btnBack">編成を見直す</button></div></div></section>
@@ -606,6 +619,8 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
 <footer class="game-footer"><span>幻獣闘記 <small>GENJU TOUKI</small></span><p>BGM「イクスゲイナー」／ <a href="https://musmus.main.jp/" target="_blank" rel="noopener noreferrer">MusMus</a><br>勝利音「Jingle#24」／ <a href="https://www.senses-circuit.com/" target="_blank" rel="noopener noreferrer">BGM：hitoshi by Senses Circuit</a></p></footer>
 </div>
 <div id="uiResources" hidden>
+  <div id="strip" class="strip"></div><div id="bench" class="bench"></div>
+  <button id="btnBattleTeam">戦況の詳細</button><button id="btnBattleGuide">相性・ルール</button><button id="btnLeaveBattle">退出</button>
   <section id="resourceSound"><div class="bgm-controls" aria-label="戦闘BGMの設定">
   <button type="button" id="btnBgm" aria-pressed="true">BGM：ON</button>
   <label class="bgm-volume">音量 <input id="bgmVolume" type="range" min="0" max="100" value="30" aria-label="BGM音量"><output id="bgmVolumeValue" for="bgmVolume">30%</output></label>
@@ -3725,10 +3740,10 @@ function renderChart(){
 const GameUI = {
   ready:false,kind:null,index:0,tab:"moves",speciesId:null,opener:null,resource:null,oldOverflow:"",
   resources:{sound:"resourceSound",guide:"resourceGuide",saves:"resourceSaves",lobby:"resourceLobby",team:"teamPanel"},
-  titles:{sound:"音の設定",guide:"幻獣闘記の手引き",saves:"編成の記録",lobby:"友だちと対戦",team:"戦況の詳細",editor:"幻獣を仕立てる",inspect:"幻獣図鑑",leave:"対戦を終了しますか？"},
+  titles:{sound:"音の設定",guide:"幻獣闘記の手引き",saves:"編成の記録",lobby:"友だちと対戦",team:"戦況の詳細",monsters:"幻獣",unit:"幻獣の状態",battleMenu:"戦闘メニュー",battleLog:"バトルログ",editor:"幻獣を仕立てる",inspect:"幻獣図鑑",leave:"対戦を終了しますか？"},
   init(){
     this.ready=true;
-    for(const [id,kind] of [["btnOpenSound","sound"],["btnOpenGuide","guide"],["btnOpenSaves","saves"],["btnOpenLobby","lobby"],["btnBattleTeam","team"],["btnBattleGuide","guide"],["btnLeaveBattle","leave"]]){
+    for(const [id,kind] of [["btnOpenSound","sound"],["btnOpenGuide","guide"],["btnOpenSaves","saves"],["btnOpenLobby","lobby"],["btnBattleTeam","team"],["btnBattleGuide","guide"],["btnLeaveBattle","leave"],["btnBattleMonsters","monsters"],["battleQuickMenu","battleMenu"],["btnBattleLog","battleLog"]]){
       const button=document.getElementById(id);if(button)button.onclick=()=>this.open(kind);
     }
     const close=document.getElementById("btnModalClose");if(close)close.onclick=()=>this.close();
@@ -3751,6 +3766,7 @@ const GameUI = {
     this.render();this.audio();
   },
   release(){
+    this.cancelUnitPress();
     if(this.kind==="guide"){
       const preview=document.getElementById("statusPreview");if(preview)preview.open=false;
       if(typeof StatusPreview!=="undefined")StatusPreview.sync();
@@ -3761,6 +3777,7 @@ const GameUI = {
     if(!this.ready || !this.titles[kind])return;
     if(!this.kind){this.opener=document.activeElement;this.oldOverflow=document.body?.style?.overflow||"";}
     this.release();this.kind=kind;
+    if(kind==="monsters"&&!options.keepSelection){this.selectedBattleIndex=null;this.battleSelectionNote="";}
     if(Number.isInteger(options.index))this.index=options.index;
     if(options.tab)this.tab=options.tab;
     if(options.id)this.speciesId=options.id;
@@ -3828,6 +3845,10 @@ const GameUI = {
     if(this.kind==="editor")this.renderEditor();
     else if(this.kind==="inspect")this.renderInspect();
     else if(this.kind==="leave")this.renderLeave();
+    else if(this.kind==="monsters")this.renderBattleMonsters();
+    else if(this.kind==="unit")this.renderBattleUnit();
+    else if(this.kind==="battleMenu")this.renderBattleMenu();
+    else if(this.kind==="battleLog")this.renderBattleLog();
   },
   renderInspect(){
     const species=spec(this.speciesId);if(!species)return;
@@ -3899,12 +3920,147 @@ const GameUI = {
     body.scrollTop=scroll;
     if(focusKey){const selector=focusKey[0]==="data-remove-move"?`[data-move="${focusKey[1]}"]`:`[${focusKey[0]}="${focusKey[1]}"]`;body.querySelector(selector)?.focus?.({preventScroll:true});}
   },
+  selectedBattleIndex:null,battleSelectionNote:"",battleUnitSide:"you",battleUnitIndex:0,unitPress:null,suppressedUnitClick:null,replacement:null,
+  cancelUnitPress(){
+    if(this.unitPress?.timer!==null && this.unitPress?.timer!==undefined)clearTimeout(this.unitPress.timer);
+    this.unitPress=null;
+  },
+  bindUnitPress(card,side,index){
+    const key=side+":"+index;
+    card.onpointerdown=event=>{
+      if(event.button!==undefined&&event.button!==0)return;
+      if(event.target?.closest?.("[data-unit-detail]"))return;
+      this.cancelUnitPress();this.suppressedUnitClick=null;
+      const press={key,x:event.clientX||0,y:event.clientY||0,battle:B,timer:null};this.unitPress=press;
+      press.timer=setTimeout(()=>{
+        if(this.unitPress!==press || B!==press.battle || this.kind!=="monsters")return;
+        this.suppressedUnitClick=key;this.inspectBattleUnit(side,index);
+      },500);
+    };
+    card.onpointermove=event=>{
+      const press=this.unitPress;
+      if(press?.key===key && Math.hypot((event.clientX||0)-press.x,(event.clientY||0)-press.y)>10){this.suppressedUnitClick=key;this.cancelUnitPress();}
+    };
+    card.onpointerup=()=>this.cancelUnitPress();
+    card.onpointercancel=()=>{this.suppressedUnitClick=key;this.cancelUnitPress();};
+    card.oncontextmenu=event=>{event.preventDefault();this.suppressedUnitClick=key;this.inspectBattleUnit(side,index);};
+    card.onclick=event=>{
+      if(event.target?.closest?.("[data-unit-detail]"))return;
+      if(this.suppressedUnitClick===key){this.suppressedUnitClick=null;return;}
+      if(this.kind!=="monsters")return;
+      if(side===ME)this.selectBattleUnit(index);else{this.selectedBattleIndex=null;this.battleSelectionNote="相手の幻獣です。長押しで状態を確認できます。";this.renderBattleMonsters();}
+    };
+    card.onkeydown=event=>{
+      if(event.key==="Enter"||event.key===" "){event.preventDefault();card.onclick(event);}
+      if(event.key==="i"||event.key==="I"){event.preventDefault();this.inspectBattleUnit(side,index);}
+    };
+  },
+  switchReason(index){
+    if(!B || B.over)return "対戦は終了しています。";
+    const unit=myTeam()[index];if(!unit)return "交代先を選んでください。";
+    if(unit.dead||unit.hp<=0)return "この幻獣は戦闘不能です。";
+    if(index===myIdx())return "現在、場に出ている幻獣です。";
+    const forced=this.replacement?.battle===B;
+    if(B.busy&&!forced)return "ターンの進行中です。状態の確認はできます。";
+    if(!forced&&isBound(MY()))return "渦に捕らわれていて交代できません。";
+    return "";
+  },
+  selectBattleUnit(index){
+    if(!Number.isInteger(index)||!B||!myTeam()[index])return;
+    this.selectedBattleIndex=index;this.battleSelectionNote=this.switchReason(index);
+    this.renderBattleMonsters();
+  },
+  confirmBattleSwitch(){
+    const index=this.selectedBattleIndex;
+    if(!Number.isInteger(index)||this.switchReason(index)){if(this.kind==="monsters")this.renderBattleMonsters();return;}
+    const pending=this.replacement?.battle===B?this.replacement:null;
+    this.selectedBattleIndex=null;this.battleSelectionNote="";
+    if(pending)this.replacement=null;
+    this.close();
+    if(pending)pending.resolve(index);else void resolve({kind:"switch",to:index});
+  },
+  renderBattleMonsters(){
+    if(!B)return;
+    const body=document.getElementById("modalBody"),scroll=body.scrollTop||0;
+    const focused=document.activeElement?.getAttribute?.("data-battle-unit");
+    body.innerHTML="";
+    const pending=this.replacement?.battle===B;
+    body.appendChild(el("p","unit-selection-note",pending?(this.replacement.title||"交代する幻獣を選んでください。"):"味方の控えを選ぶと交代できます。幻獣を長押しすると詳しい状態を確認できます。"));
+    for(const [side,label] of [[ME,"じぶんの幻獣"],[ME==="you"?"foe":"you","あいての幻獣"]]){
+      const team=side==="you"?B.you:B.foe;
+      const heading=el("div","unit-team-heading",`${label}<small>${team.filter(unit=>!unit.dead).length} / ${team.length}</small>`);body.appendChild(heading);
+      const grid=el("div","battle-unit-grid");
+      team.forEach((unit,index)=>{
+        const activeUnit=active(side)===unit,selected=side===ME&&this.selectedBattleIndex===index;
+        const card=el("div","battle-unit-card"+(activeUnit?" is-active":"")+(selected?" is-selected":"")+(unit.dead?" is-dead":""));
+        card.setAttribute?.("data-battle-unit",side+":"+index);card.setAttribute?.("role","button");card.setAttribute?.("tabindex","0");card.setAttribute?.("aria-label",unit.name+"。"+(activeUnit?"場に出ています。":"")+"長押しで詳細");
+        const hp=Math.max(0,Math.ceil(unit.hp)),percent=Math.max(0,unit.hp/unit.maxhp)*100;
+        const main=el("div","unit-card-main",`<canvas class="sp" width="32" height="32"></canvas><strong>${unit.name} ${chip(unit.type)}</strong><div class="bar"><i style="width:${percent}%"></i></div><span class="unit-hp">HP ${hp}/${unit.maxhp}</span><span class="unit-card-state">${unit.dead?"戦闘不能":activeUnit?"場に出ています":unit.status||"控え"}</span>`);
+        card.appendChild(main);drawSprite(main.querySelector("canvas"),unit.id);
+        const detail=el("button","unit-detail-button","詳細");detail.setAttribute?.("data-unit-detail",side+":"+index);detail.setAttribute?.("aria-label",unit.name+"の詳しい状態");
+        detail.onclick=event=>{event.stopPropagation?.();this.inspectBattleUnit(side,index);};card.appendChild(detail);this.bindUnitPress(card,side,index);grid.appendChild(card);
+      });
+      body.appendChild(grid);
+    }
+    const footer=el("div","unit-switch-footer"),unit=Number.isInteger(this.selectedBattleIndex)?myTeam()[this.selectedBattleIndex]:null;
+    const reason=unit?this.switchReason(this.selectedBattleIndex):this.battleSelectionNote||"交代する味方の控えを選択";
+    footer.appendChild(el("p","hint",reason||(unit?unit.name+"を場に出します。":"")));
+    const confirm=el("button","primary",unit?unit.name+"に交代":"交代する");confirm.setAttribute?.("id","btnConfirmSwitch");confirm.disabled=!unit||!!this.switchReason(this.selectedBattleIndex);confirm.onclick=()=>this.confirmBattleSwitch();footer.appendChild(confirm);body.appendChild(footer);
+    body.scrollTop=scroll;
+    if(focused)body.querySelector(`[data-battle-unit="${focused}"]`)?.focus?.({preventScroll:true});
+  },
+  inspectBattleUnit(side,index){
+    if(!B||!["you","foe"].includes(side)||!Number.isInteger(index))return;
+    const unit=(side==="you"?B.you:B.foe)[index];if(!unit)return;
+    this.battleUnitSide=side;this.battleUnitIndex=index;this.open("unit");
+  },
+  returnBattleMonsters(){this.open("monsters",{keepSelection:true});},
+  renderBattleUnit(){
+    if(!B)return;
+    const unit=(this.battleUnitSide==="you"?B.you:B.foe)[this.battleUnitIndex];if(!unit){this.returnBattleMonsters();return;}
+    const body=document.getElementById("modalBody");body.innerHTML="";
+    const back=el("button","ghost","← 幻獣一覧へ");back.setAttribute?.("id","btnUnitBack");back.onclick=()=>this.returnBattleMonsters();body.appendChild(back);
+    const hero=el("div","unit-detail-hero",`<canvas class="sp" width="32" height="32"></canvas><div><span class="hero-eyebrow">${unit.side===ME?"じぶんの幻獣":"あいての幻獣"}</span><h3>${unit.name} ${chip(unit.type)}</h3><p class="hint">HP ${Math.max(0,Math.ceil(unit.hp))} / ${unit.maxhp}　気力 ${Math.floor(unit.en)} / ${unit.maxen}</p></div>`);body.appendChild(hero);drawSprite(hero.querySelector("canvas"),unit.id);
+    body.appendChild(el("div","unit-detail-status",tags(unit)));
+    const values=[["物攻",ATK(unit),unit.rank.atk],["物防",DEF(unit),unit.rank.def],["特攻",SPATK(unit),unit.rank.spatk],["特防",SPDEF(unit),unit.rank.spdef],["素早さ",SPD(unit),unit.rank.spd],["命中",accMul(unit.rank.acc),unit.rank.acc],["回避",accMul(unit.rank.eva),unit.rank.eva]];
+    const stats=el("div","unit-detail-stats");
+    for(const [label,value,rank] of values)stats.appendChild(el("div","unit-stat",`<span>${label}</span><strong>${Math.round(value*10)/10}${label==="命中"||label==="回避"?"倍":""}</strong><small>ランク ${rank>0?"+":""}${rank}</small>`));body.appendChild(stats);
+    const facts=el("div","unit-detail-facts");
+    facts.appendChild(el("div",null,`<strong>特性：${ABILITIES[unit.ability].n}${abilOff(unit)?"（無効）":""}</strong><small>${ABILITIES[unit.ability].d}</small>`));
+    facts.appendChild(el("div",null,`<strong>持ち物：${EQUIPS[unit.equip].n}</strong><small>${EQUIPS[unit.equip].d}</small>`));
+    const conditions=[unit.dead?"戦闘不能":unit.status||"状態異常なし",unit.pendingStatus?`${unit.pendingStatus.status}の発症予約（次のターン終了時）`:"",unit.perish?`滅びの唄：あと${unit.perish}`:"",unit.seedTurns?`寄生：あと${unit.seedTurns}ターン`:"",isBound(unit)?`拘束：あと${unit.bindTurns}ターン`:"",unit.sub?`身代わり：耐久${unit.sub}`:"",unit.encore?`反響：${MOVES[unit.encore.key].n}／あと${unit.encore.turns}ターン`:"",unit.disabled?`封技：${MOVES[unit.disabled.key].n}／あと${unit.disabled.turns}ターン`:"",unit.tauntTurns?`挑発：あと${unit.tauntTurns}ターン`:""].filter(Boolean);
+    facts.appendChild(el("div",null,`<strong>現在の状態</strong><small>${conditions.join("<br>")}</small>`));
+    const hazards=B.hazard?.[unit.side]||{},names=Object.keys(hazards).filter(key=>hazards[key]).map(key=>HAZARD_NAME[key]);
+    facts.appendChild(el("div",null,`<strong>この陣営の足元</strong><small>${names.length?names.join("・"):"設置なし"}</small>`));body.appendChild(facts);
+  },
+  requestReplacement(title){
+    if(this.replacement)this.cancelReplacement();
+    return new Promise(done=>{this.replacement={battle:B,title,resolve:done};this.selectedBattleIndex=null;this.open("monsters");});
+  },
+  cancelReplacement(){
+    const pending=this.replacement;if(!pending)return;
+    this.replacement=null;if(pending.battle===B)pending.battle.over=true;pending.resolve(null);
+  },
+  renderBattleMenu(){
+    const body=document.getElementById("modalBody");body.innerHTML="";
+    const grid=el("div","battle-menu");
+    for(const [kind,label] of [["sound","♫ 音の設定"],["guide","？ 相性・ルール"],["battleLog","バトルログを読む"],["leave","対戦を終了する"]]){const button=el("button","ghost",label);button.onclick=()=>this.open(kind);grid.appendChild(button);}body.appendChild(grid);
+  },
+  renderBattleLog(){
+    const body=document.getElementById("modalBody");body.innerHTML="";
+    const history=el("div","battle-log-history",document.getElementById("log")?.innerHTML||"まだログはありません。");body.appendChild(history);
+  },
+
   renderLeave(){
     const body=document.getElementById("modalBody");body.innerHTML="";body.appendChild(el("p","role-desc","対戦を終了して、編成画面に戻ります。保存した編成はそのまま残ります。"));
     const exit=el("button","primary wide","対戦を終了して戻る");exit.onclick=()=>{if(NET.on)NET.send({t:"bye"});NET.reset();if(B){B.over=true;B.busy=true;}this.close(false);ME="you";show("scBuild");renderAll();};
     const stay=el("button","ghost wide","戦闘へ戻る");stay.onclick=()=>this.close();body.appendChild(exit);body.appendChild(stay);
   },
   battle(){
+    const activeBattle=!!document.getElementById("scBattle")?.classList.contains("on");
+    if(document.body?.classList){if(activeBattle)document.body.classList.add("battle-active");else document.body.classList.remove("battle-active");}
+    const stageTurn=document.getElementById("stageTurn");if(stageTurn&&B)stageTurn.textContent="TURN "+String(B.turn).padStart(2,"0");
+    if(!this.unitPress){if(this.kind==="monsters")this.renderBattleMonsters();else if(this.kind==="unit")this.renderBattleUnit();}
     const turn=document.getElementById("battleTurn");if(turn&&B)turn.textContent=String(B.turn).padStart(2,"0");
     const mode=document.getElementById("battleMode");if(mode)mode.textContent=NET.on?"友だちと対戦":"AIチャレンジ";
     const saves=document.getElementById("btnOpenSaves");if(saves)saves.disabled=!!document.getElementById("scBattle")?.classList.contains("on");
@@ -4070,6 +4226,7 @@ function hurt(u, amount){
 let B = null;
 
 function beginBattle(youTeam, foeTeam, seed, meSide){
+  GameUI.cancelReplacement();GameUI.cancelUnitPress();
   MoveMotion.stop();VictoryAudio.stop();
   document.getElementById("stage")?.querySelectorAll(".dmg,.pt,.ring,.flashfx,.streak,.bolt").forEach(node=>node.remove());
   setSeed(seed);
@@ -4253,38 +4410,15 @@ function renderCmd(){
     box.appendChild(b);
   });
 
-  if(y.encore){
-    // 反響中は技が強制される。溜めることもできず、出せなければ不発
-    const k = y.encore.key;
-    if(!anyMove){
-      const b = el("button","wide",
-        `<span class="mv"><span class="mvn">行動できない</span>
-         <span class="mvd">反響で ${MOVES[k].n} を強制されているが出せない ・ このターンは不発</span></span>`);
-      b.disabled = B.busy;
-      b.onclick = ()=> resolve({kind:"move",key:k});
-      box.appendChild(b);
-    }
-  } else {
-    // 攻撃せず気力を溜める選択肢
-    const full = y.en >= y.maxen;
-    const b = el("button","wide",
-      `<span class="mv"><span class="mvn">気を溜める</span>
-       <span class="mvd">${anyMove ? "" : "出せる技がない ・ "}攻撃しない代わりに気力 +${EN_FOCUS}${full ? "（すでに満タン）" : ""} ・ ターン終了時の回復とは別</span></span>`);
-    b.disabled = B.busy;
-    b.onclick = ()=> resolve({kind:"move",key:null});
-    box.appendChild(b);
+  const focus=$("#btnFocusEnergy");
+  if(focus){
+    focus.textContent=y.encore?(!anyMove?"行動できない":"反響中"):"気を溜める";
+    focus.disabled=B.busy||B.over||!!(y.encore&&anyMove);
+    focus.setAttribute?.("title",y.encore?"反響中は気力を溜められません":`攻撃せずに気力を${EN_FOCUS}回復`);
+    focus.onclick=()=>{if(!B||B.over||B.busy)return;if(y.encore){if(!anyMove)void resolve({kind:"move",key:y.encore.key});}else void resolve({kind:"move",key:null});};
   }
-  const bench = $("#bench"); bench.innerHTML = "";
-  myTeam().forEach((u,i)=>{
-    if(i===myIdx()) return;
-    const bound = isBound(y);
-    const b = el("button",null, u.dead ? `${u.name}<span class="d">戦闘不能</span>`
-      : bound ? `${u.name} に交代<span class="d">渦に巻かれていて交代できない（あと${y.bindTurns}ターン）</span>`
-      : `<span class="bn">${chip(u.type)} ${u.name} に交代</span><span class="d">HP ${Math.ceil(u.hp)}/${u.maxhp}　気力 ${Math.floor(u.en)}</span><span class="d">${eqLine(u)}</span>`);
-    b.disabled = u.dead || bound || B.busy;
-    b.onclick = ()=> resolve({kind:"switch",to:i});
-    bench.appendChild(b);
-  });
+  const monsters=$("#btnBattleMonsters");if(monsters){monsters.disabled=false;monsters.onclick=()=>GameUI.open("monsters");}
+
 }
 function lockCmd(){ B.busy=true; renderCmd(); }
 
@@ -5373,30 +5507,7 @@ async function markFaints(){
 
 /* 交代要員の選択UI。選ばれるまで待つ */
 function chooseReplacement(title){
-  return new Promise(resolve=>{
-    const cmd = $("#cmd"), bench = $("#bench");
-    bench.innerHTML = "";
-    cmd.innerHTML = "";
-    const foeUp = !OP().dead;
-    cmd.appendChild(el("div","wide count", title ||
-      (foeUp ? `次に出すモンスターを選んでください（相手は ${FOE().name} ${FOE().type}）`
-             : "次に出すモンスターを選んでください")));
-    myTeam().forEach((u,i)=>{
-      if(u.dead) return;
-      let tag = "";
-      if(foeUp){
-        const dmgMoves = OP().moves.filter(k=>MOVES[k].p>0).map(k=>attackEff(MOVES[k].t,u.type));
-        const worst = Math.max(...dmgMoves, 0);
-        tag = worst > 1 ? '<span class="eff dn">弱点を突かれる</span>'
-            : worst === 0 ? '<span class="eff up">攻撃が通らない</span>' : "";
-      }
-      const b = el("button",null,
-        `<span class="mv"><span class="mvn">${chip(u.type)} ${u.name}</span>
-         <span class="mvd">HP ${Math.ceil(u.hp)}/${u.maxhp} ・ 気力 ${Math.floor(u.en)}${u.status?" ・ "+u.status:""}${u.seedTurns>0?" ・ 寄生残"+u.seedTurns:""} ・ ${eqLine(u)}</span></span>${tag}`);
-      b.onclick = ()=>{ cmd.innerHTML = ""; resolve(i); };
-      cmd.appendChild(b);
-    });
-  });
+  return GameUI.requestReplacement(title);
 }
 
 /* ターン終了後、倒れた枠に交代要員を出す。
@@ -5634,6 +5745,7 @@ function reportPeerDeparture(message){
   netLost(message);
 }
 function netLost(msg){
+  GameUI.cancelReplacement();GameUI.cancelUnitPress();
   BattleMusic.stop();
   VictoryAudio.stop();
   MoveMotion.stop();
@@ -5734,6 +5846,7 @@ async function joinGame(pass){
 
 /* ================= nav ================= */
 function show(id){
+  if(id!=="scBattle"){GameUI.cancelReplacement();GameUI.cancelUnitPress();}
   GameUI.close(false);
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
   document.getElementById(id).classList.add("on");
