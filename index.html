@@ -788,7 +788,7 @@ const MOVES = {
   crushrock:{category:"physical",n:"粉砕岩",t:"岩",p:20,acc:100,en:30,fx:"multi",minHits:2,maxHits:5,
           d:"威力20で2〜5回攻撃。2回35%・3回35%・4回15%・5回15%。身代わりが壊れた次の一撃から本体へ当たる"},
   rock  :{category:"physical",n:"岩投げ", t:"岩",p:50, acc:100,en:20},
-  slide :{category:"physical",n:"岩雪崩", t:"岩",p:80, acc:90, en:35,fx:"flinch",pr:.20,d:"20%でひるみ"},
+  slide :{category:"physical",n:"岩雪崩", t:"岩",p:80, acc:90, en:35,fx:"flinch",pr:.20,d:"先手なら20%でひるみ"},
   edge  :{category:"physical",n:"岩の刃", t:"岩",p:110,acc:75, en:45},
 
   gravel:{category:"physical",n:"砂礫",   t:"地",p:45, acc:100,en:15},
@@ -4966,13 +4966,16 @@ async function takeTurn(myAct, opAct){
     return d !== 0 ? d : (rng()<.5?-1:1);
   });
 
+  // ひるみで止められるのは、このターンにまだ行動順が来ていない個体だけ。
+  const pendingActors = new Set(acts.map(a=>a.unit));
   for(const a of acts){
+    pendingActors.delete(a.unit);
     if(B.over) break;
     // 倒れた個体、および場から下がった個体の行動は消える
     if(a.unit.dead || active(a.side) !== a.unit) continue;
     const target = a.side === "you" ? FOE() : YOU();
     if(target.dead) continue;
-    await doMove(a.unit, target, a.key);
+    await doMove(a.unit, target, a.key, pendingActors.has(target));
   if(B!==battle || battle.over)return;
     await markFaints();
   if(B!==battle || battle.over)return;
@@ -5096,7 +5099,7 @@ function fxNullified(m, target){
   return false;
 }
 
-async function doMove(u, target, key){
+async function doMove(u, target, key, canFlinch=true){
   const battle=B;
   if(!battle || battle.over)return;
   if(u.actionCancelled){
@@ -5285,7 +5288,7 @@ async function doMove(u, target, key){
         if(m.fx==="defdown" && target.hp>0) lowerRank(target,"def",1,u);
         if(m.fx==="startle" && target.hp>0) lowerRank(target,"atk",1,u);
       }
-      if(m.fx==="flinch" && rollFx(u,target,m) && target.hp>0) target.flinch=true;
+      if(m.fx==="flinch" && rollFx(u,target,m) && target.hp>0 && canFlinch) target.flinch=true;
       if(total>1){
         say(`<span class="sys">${landed}回目の攻撃！</span>`);
         await markFaints();
@@ -5602,6 +5605,8 @@ function siphon(victim, host){
 async function endTurn(){
   const battle=B;
   if(!battle || battle.over)return;
+  // 静養などが先に処理され、ひるみ判定に到達しなかった場合も持ち越さない。
+  for(const u of [...B.you,...B.foe]) u.flinch=false;
   let shown = false;
   for(const u of [YOU(), FOE()]){
     if(u.dead || u.hp<=0) continue;
@@ -5767,7 +5772,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "stoic-perish-v4";
+const BATTLE_RULES_VERSION = "flinch-same-turn-v5";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});
