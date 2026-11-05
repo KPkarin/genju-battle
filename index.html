@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>幻獣闘記 — 月下の闘技場</title>
 <meta name="theme-color" content="#0b1821">
-<meta name="description" content="18体の幻獣から三体を選び、技・特性・装備で勝負するターン制対戦ゲーム。月下の闘技場で、一手を読み勝て。">
+<meta name="description" content="18体の幻獣を編成して戦う、3対3のターン制バトルゲーム。コンピューター対戦と通信対戦に対応。">
 <style>
 :root{
   --bg:#0d1020;
@@ -560,35 +560,35 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
 <body>
 <div class="app-shell" id="appShell">
 <header class="game-header">
-  <div class="brand"><span class="brand-mark" aria-hidden="true">幻</span><div><h1>幻獣闘記</h1><span class="brand-kicker">GENJU TOUKI · THREE BEASTS, ONE BOND</span></div></div>
+  <div class="brand"><span class="brand-mark" aria-hidden="true">幻</span><div><h1>幻獣闘記</h1><span class="brand-kicker">GENJU TOUKI</span></div></div>
   <nav class="header-actions" aria-label="ゲームメニュー">
-    <button id="btnOpenSaves">◇ 編成の記録</button><button id="btnOpenGuide">？ 遊び方</button><button id="btnOpenSound"><span id="soundSummary">音 ON</span> ♫</button>
+    <button id="btnOpenSaves">◇ 編成の保存</button><button id="btnOpenGuide">？ 遊び方</button><button id="btnOpenSound"><span id="soundSummary">音 ON</span> ♫</button>
   </nav>
 </header>
 <button id="audioNotice" class="audio-notice" hidden></button>
 <main>
 <section id="scBuild" class="screen on" aria-label="幻獣の編成">
   <div class="guild-hero">
-    <div class="hero-copy"><span class="hero-eyebrow">月下の闘技場 / 3 vs 3</span><h2>選べ。組め。<br>読み勝て。</h2><p><span class="hero-long">幻獣と挑む、三対三の読み合い。<br>三体の個性と四つの技が、勝負を変える。</span><span class="hero-short">三対三の読み合い。<br>君だけの三体で挑め。</span></p></div>
+    <div class="hero-copy"><span class="hero-eyebrow">フリーバトル</span><h2>月下の闘技場</h2><p><span class="hero-long">3対3のターン制バトル</span><span class="hero-short">3対3のターン制バトル</span></p></div>
     <div class="hero-art" aria-hidden="true"><canvas id="hallCanvas" width="384" height="216"></canvas><canvas id="hero-homura" class="hero-mon homura" width="32" height="32"></canvas><canvas id="hero-shiogame" class="hero-mon shiogame" width="32" height="32"></canvas><canvas id="hero-oborogi" class="hero-mon oborogi" width="32" height="32"></canvas></div>
-    <span class="hero-stamp" aria-hidden="true">月が満ちる。闘いが始まる。</span>
+    <span class="hero-stamp" aria-hidden="true">3 vs 3</span>
   </div>
   <section class="formation-section" aria-labelledby="formationHeading">
-    <div class="squad-heading"><div><span class="section-kicker">01 / YOUR COMPANIONS</span><h2 id="formationHeading">ともに戦う、三体。</h2><small id="formationState">3体の幻獣に、それぞれ4つの技を。</small></div><span id="partyCount" class="section-count">0 / 3</span></div>
+    <div class="squad-heading"><div><span class="section-kicker">TEAM</span><h2 id="formationHeading">チーム編成</h2><small id="formationState">幻獣 3体 ／ 技 各4つ</small></div><span id="partyCount" class="section-count">0 / 3</span></div>
     <div id="slots" class="party-dock"></div>
     <div class="utility-actions"><button class="ghost" id="btnRand">↻ おまかせ編成</button><button class="ghost" id="btnClearDraft">編成をクリア</button><span class="draft-feedback" id="draftStatus">自動保存</span></div>
     <p class="hint" id="buildHint"></p>
     <details class="coverage-panel"><summary>編成の相性を見る</summary><div id="coverage"></div></details>
   </section>
   <section id="rosterSection" aria-labelledby="rosterHeading">
-    <div class="section-heading"><div><span class="section-kicker">02 / THE BESTIARY</span><h2 id="rosterHeading">出会いが、戦略になる。</h2><small>気になる幻獣をタップして、能力や得意な戦い方を見てみよう。</small></div><span class="section-count" id="rosterCount">18体の幻獣</span></div>
+    <div class="section-heading"><div><span class="section-kicker">BESTIARY</span><h2 id="rosterHeading">幻獣図鑑</h2><small>能力・特性を確認し、チームに追加できます。</small></div><span class="section-count" id="rosterCount">18体の幻獣</span></div>
     <div class="roster-toolbar"><div class="tfbar" id="typeFilter" aria-label="属性で絞り込む"></div></div>
     <div class="mongrid" id="roster"></div>
   </section>
-  <div class="launchbar"><div class="launch-copy"><span class="section-kicker">READY FOR BATTLE?</span><strong>今の三体で、勝負へ。</strong></div><div class="row"><button id="btnOpenLobby" class="ghost">友だちと対戦</button><button class="primary" id="btnStart" disabled>闘技場へ出撃 <span aria-hidden="true">→</span></button></div></div>
+  <div class="launchbar"><div class="launch-copy"><span class="section-kicker">BATTLE</span><strong>対戦モード</strong></div><div class="row"><button id="btnOpenLobby" class="ghost">友だちと対戦</button><button class="primary" id="btnStart" disabled>ひとりで対戦 <span aria-hidden="true">→</span></button></div></div>
 </section>
 <section id="scBattle" class="screen" aria-label="戦闘">
-  <div class="battle-topbar"><div><span class="section-kicker">MOONLIT ARENA</span><h2>月下の闘技場 <small id="battleMode">AIチャレンジ</small></h2></div><div class="turn-badge"><span>TURN</span><b id="battleTurn">01</b></div></div>
+  <div class="battle-topbar"><div><span class="section-kicker">MOONLIT ARENA</span><h2>月下の闘技場 <small id="battleMode">コンピューター対戦</small></h2></div><div class="turn-badge"><span>TURN</span><b id="battleTurn">01</b></div></div>
   <div class="battle-layout"><section class="battle-arena" aria-label="戦場">  <div class="stage" id="stage">
     <canvas id="fieldCanvas" width="384" height="216" aria-hidden="true"></canvas>
     <canvas class="actor foe" id="spFoe" width="32" height="32"></canvas>
@@ -616,7 +616,7 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
     <aside class="battle-sidebar"><div class="battle-command-panel"><div class="cmd" id="cmd"></div><div class="battle-actions"><button id="btnFocusEnergy">気を溜める</button><button id="btnBattleMonsters">幻獣</button></div></div></aside>
   </div>
 </section>
-<section id="scResult" class="screen" aria-label="対戦結果"><div class="result result-scene"><div class="result-emblem" aria-hidden="true">✦</div><span class="hero-eyebrow">THE BATTLE IS OVER</span><div class="big" id="resTitle"></div><p class="hint" id="resBody"></p><div class="result-team" id="resultTeam"></div><div class="row" style="justify-content:center"><button class="primary" id="btnAgain">もう一度、闘技場へ →</button><button class="ghost" id="btnBack">編成を見直す</button></div></div></section>
+<section id="scResult" class="screen" aria-label="対戦結果"><div class="result result-scene"><div class="result-emblem" aria-hidden="true">✦</div><span class="hero-eyebrow">RESULT</span><div class="big" id="resTitle"></div><p class="hint" id="resBody"></p><div class="result-team" id="resultTeam"></div><div class="row" style="justify-content:center"><button class="primary" id="btnAgain">もう一度対戦</button><button class="ghost" id="btnBack">編成に戻る</button></div></div></section>
 </main>
 <footer class="game-footer"><span>幻獣闘記 <small>GENJU TOUKI</small></span><p>BGM「イクスゲイナー」／ <a href="https://musmus.main.jp/" target="_blank" rel="noopener noreferrer">MusMus</a><br>勝利音「Jingle#24」／ <a href="https://www.senses-circuit.com/" target="_blank" rel="noopener noreferrer">BGM：hitoshi by Senses Circuit</a></p></footer>
 </div>
@@ -635,14 +635,13 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
   <section id="resourceSaves">  <div class="team-save">
     <label for="teamSaveSlot">編成の保存枠</label>
     <select id="teamSaveSlot" aria-label="編成の保存枠"><option value="0">編成1</option><option value="1">編成2</option><option value="2">編成3</option></select>
-    <div class="row"><button id="btnSaveTeam">この枠に保存</button><button id="btnLoadTeam">この枠を読み込む</button></div>
+    <div class="row"><button id="btnSaveTeam">保存する</button><button id="btnLoadTeam">読み込む</button></div>
     <p class="hint" id="saveStatus" role="status" aria-live="polite"></p>
-    <p class="hint">編集中の内容は自動保存。保存枠は途中の編成も3つまで残せます。同じ端末・同じブラウザのこのサイト内に保存されます。</p>
+    <p class="hint">編成は自動保存されます。別の編成を残す場合は、3つの保存枠を使えます。保存先は現在のブラウザです。</p>
   </div>
 </section>
   <section id="resourceLobby">  <div class="lobby">
-    <p class="hint">同じ合言葉を入れて、片方が「部屋を作る」、もう片方が「部屋に入る」を押してください。
-      構築とシードを交換したあと、毎ターンお互いの選択だけをやり取りします。</p>
+    <p class="hint">同じ合言葉を入力し、一方が「部屋を作る」、もう一方が「部屋に入る」を選びます。</p>
     <input id="passIn" class="pass" type="text" inputmode="latin" autocomplete="off"
            placeholder="合言葉（英数字）" maxlength="24">
     <div class="row" style="margin-top:7px">
@@ -653,20 +652,20 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
     <p class="hint" id="lobbyStatus"></p>
   </div>
 </section>
-  <section id="resourceGuide"><p class="role-desc">幻獣を三体選び、一体につき四つの技、ひとつの特性と装備を決めて出撃。交代も大切な一手です。</p>  <details>
+  <section id="resourceGuide"><p class="role-desc">3体の幻獣で対戦します。各幻獣には技を4つ、特性と装備を1つずつ設定します。ターンごとに技・気力回復・交代のいずれかを選びます。</p>  <details>
     <summary>物理・特殊と役割について</summary>
     <p class="hint">HP・物攻（物理攻撃）・物防（物理防御）・特攻（特殊攻撃）・特防（特殊防御）・素早さの6能力です。技の属性とは別に、各技に「物理」「特殊」「変化」の分類があります。</p>
-    <p class="hint">物理アタッカーは物防の低い相手へ、特殊アタッカーは特防の低い相手へ。両刀は両方の技を使い分け、受け役やサポート役で味方を支えます。装備や選ぶ技で役割を変えることもできます。</p>
+    <p class="hint">物理技は物攻と相手の物防、特殊技は特攻と相手の特防でダメージが決まります。図鑑の役割は、基本能力に合わせた目安です。</p>
     <p class="hint">やけどは物理攻撃を25%下げ、毎ターンダメージを与えます。威圧・不屈・反骨・気合いは物理攻撃に作用します。精神統一は特殊攻撃、結界は特殊防御を上げます。守るは物理・特殊の両方を軽減します。</p>
     <p class="hint">仕返しは受けた物理・特殊ダメージの1.5倍を返す固定ダメージ技です。物理分類ですが、攻防値・やけどの攻撃低下には影響されません。</p>
   </details>
   <details>
-    <summary>タイプ相性表</summary>
+    <summary>属性相性表</summary>
     <div id="chartBox" style="margin-top:8px;overflow-x:auto"></div>
     <p class="hint">通常時の相性表。縦が攻撃、横が防御。○＝2倍、△＝半減、✕＝無効、―＝等倍。幽玄と無属性は互いに無効です。<b>アベコベルーム</b>中は攻撃技の2倍と0.5倍が逆になり、無効は4倍になります。岩棘・痺れ砂や状態異常の耐性は通常のままです。</p>
   </details>
   <details id="statusPreview">
-    <summary>状態異常の演出見本</summary>
+    <summary>状態異常の表示</summary>
     <div class="status-preview-tabs" aria-label="状態異常の演出を選ぶ">
       <button type="button" data-status-preview="paralysis" aria-pressed="true">麻痺</button>
       <button type="button" data-status-preview="burn" aria-pressed="false">火傷</button>
@@ -674,7 +673,7 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
       <button type="button" data-status-preview="sleep" aria-pressed="false">眠り（予定）</button>
       <button type="button" data-status-preview="confusion" aria-pressed="false">混乱（予定）</button>
     </div>
-    <canvas id="statusDemo" width="192" height="112" role="img" aria-label="朧狐の状態異常の演出見本"></canvas>
+    <canvas id="statusDemo" width="192" height="112" role="img" aria-label="朧狐の状態異常の表示"></canvas>
     <p class="status-preview-note" id="statusCaption" aria-live="polite"></p>
   </details></section>
   <details id="teamPanel">
@@ -3530,7 +3529,7 @@ function saveDraft(){
   if(draftReadFailed){saveMessage("保存済みの編成を読み取れません。ブラウザの保存設定を確認してから再読み込みしてください。",true);return false;}
   try{
     localStorage.setItem(DRAFT_KEY,JSON.stringify(party));
-    saveMessage("自動保存済み。このブラウザで次回も続きから編成できます。");
+    saveMessage("自動保存しました。");
     return true;
   }catch(error){saveMessage("このブラウザでは保存できません。保存の許可・空き容量を確認してください。",true);return false;}
 }
@@ -3574,7 +3573,7 @@ function initTeamStorage(){
     try{
       const library=readTeamLibrary();library[slot]=normalizeDraft(party);
       localStorage.setItem(TEAM_LIBRARY_KEY,JSON.stringify(library));
-      renderTeamStorage();saveMessage(`編成${slot+1}に保存しました。変更後はもう一度「この枠に保存」で更新できます。`);
+      renderTeamStorage();saveMessage(`編成${slot+1}に保存しました。`);
     }catch(error){saveMessage("編成を保存できませんでした。元の保存枠は変更していません。",true);}
   };
   if(load)load.onclick=()=>{
@@ -3611,7 +3610,7 @@ function renderRoster(){
   if(bar){
     bar.innerHTML = "";
     ["all"].concat(TYPES.filter(t=>t!=="無")).forEach(t=>{
-      const b = el("button","tf"+(rosterFilter===t?" on":""), t==="all" ? "すべて" : t);
+      const b = el("button","tf"+(rosterFilter===t?" on":""), t==="all" ? "すべて" : typeName(t));
       if(t!=="all") b.classList.add("t","t-"+t);
       b.onclick = ()=>{ rosterFilter = t; renderAll(); };
       bar.appendChild(b);
@@ -3625,7 +3624,7 @@ function renderRoster(){
     const bars = [["HP","hp",s.hp],["物攻","atk",s.atk],["物防","def",s.def],["特攻","spatk",s.spatk],["特防","spdef",s.spdef],["速","spd",s.spd]]
       .map(([l,k,v])=>`<div class="sb ${k}"><span>${l}</span><i><u style="width:${statPct(k,v)}%"></u></i><b>${v}</b></div>`)
       .join("");
-    c.innerHTML = `<span class="card-index">NO. ${String(SPECIES.indexOf(s)+1).padStart(2,"0")}</span>${on?'<div class="pick">契約中</div>':""}
+    c.innerHTML = `<span class="card-index">NO. ${String(SPECIES.indexOf(s)+1).padStart(2,"0")}</span>${on?'<div class="pick">編成中</div>':""}
       <canvas class="sp" width="32" height="32"></canvas>
       <div class="nm">${s.n}</div>
       <div class="tl">${chip(s.t)}<span class="aff">適性 ${typeName(s.aff)}</span></div>
@@ -3661,11 +3660,11 @@ function renderSlots(){
   for(let index=0;index<3;index++){
     const build=party[index];
     if(!build){
-      const empty=el("button","slot empty-state",`<span class="party-position">${index===0?"先発":index+1+"番手"}</span><span class="empty-sigil" aria-hidden="true">＋</span><strong>まだ見ぬ相棒を</strong><span>幻獣図鑑からえらぶ</span>`);
+      const empty=el("button","slot empty-state",`<span class="party-position">${index===0?"先発":index+1+"番手"}</span><span class="empty-sigil" aria-hidden="true">＋</span><strong>幻獣を追加</strong><span>図鑑を開く</span>`);
       empty.onclick=()=>document.getElementById("rosterSection")?.scrollIntoView?.({behavior:idleMotionPreference?.matches?"auto":"smooth",block:"start"});box.appendChild(empty);continue;
     }
     const species=spec(build.id),card=el("article","slot loadout-card"+(index===0?" lead":""));
-    const head=el("div","shead",`<canvas class="sp sm" width="32" height="32"></canvas><div class="sinfo"><div class="party-position">${index===0?"先発 / LEADER":"0"+(index+1)+" / COMPANION"}</div><div class="sn">${species.n} ${chip(species.t)}</div><div class="role-label">${species.role}</div><div class="ssub">HP ${species.hp}　物攻 ${species.atk}　物防 ${species.def}<br>特攻 ${species.spatk}　特防 ${species.spdef}　素早さ ${species.spd}</div></div>`);
+    const head=el("div","shead",`<canvas class="sp sm" width="32" height="32"></canvas><div class="sinfo"><div class="party-position">${index===0?"先発":(index+1)+"番手"}</div><div class="sn">${species.n} ${chip(species.t)}</div><div class="role-label">${species.role}</div><div class="ssub">HP ${species.hp}　物攻 ${species.atk}　物防 ${species.def}<br>特攻 ${species.spatk}　特防 ${species.spdef}　素早さ ${species.spd}</div></div>`);
     card.appendChild(head);drawSprite(head.querySelector("canvas"),species.id);
     const moves=el("div","loadout-moves");
     for(let slot=0;slot<4;slot++){const key=build.moves[slot];moves.appendChild(el("span","mini-move"+(key?"":" empty"),key?`${chip(MOVES[key].t)} ${MOVES[key].n}`:`＋ 技 ${slot+1}`));}
@@ -3711,9 +3710,9 @@ function renderAll(){
   const ready = party.length===3 && party.every(p=>p.moves.length===4);
   $("#btnStart").disabled = !ready;
   const need = party.length<3
-    ? `手持ちをあと ${3-party.length} 体えらんでください`
+    ? `手持ちをあと ${3-party.length} 体選んでください`
     : party.filter(p=>p.moves.length<4).map(p=>spec(p.id).n+"の技").join(" / ") + " が未設定";
-  $("#buildHint").textContent = ready ? "準備完了。相手はランダム構築のAIです。" : need;
+  $("#buildHint").textContent = ready ? "" : need;
   renderTeamStorage();
   GameUI.render();
   return saveDraft();
@@ -3737,7 +3736,7 @@ function renderChart(){
 const GameUI = {
   ready:false,kind:null,index:0,tab:"moves",speciesId:null,opener:null,resource:null,oldOverflow:"",
   resources:{sound:"resourceSound",guide:"resourceGuide",saves:"resourceSaves",lobby:"resourceLobby",team:"teamPanel"},
-  titles:{sound:"音の設定",guide:"幻獣闘記の手引き",saves:"編成の記録",lobby:"友だちと対戦",team:"戦況の詳細",monsters:"幻獣",unit:"幻獣の状態",battleMenu:"戦闘メニュー",battleLog:"バトルログ",editor:"幻獣を仕立てる",inspect:"幻獣図鑑",leave:"対戦を終了しますか？"},
+  titles:{sound:"音の設定",guide:"幻獣闘記の手引き",saves:"編成の保存",lobby:"友だちと対戦",team:"戦況の詳細",monsters:"幻獣",unit:"幻獣の状態",battleMenu:"戦闘メニュー",battleLog:"バトルログ",editor:"幻獣の設定",inspect:"幻獣図鑑",leave:"対戦を終了しますか？"},
   init(){
     this.ready=true;
     for(const [id,kind] of [["btnOpenSound","sound"],["btnOpenGuide","guide"],["btnOpenSaves","saves"],["btnOpenLobby","lobby"],["btnBattleTeam","team"],["btnBattleGuide","guide"],["btnLeaveBattle","leave"],["btnBattleMonsters","monsters"],["battleQuickMenu","battleMenu"],["btnBattleLog","battleLog"]]){
@@ -3834,7 +3833,7 @@ const GameUI = {
     if(!this.ready)return;
     const ready=party.length===3&&party.every(build=>build.moves.length===4);
     const count=document.getElementById("partyCount");if(count)count.textContent=party.length+" / 3";
-    const state=document.getElementById("formationState");if(state)state.textContent=ready?"契約完了。いざ、闘技場へ。":"3体の幻獣に、それぞれ4つの技を。";
+    const state=document.getElementById("formationState");if(state)state.textContent=ready?"対戦準備完了":"幻獣 3体 ／ 技 各4つ";
     const total=document.getElementById("rosterCount");if(total)total.textContent=SPECIES.length+"体の幻獣";
     this.battle();
     if(!this.kind)return;
@@ -3856,12 +3855,12 @@ const GameUI = {
     body.appendChild(hero);drawSprite(hero.querySelector("canvas"),species.id);
     body.appendChild(el("p","role-desc",species.roleDesc));
     body.appendChild(el("div","stats detail-stats",this.stats(species)));
-    body.appendChild(el("div","count","選べる特性"));
+    body.appendChild(el("div","count","特性"));
     const traits=el("div","cards");for(const key of ABIL_OF[species.id])traits.appendChild(el("div","card",`<div class="cn">${ABILITIES[key].n}</div><div class="cd">${ABILITIES[key].d}</div>`));body.appendChild(traits);
-    const action=el("button",on?"ghost wide":"primary wide",on?"この幻獣を編成から外す":"この幻獣を編成に加える");
+    const action=el("button",on?"ghost wide":"primary wide",on?"編成から外す":"編成に追加");
     action.disabled=full;action.setAttribute?.("data-choose-species",species.id);action.onclick=()=>this.toggleSpecies(species.id);body.appendChild(action);
-    if(on){const edit=el("button","ghost wide","技・特性・装備を整える →");edit.onclick=()=>this.edit(party.findIndex(build=>build.id===species.id));body.appendChild(edit);}
-    if(full)body.appendChild(el("p","hint","手持ちは3体まで。入れ替える場合は、先に手持ちの幻獣を外してください。"));
+    if(on){const edit=el("button","ghost wide","技・特性・装備");edit.onclick=()=>this.edit(party.findIndex(build=>build.id===species.id));body.appendChild(edit);}
+    if(full)body.appendChild(el("p","hint","編成は3体までです。追加するには、編成中の幻獣を外してください。"));
     if(restoreChoice)action.focus?.({preventScroll:true});
   },
   renderEditor(){
@@ -3873,12 +3872,12 @@ const GameUI = {
     body.appendChild(header);drawSprite(header.querySelector("canvas"),species.id);
     const selected=el("div","selrow");
     for(let slot=0;slot<4;slot++){
-      const key=build.moves[slot],button=el("button","selslot"+(key?"":" empty"),key?`${chip(MOVES[key].t)}${MOVES[key].n}<span class="ph">×</span>`:`<span class="ph">${slot+1}　技をえらぶ</span>`);
+      const key=build.moves[slot],button=el("button","selslot"+(key?"":" empty"),key?`${chip(MOVES[key].t)}${MOVES[key].n}<span class="ph">×</span>`:`<span class="ph">${slot+1}　技を選ぶ</span>`);
       button.disabled=!key;if(key){button.setAttribute?.("data-remove-move",key);button.setAttribute?.("aria-label",MOVES[key].n+"を外す");button.onclick=()=>this.selectMove(this.index,key);}selected.appendChild(button);
     }
     body.appendChild(selected);
     const tabs=el("div","editor-tabs");tabs.setAttribute?.("role","tablist");tabs.setAttribute?.("aria-label","幻獣の設定");
-    for(const [key,label] of [["moves","技をえらぶ"],["abilities","特性"],["equipment","装備"]]){
+    for(const [key,label] of [["moves","技を選ぶ"],["abilities","特性"],["equipment","装備"]]){
       const tab=el("button","editor-tab"+(this.tab===key?" on":""),label);tab.setAttribute?.("data-editor-tab",key);tab.setAttribute?.("role","tab");tab.setAttribute?.("id","editorTab-"+key);tab.setAttribute?.("aria-controls","loadoutEditorPanel");tab.setAttribute?.("aria-selected",String(this.tab===key));tab.setAttribute?.("tabindex",this.tab===key?"0":"-1");
       tab.onclick=()=>{this.tab=key;this.renderEditor();document.querySelector(`[data-editor-tab="${key}"]`)?.focus?.({preventScroll:true});};
       tab.onkeydown=event=>{
@@ -3893,8 +3892,8 @@ const GameUI = {
     if(this.tab==="moves"){
       panel.appendChild(el("p","hint",`技を4つ選びます。一致タイプの攻撃技は1.5倍。選択済みの技を押すと外せます。`));
       const pool=learnable(species);
-      for(const type of [species.t,species.aff,"無"].filter((type,index,array)=>array.indexOf(type)===index)){
-        panel.appendChild(el("div","mgrp",`${chip(type)} <span>${type===species.t?"タイプ一致 / 1.5倍":type===species.aff?"適性の技":"共通の技"}</span>`));
+      for(const type of [species.t,species.aff,...pool.map(key=>MOVES[key].t),"無"].filter((type,index,array)=>array.indexOf(type)===index)){
+        panel.appendChild(el("div","mgrp",`${chip(type)} <span>${type===species.t?"タイプ一致 / 1.5倍":type===species.aff?"適性の技":type==="無"?"共通の技":"その他の習得技"}</span>`));
         for(const key of pool.filter(key=>MOVES[key].t===type)){
           const on=build.moves.includes(key),disabled=build.moves.length>=4&&!on;
           const row=moveRow(MOVES[key],key,on,disabled,()=>this.selectMove(this.index,key));
@@ -3902,7 +3901,7 @@ const GameUI = {
         }
       }
     }else{
-      panel.appendChild(el("p","hint",this.tab==="abilities"?"この幻獣の戦い方を変える、ひとつの特性。":"得意を伸ばすか、弱点を補うか。装備はひとつ持てます。"));
+      panel.appendChild(el("p","hint",this.tab==="abilities"?"特性を1つ選びます。":"装備を1つ選びます。"));
       const cards=el("div","cards"),data=this.tab==="abilities"?ABILITIES:EQUIPS,keys=this.tab==="abilities"?ABIL_OF[build.id]:Object.keys(EQUIPS);
       for(const key of keys){
         const on=(this.tab==="abilities"?build.ability:build.equip)===key;
@@ -3913,7 +3912,7 @@ const GameUI = {
       panel.appendChild(cards);
     }
     body.appendChild(panel);
-    const footer=el("div","modal-footer"),done=el("button","primary","設定を終える");done.onclick=()=>this.close();footer.appendChild(el("span","hint","変更は自動で保存されます"));footer.appendChild(done);body.appendChild(footer);
+    const footer=el("div","modal-footer"),done=el("button","primary","閉じる");done.onclick=()=>this.close();footer.appendChild(el("span","hint","自動保存"));footer.appendChild(done);body.appendChild(footer);
     body.scrollTop=scroll;
     if(focusKey){const selector=focusKey[0]==="data-remove-move"?`[data-move="${focusKey[1]}"]`:`[${focusKey[0]}="${focusKey[1]}"]`;body.querySelector(selector)?.focus?.({preventScroll:true});}
   },
@@ -3945,7 +3944,7 @@ const GameUI = {
       if(event.target?.closest?.("[data-unit-detail]"))return;
       if(this.suppressedUnitClick===key){this.suppressedUnitClick=null;return;}
       if(this.kind!=="monsters")return;
-      if(side===ME)this.selectBattleUnit(index);else{this.selectedBattleIndex=null;this.battleSelectionNote="相手の幻獣です。長押しで状態を確認できます。";this.renderBattleMonsters();}
+      if(side===ME)this.selectBattleUnit(index);else{this.selectedBattleIndex=null;this.battleSelectionNote="相手の幻獣は交代先に選べません。";this.renderBattleMonsters();}
     };
     card.onkeydown=event=>{
       if(event.key==="Enter"||event.key===" "){event.preventDefault();card.onclick(event);}
@@ -3982,7 +3981,7 @@ const GameUI = {
     const focused=document.activeElement?.getAttribute?.("data-battle-unit");
     body.innerHTML="";
     const pending=this.replacement?.battle===B;
-    body.appendChild(el("p","unit-selection-note",pending?(this.replacement.title||"交代する幻獣を選んでください。"):"味方の控えを選ぶと交代できます。幻獣を長押しすると詳しい状態を確認できます。"));
+    body.appendChild(el("p","unit-selection-note",pending?(this.replacement.title||"交代する幻獣を選んでください。"):"控えを選んで交代。長押し、または「詳細」で状態を確認できます。"));
     for(const [side,label] of [[ME,"じぶんの幻獣"],[ME==="you"?"foe":"you","あいての幻獣"]]){
       const team=side==="you"?B.you:B.foe;
       const heading=el("div","unit-team-heading",`${label}<small>${team.filter(unit=>!unit.dead).length} / ${team.length}</small>`);body.appendChild(heading);
@@ -4059,7 +4058,7 @@ const GameUI = {
     const stageTurn=document.getElementById("stageTurn");if(stageTurn&&B)stageTurn.textContent="TURN "+String(B.turn).padStart(2,"0");
     if(!this.unitPress){if(this.kind==="monsters")this.renderBattleMonsters();else if(this.kind==="unit")this.renderBattleUnit();}
     const turn=document.getElementById("battleTurn");if(turn&&B)turn.textContent=String(B.turn).padStart(2,"0");
-    const mode=document.getElementById("battleMode");if(mode)mode.textContent=NET.on?"友だちと対戦":"AIチャレンジ";
+    const mode=document.getElementById("battleMode");if(mode)mode.textContent=NET.on?"友だちと対戦":"コンピューター対戦";
     const saves=document.getElementById("btnOpenSaves");if(saves)saves.disabled=!!document.getElementById("scBattle")?.classList.contains("on");
   },
   result(win){
@@ -5690,8 +5689,8 @@ function finish(winner){
   $("#resTitle").className = "big " + (win?"win":"lose");
   const left = myTeam().filter(u=>!u.dead).length;
   $("#resBody").textContent = win
-    ? `${B.turn}ターンで決着。手持ちは ${left}体 残りました。`
-    : `${B.turn}ターンで全滅。技構成か装備を見直してみてください。`;
+    ? `${B.turn}ターン ／ 残り${left}体`
+    : `${B.turn}ターン ／ 残り0体`;
   if(NET.on){ NET.send({t:"bye"}); NET.on = false; }
   setTimeout(()=>{
     if(B!==battle || !$("#scBattle").classList.contains("on"))return;
@@ -5801,21 +5800,21 @@ function sanitizeTeam(t){
 
 async function hostGame(pass){
   NET.reset(); NET.host = true; NET.pass = pass;
-  lobbyStatus("合言葉で待機しています。相手の接続を待っています…");
+  lobbyStatus("対戦相手を待っています…");
   NET.peer = new Peer(PEER_PREFIX + pass);
-  NET.peer.on("error", e => lobbyStatus("接続できません（合言葉が使用中かもしれません）: " + e.type, true));
+  NET.peer.on("error", e => lobbyStatus("部屋を作成できません。合言葉が使用中の可能性があります。詳細: " + e.type, true));
   NET.peer.on("connection", conn => {
     NET.conn = conn;
     conn.on("data", m => NET.onData(m));
     conn.on("close", () => { NET.on = false; NET.abortAll(); reportPeerDeparture("接続が切れました。"); });
     conn.on("open", async () => {
-      lobbyStatus("接続しました。構築を交換しています…");
+      lobbyStatus("対戦の準備中…");
       const raw = await NET.wait("team");
       if(NET.conn!==conn)return;
       if(!raw) return;
       if(!rulesMatch(raw)){ rejectRulesMismatch(); return; }
       const guest = sanitizeTeam(raw.team);
-      if(!guest){ lobbyStatus("相手の構築が不正でした。", true); return; }
+      if(!guest){ lobbyStatus("相手の編成を読み込めませんでした。", true); return; }
       const seed = (Date.now() ^ 0x9e3779b9) >>> 0;
       NET.send({t:"start", rulesVersion:BATTLE_RULES_VERSION, seed, team:teamPayload()});
       NET.on = true;
@@ -5828,21 +5827,21 @@ async function joinGame(pass){
   NET.reset(); NET.host = false; NET.pass = pass;
   lobbyStatus("接続しています…");
   NET.peer = new Peer();
-  NET.peer.on("error", e => lobbyStatus("接続できません（相手が待機していないかも）: " + e.type, true));
+  NET.peer.on("error", e => lobbyStatus("接続できません。相手が部屋を作成しているか確認してください。詳細: " + e.type, true));
   NET.peer.on("open", () => {
     const conn = NET.peer.connect(PEER_PREFIX + pass, {reliable:true});
     NET.conn = conn;
     conn.on("data", m => NET.onData(m));
     conn.on("close", () => { NET.on = false; NET.abortAll(); reportPeerDeparture("接続が切れました。"); });
     conn.on("open", async () => {
-      lobbyStatus("接続しました。構築を交換しています…");
+      lobbyStatus("対戦の準備中…");
       NET.send({t:"team", rulesVersion:BATTLE_RULES_VERSION, team:teamPayload()});
       const st = await NET.wait("start");
       if(NET.conn!==conn)return;
       if(!st) return;
       if(!rulesMatch(st)){ rejectRulesMismatch(); return; }
       const hostTeam = sanitizeTeam(st.team);
-      if(!hostTeam){ lobbyStatus("相手の構築が不正でした。", true); return; }
+      if(!hostTeam){ lobbyStatus("相手の編成を読み込めませんでした。", true); return; }
       NET.on = true;
       beginBattle(hostTeam, party, st.seed, "foe");
     });
