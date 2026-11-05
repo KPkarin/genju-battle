@@ -74,7 +74,13 @@ await run(`(async()=>{
  drawBattleSprite(document.querySelector('#spFoe'),d);assert.equal(calls.at(-1)[0],'doll');
  d.sub=0;drawBattleSprite(document.querySelector('#spFoe'),d);assert.equal(calls.at(-1)[0],'monster');d.sub=10;
  for(const side of ['you','foe']){ME=side;paint();assert.ok(calls.some(c=>c[0]==='doll'));}
- ME='you';assert.equal(JSON.stringify(B),state);assert.equal(_seed,seed,'rendering has no battle RNG');
+ ME='you';paint();
+ assert.equal(document.querySelector('#spFoe').style.visibility,'hidden');
+ assert.equal(document.querySelector('#decoyFoe').hidden,false);
+ assert.equal(sprite('foe'),document.querySelector('#decoyFoe'),'hits and move gestures target the visible doll');
+ d.sub=0;paint();assert.equal(document.querySelector('#spFoe').style.visibility,'');
+ assert.equal(document.querySelector('#decoyFoe').hidden,true);d.sub=10;
+ assert.equal(JSON.stringify(B),state);assert.equal(_seed,seed,'rendering has no battle RNG');
  drawSprite=normalSprite;drawSubstitute=normalDoll;playFx=normalFx;
  const pixels=[];const cv={width:32,height:32,getContext:()=>({clearRect(){},fillRect(...rect){pixels.push(rect);}})};
  drawSubstitute(cv,'front');const front=JSON.stringify(pixels);pixels.length=0;drawSubstitute(cv,'back');assert.notEqual(JSON.stringify(pixels),front);
