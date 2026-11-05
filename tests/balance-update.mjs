@@ -185,7 +185,7 @@ await run(`(async()=>{
     restoreRandom();
   }
   for(const key of ['ember','spark','touch','squirt','blast','slide','phantom','startle']){
-    const [a,d]=setup();d.sub=5;d.plannedMove='focus';fixedRandom(0);fixedDamage(10);
+    const [a,d]=setup();d.type='水';d.sub=5;d.plannedMove='focus';fixedRandom(0);fixedDamage(10);
     const oldPr=MOVES[key].pr;if(oldPr!==undefined)MOVES[key].pr=1;
     try {
       await doMove(a,d,key);

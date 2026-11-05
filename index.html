@@ -552,6 +552,8 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
 .battle-active .hud #youTags,.battle-active .hud #foeTags{display:none}
 .battle-active .battle-narration .log{font-size:12px}
 @media(max-width:999px){.battle-active .ui-modal{padding-top:max(8px,env(safe-area-inset-top))}}
+
+.type-icon{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;overflow:visible}.t{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}.t-野{color:#ffc497;border-color:#ad5238;background:#ad523830}.chart .t{font-size:10px}.chart th{min-width:66px}.battle-active .hud .t{font-size:9px}.battle-active .cmd .t{font-size:10px}.battle-active .cmd .mvn{display:flex;flex-wrap:wrap;align-items:center;gap:3px}
 </style>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -661,7 +663,7 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
   <details>
     <summary>タイプ相性表</summary>
     <div id="chartBox" style="margin-top:8px;overflow-x:auto"></div>
-    <p class="hint">通常時の相性表。縦が攻撃側、横が受け側。空にも無属性の攻撃が等倍で通ります。<b>アベコベルーム</b>中は攻撃技の2倍と0.5倍が逆になり、無効は4倍になります。岩棘・痺れ砂や状態異常の耐性は通常のままです。</p>
+    <p class="hint">通常時の相性表。縦が攻撃、横が防御。○＝2倍、△＝半減、✕＝無効、―＝等倍。幽玄と無属性は互いに無効です。<b>アベコベルーム</b>中は攻撃技の2倍と0.5倍が逆になり、無効は4倍になります。岩棘・痺れ砂や状態異常の耐性は通常のままです。</p>
   </details>
   <details id="statusPreview">
     <summary>状態異常の演出見本</summary>
@@ -703,20 +705,10 @@ const ri = n => Math.floor(rng() * n);
 const pick = a => a[ri(a.length)];
 
 /* ================= types ================= */
-const TYPES = ["炎","水","草","雷","岩","影","地","空","幻","無"];
-/* 攻撃側 → 受け側 の倍率。0 は完全無効。 */
-const CHART = {
-  炎:{炎:.5,水:.5,草:2 ,雷:1 ,岩:.5,影:2 ,地:.5,空:1 ,幻:1 ,無:1},
-  水:{炎:2 ,水:.5,草:.5,雷:.5,岩:2 ,影:1 ,地:2 ,空:1 ,幻:1 ,無:1},
-  草:{炎:.5,水:2 ,草:.5,雷:1 ,岩:2 ,影:.5,地:2 ,空:.5,幻:1 ,無:1},
-  雷:{炎:1 ,水:2 ,草:.5,雷:.5,岩:.5,影:2 ,地:0 ,空:2 ,幻:1 ,無:1},
-  岩:{炎:2 ,水:.5,草:.5,雷:2 ,岩:1 ,影:1 ,地:.5,空:2 ,幻:2 ,無:1},
-  影:{炎:1 ,水:1 ,草:2 ,雷:2 ,岩:1 ,影:2 ,地:1 ,空:1 ,幻:2 ,無:1},
-  地:{炎:2 ,水:1 ,草:1 ,雷:2 ,岩:2 ,影:1 ,地:1 ,空:0 ,幻:1 ,無:1},
-  空:{炎:1 ,水:1 ,草:2 ,雷:1 ,岩:1 ,影:1 ,地:1 ,空:1 ,幻:1 ,無:1},
-  幻:{炎:1 ,水:1 ,草:1 ,雷:2 ,岩:.5,影:2 ,地:1 ,空:1 ,幻:0 ,無:1},
-  無:{炎:1 ,水:1 ,草:1 ,雷:1 ,岩:1 ,影:1 ,地:1 ,空:1 ,幻:.5,無:1}
-};
+const TYPES = ["炎", "水", "草", "雷", "岩", "影", "地", "空", "幻", "野", "無"];
+const TYPE_NAMES = {"炎": "火炎", "水": "流水", "草": "草木", "雷": "雷電", "岩": "岩石", "影": "暗闇", "地": "大地", "空": "天空", "幻": "幽玄", "野": "野生", "無": "無属性"};
+const typeName = t => TYPE_NAMES[t] || t;
+const CHART = {"炎": {"炎": 0.5, "水": 0.5, "草": 2, "雷": 1, "岩": 0.5, "影": 2, "地": 0.5, "空": 1, "幻": 1, "野": 2, "無": 1}, "水": {"炎": 2, "水": 0.5, "草": 0.5, "雷": 0.5, "岩": 2, "影": 1, "地": 2, "空": 1, "幻": 1, "野": 0.5, "無": 1}, "草": {"炎": 0.5, "水": 2, "草": 0.5, "雷": 1, "岩": 2, "影": 0.5, "地": 2, "空": 0.5, "幻": 1, "野": 0.5, "無": 1}, "雷": {"炎": 1, "水": 2, "草": 0.5, "雷": 0.5, "岩": 0.5, "影": 1, "地": 0, "空": 2, "幻": 2, "野": 1, "無": 1}, "岩": {"炎": 2, "水": 0.5, "草": 0.5, "雷": 2, "岩": 1, "影": 1, "地": 0.5, "空": 2, "幻": 1, "野": 1, "無": 1}, "影": {"炎": 1, "水": 1, "草": 2, "雷": 1, "岩": 1, "影": 0.5, "地": 1, "空": 1, "幻": 1, "野": 0.5, "無": 2}, "地": {"炎": 2, "水": 0.5, "草": 0.5, "雷": 2, "岩": 2, "影": 1, "地": 1, "空": 0, "幻": 1, "野": 0.5, "無": 1}, "空": {"炎": 0.5, "水": 1, "草": 2, "雷": 1, "岩": 1, "影": 1, "地": 1, "空": 0.5, "幻": 1, "野": 2, "無": 1}, "幻": {"炎": 1, "水": 1, "草": 1, "雷": 1, "岩": 1, "影": 2, "地": 1, "空": 1, "幻": 0.5, "野": 1, "無": 0}, "野": {"炎": 1, "水": 1, "草": 2, "雷": 0.5, "岩": 0.5, "影": 2, "地": 1, "空": 0.5, "幻": 0.5, "野": 2, "無": 1}, "無": {"炎": 1, "水": 1, "草": 1, "雷": 1, "岩": 1, "影": 1, "地": 1, "空": 1, "幻": 0, "野": 1, "無": 1}};
 const eff = (a,d) => CHART[a][d];
 const inverseEff = value => value === 0 ? 4 : 1/value;
 function attackEff(a,d){
@@ -739,6 +731,8 @@ const expectedHits = m => m.fx === "multi" ? 3.1 : 1;
 const PRI = {startle:5, guard:4, ambush:2, normal:0, counter:-3};
 
 const MOVES = {
+  wildfang:{category:"physical",n:"かみつく",t:"野",p:60,acc:100,en:20,d:"牙で噛みつく野生の攻撃"},
+  wildclaw:{category:"physical",n:"ひっかく",t:"野",p:40,acc:100,en:10,d:"鋭い爪で引き裂く野生の攻撃"},
   firefang:{"n":"炎牙","t":"炎","category":"physical","p":75,"acc":100,"en":30,"d":"炎をまとった牙で噛みつく"},
   waterfang:{"n":"潮噛み","t":"水","category":"physical","p":75,"acc":100,"en":30,"d":"水をまとった牙で噛みつく"},
   thunderclaw:{"n":"雷爪","t":"雷","category":"physical","p":75,"acc":100,"en":30,"d":"電気をまとった爪で切り裂く"},
@@ -2849,7 +2843,8 @@ function statPct(key, v){
 /* 習得できる技。own:true の技は一致タイプの個体しか覚えられない
    （適性で持ち込むと壊れる技を、そのタイプの専売にするための仕組み）。
    例: 寄生種は草タイプ専用 → 適性が草の岩牛は覚えられない。 */
-const learnable = s => NEUTRAL.concat(BY_TYPE[s.t], BY_TYPE[s.aff])
+const WILD_LEARNERS = {wildfang:["homura","youcho","soukou","sarou"],wildclaw:["raitachi","tsutazaru","sarou","oborogi"]};
+const learnable = s => NEUTRAL.concat(BY_TYPE[s.t]||[], BY_TYPE[s.aff]||[], Object.keys(WILD_LEARNERS).filter(k=>WILD_LEARNERS[k].includes(s.id)))
   .filter(k => !MOVES[k].own || MOVES[k].t === s.t);
 
 /* ================= idle pixel animation ================= */
@@ -3605,7 +3600,9 @@ function randBuild(){
 
 const $ = s => document.querySelector(s);
 const el = (t,c,h) => { const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
-const chip = t => `<span class="t t-${t}">${t}</span>`;
+const TYPE_SYMBOLS = {"炎": "<path fill=\"#8d3838\" stroke=\"#ffae74\" stroke-width=\"1\" d=\"M12 1c2 4 7 5 8 11 1 7-4 10-8 11-5-1-9-5-8-10 .3-3 2-5 3-7 0 3 1 4 2 5 2-3 4-5 3-10z\"/><path fill=\"#f47b46\" d=\"M13 6c1 4 5 5 5 9 0 4-3 6-6 7-4-2-6-4-6-7 0-2 1-3 2-5 0 3 2 4 3 4 0-3 2-5 2-8z\"/><path fill=\"#ffe0a0\" d=\"M12 13c-1 3-3 4-2 6l2 3c3-1 4-3 3-5-1-2-2-2-3-4z\"/>", "水": "<path fill=\"#164b74\" stroke=\"#71d5ff\" stroke-width=\"1.3\" d=\"M12 2c-1.8 3.9-7 8-7 12a7 7 0 0 0 14 0c0-4-5.2-8.1-7-12z\"/><path fill=\"none\" stroke=\"#b3eeff\" stroke-width=\"1.5\" stroke-linecap=\"round\" d=\"M7.5 14c2-2 3 2 5 0s3-1 4 0M8 17c2-2 3 2 5 0s2-1 3 0\"/>", "草": "<path fill=\"#204c42\" stroke=\"#84d697\" stroke-width=\"1\" d=\"M11 12C3 13 1 7 2 2c7-1 12 2 10 9C11 3 18 2 22 4c1 7-3 12-10 11z\"/><path fill=\"#63bb7b\" d=\"M3 3c5 0 8 3 8 8C6 11 3 8 3 3zm18 2c-5 0-8 3-8 8 5 0 8-3 8-8z\"/><path fill=\"none\" stroke=\"#c5edab\" stroke-width=\"1.3\" stroke-linecap=\"round\" d=\"m5 5 7 8 6-6m-6 6v8\"/><path fill=\"#45794e\" stroke=\"#a8da93\" d=\"m7 22 5-3 5 3z\"/>", "無": "<circle cx=\"12\" cy=\"12\" r=\"9.5\" fill=\"#263346\" stroke=\"#bacbdf\" stroke-width=\"1\"/><path fill=\"#d8e4f0\" stroke=\"#8396ad\" d=\"m12 3 3 6 6 3-6 3-3 6-3-6-6-3 6-3z\"/><path fill=\"#526681\" d=\"m12 7 5 5-5 5-5-5z\"/><path fill=\"#f2f8ff\" d=\"m12 9 3 3-3 3-3-3z\"/>", "雷": "<path fill=\"#d39220\" stroke=\"#ffe77b\" stroke-width=\"1.5\" d=\"M18 1 3 13h8l-5 10L22 10h-9z\"/><path fill=\"#fff1a2\" d=\"m18 3-8 9h4l-5 7 11-8h-6z\"/>", "岩": "<path fill=\"#526781\" stroke=\"#b5d5ef\" stroke-width=\"1.2\" stroke-linejoin=\"round\" d=\"m8 2 5-1 5 4 2 10-7 3-8-5zM2 15l5-3 6 5-3 6H2l-1-4zm12 3 5-5 4 4-1 6h-9z\"/><path fill=\"#96b3d2\" d=\"m9 4 5-1 2 3-8 5zm-6 12 4-2 3 3-7 2zm13 2 3-3 2 2-5 3z\"/>", "地": "<path fill=\"#ac6137\" stroke=\"#ffd18d\" stroke-width=\"1.3\" stroke-linejoin=\"round\" d=\"M1 22 5 9l4-1 2-5h4l-1 4 3 3-2 4 3-3-2-4 3 1 4 14z\"/><path fill=\"#ce8745\" d=\"m5 10 5-1 3 4-3 3-7 2zm12 4 3-3 2 6-6-2z\"/><path fill=\"#823e32\" d=\"m3 18 7-2 6 2 6-1 1 4H2z\"/>", "空": "<path fill=\"#25818d\" stroke=\"#a2f3f4\" stroke-width=\"1.3\" stroke-linejoin=\"round\" d=\"M2 10c7-8 11 2 17-2 4-3 0-8-3-5-2 2 2 4 3 2 0 4-5 3-5 0 0-6 10-5 9 1-1 9-13-2-21 4zM1 16c7-6 14 4 22-4-4 10-15 0-22 4zM5 20c6-4 9 5 14 1-1 5-5 2-7 1-3-2-5-2-7-2z\"/>", "影": "<circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"#151c33\" stroke=\"#c5a0ec\" stroke-width=\"1.3\"/><path fill=\"#594382\" d=\"M20 6C21 17 9 22 4 18c8 9 22 0 16-12z\"/>", "幻": "<path fill=\"#7850a4\" stroke=\"#cfacf1\" stroke-width=\"1.1\" d=\"M12 1c8 2 8 7 4 11 2 0 4-2 4-3 5 9-4 9-7 13-1 1-1 2 0 2-7-1-6-6-3-9-8 3-11-5-5-9-2 4 2 6 4 2 3-4 6-4 3-7z\"/><path fill=\"#a783cf\" d=\"M13 3c6 6-10 9-4 15-1-6 13-8 4-15z\"/><path fill=\"#eed4ff\" d=\"m12 9 3 4-3 4-3-4z\"/>", "野": "<g fill=\"#ad5238\" stroke=\"#ffc497\" stroke-width=\"1.2\"><path d=\"M6 14c-6 2-5-5-2-9 0 3 5 6 2 9zM12 10c-6 0-2-7 1-9-1 4 5 8-1 9zM20 14c-5 0-3-6 1-9-1 4 5 8-1 9zM12 13c4 0 5 3 8 6 3 5-5 4-8 3-3 1-11 2-8-3 3-3 4-6 8-6z\"/></g><path fill=\"#e08a5f\" d=\"M6 19c2-4 6-6 8-3 1 2-6 2-8 3z\"/>"};
+const typeIcon = t => `<svg class="type-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${TYPE_SYMBOLS[t]||""}</svg>`;
+const chip = t => `<span class="t t-${t}" title="${typeName(t)}">${typeIcon(t)}${typeName(t)}</span>`;
 
 let rosterFilter = "all";
 
@@ -3631,7 +3628,7 @@ function renderRoster(){
     c.innerHTML = `<span class="card-index">NO. ${String(SPECIES.indexOf(s)+1).padStart(2,"0")}</span>${on?'<div class="pick">契約中</div>':""}
       <canvas class="sp" width="32" height="32"></canvas>
       <div class="nm">${s.n}</div>
-      <div class="tl">${chip(s.t)}<span class="aff">適性 ${s.aff}</span></div>
+      <div class="tl">${chip(s.t)}<span class="aff">適性 ${typeName(s.aff)}</span></div>
       <div class="role-label">${s.role}</div>
       <div class="stats">${bars}</div>`;
     drawSprite(c.querySelector("canvas"), s.id);
@@ -3724,12 +3721,12 @@ function renderAll(){
 
 function renderChart(){
   let h = '<table class="chart"><tr><th>攻＼受</th>';
-  TYPES.forEach(t=>h+=`<th>${t}</th>`); h+="</tr>";
+  TYPES.forEach(t=>h+=`<th>${chip(t)}</th>`); h+="</tr>";
   TYPES.forEach(a=>{
-    h += `<tr><th>${a}</th>`;
+    h += `<tr><th>${chip(a)}</th>`;
     TYPES.forEach(d=>{
       const v = eff(a,d);
-      h += `<td class="${v===0?"x0":v>1?"x2":v<1?"xh":""}">${v===1?"・":v===0?"0":v}</td>`;
+      h += `<td class="${v===0?"x0":v>1?"x2":v<1?"xh":""}">${v===1?"―":v===0?"✕":v===2?"○":"△"}</td>`;
     });
     h += "</tr>";
   });
@@ -3855,7 +3852,7 @@ const GameUI = {
     const restoreChoice=document.activeElement?.getAttribute?.("data-choose-species")===species.id;
     const body=document.getElementById("modalBody");body.innerHTML="";
     const on=party.some(build=>build.id===species.id),full=party.length>=3&&!on;
-    const hero=el("div","detail-hero",`<canvas class="sp" width="32" height="32"></canvas><div><div class="hero-eyebrow">GENJU ${String(SPECIES.indexOf(species)+1).padStart(2,"0")}</div><h3>${species.n} ${chip(species.t)}</h3><div class="role-label">${species.role}</div><p class="hint">適性 ${species.aff}</p></div>`);
+    const hero=el("div","detail-hero",`<canvas class="sp" width="32" height="32"></canvas><div><div class="hero-eyebrow">GENJU ${String(SPECIES.indexOf(species)+1).padStart(2,"0")}</div><h3>${species.n} ${chip(species.t)}</h3><div class="role-label">${species.role}</div><p class="hint">適性 ${typeName(species.aff)}</p></div>`);
     body.appendChild(hero);drawSprite(hero.querySelector("canvas"),species.id);
     body.appendChild(el("p","role-desc",species.roleDesc));
     body.appendChild(el("div","stats detail-stats",this.stats(species)));
@@ -3872,7 +3869,7 @@ const GameUI = {
     const species=spec(build.id),body=document.getElementById("modalBody"),scroll=body.scrollTop||0;
     const active=document.activeElement,focusKey=["data-move","data-remove-move","data-ability","data-equip","data-editor-tab"].map(key=>[key,active?.getAttribute?.(key)]).find(([,value])=>value!==null&&value!==undefined);
     body.innerHTML="";
-    const header=el("div","editor-summary",`<canvas class="sp" width="32" height="32"></canvas><div><div class="hero-eyebrow">${this.index===0?"先発の幻獣":"第"+(this.index+1)+"の幻獣"}</div><h3>${species.n} ${chip(species.t)}</h3><p class="hint">${species.role} / 適性 ${species.aff}</p></div><span class="sdone ${build.moves.length===4?"ok":""}">${build.moves.length} / 4技</span>`);
+    const header=el("div","editor-summary",`<canvas class="sp" width="32" height="32"></canvas><div><div class="hero-eyebrow">${this.index===0?"先発の幻獣":"第"+(this.index+1)+"の幻獣"}</div><h3>${species.n} ${chip(species.t)}</h3><p class="hint">${species.role} / 適性 ${typeName(species.aff)}</p></div><span class="sdone ${build.moves.length===4?"ok":""}">${build.moves.length} / 4技</span>`);
     body.appendChild(header);drawSprite(header.querySelector("canvas"),species.id);
     const selected=el("div","selrow");
     for(let slot=0;slot<4;slot++){
@@ -4518,6 +4515,8 @@ function lunge(side){
 
 /* Every move owns a gesture and a native-grid effect. This layer never uses battle RNG. */
 const MOVE_MOTION_PROFILES = {
+  wildfang:{shape:"impact",actor:"lunge",scale:20,count:5,tilt:1},
+  wildclaw:{shape:"slash",actor:"lunge",scale:18,count:3,tilt:-1},
   crushrock:{shape:"rock",actor:"brace",scale:21,count:3,tilt:2},
   reverseRoom:{shape:"room",actor:"cast",scale:33,count:4,both:true},
   firefang:{shape:"bite",actor:"lunge",scale:19,count:7,tilt:1},
@@ -4580,6 +4579,7 @@ const MOVE_MOTION_PROFILES = {
   night:{shape:"night",actor:"cast",scale:35,count:7,tilt:-1}
 };
 const MOVE_MOTION_COLORS = {
+  野:["#d58058","#ffd0a0","#943d32"],
   炎:["#ff7c3e","#ffd66b","#ed4935"],水:["#63b9ed","#d6f5ff","#3677bd"],草:["#78ce84","#d3ec98","#36714c"],
   雷:["#f3d955","#fffbd0","#d5a03d"],岩:["#bdb4a6","#f0e7cd","#746d69"],地:["#d49b5c","#f2d5a3","#785b3d"],
   空:["#9ddce9","#f0fbff","#5c9cc2"],幻:["#e99ddd","#ffe1f6","#9967c8"],影:["#b28aea","#e5d5ff","#654298"],無:["#e9e5d8","#ffffff","#9ba8c9"]
@@ -5772,7 +5772,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "flinch-same-turn-v5";
+const BATTLE_RULES_VERSION = "elements-eleven-v6";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});

@@ -13,8 +13,11 @@
 
 ゲーム本体は `index.html`、音源は `assets/audio/` にあります。ビルド不要で、GitHub Pagesはmainブランチのルートを公開しています。ローカルでは `python3 -m http.server 8000` で配信できます。
 
+属性は火炎・流水・草木・雷電・岩石・暗闇・大地・天空・幽玄・野生・無属性の11種類。相性とシンボルを共通化し、既存幻獣の主属性を維持したまま野生技を追加しています。
+
 ## ドキュメント
 
+- [11属性・相性表・シンボル](docs/eleven-elements.md)
 - [物理・特殊と幻獣の役割](docs/battle-stats.md)
 - [連続技・相性反転・身代わりの調整](docs/balance-update.md)
 - [やせ我慢・滅びの唄・編成保存](docs/stoic-perish-storage.md)
