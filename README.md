@@ -21,6 +21,7 @@
 - [物理・特殊と幻獣の役割](docs/battle-stats.md)
 - [連続技・相性反転・身代わりの調整](docs/balance-update.md)
 - [やせ我慢・滅びの唄・編成保存](docs/stoic-perish-storage.md)
+- [身代わりの人形と技演出](docs/decoy-effects.md)
 - [技のモーション](docs/move-motions.md)
 - [画面内の文言整理](docs/copy-review.md)
 - [UIと操作の更新](docs/ui-overhaul.md)

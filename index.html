@@ -554,6 +554,7 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
 @media(max-width:999px){.battle-active .ui-modal{padding-top:max(8px,env(safe-area-inset-top))}}
 
 .type-icon{width:1.15em;height:1.15em;flex:none;vertical-align:-.2em;overflow:visible}.t{display:inline-flex;align-items:center;gap:3px;white-space:nowrap}.t-野{color:#ffc497;border-color:#ad5238;background:#ad523830}.chart .t{font-size:10px}.chart th{min-width:66px}.battle-active .hud .t{font-size:9px}.battle-active .cmd .t{font-size:10px}.battle-active .cmd .mvn{display:flex;flex-wrap:wrap;align-items:center;gap:3px}
+.sub-marker{font:9px/1.3 var(--gothic);color:#e6d5a6;border:1px solid #8da995;border-radius:3px;padding:1px 3px;white-space:nowrap}.battle-active .stage .hud .nm{flex-wrap:wrap}
 </style>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -2926,6 +2927,30 @@ function getIdleFrame(id, view="front", phase=0){
   return frame;
 }
 
+/* Native 32px cloth decoy: the back uses seams, the front has button eyes. */
+function drawSubstitute(cv,view="front"){
+  const ctx=cv.getContext("2d");ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,cv.width,cv.height);
+  const rect=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h);};
+  const edge="#384849",cloth="#82aaa0",light="#b9d0ae",shade="#577d78",thread="#e6c58b";
+  rect(8,28,17,2,"#26383f");
+  for(const [x,y,w,h] of [[8,4,5,7],[21,3,4,8],[7,9,20,10],[10,17,14,10],[5,18,5,6],[24,17,5,6],[8,25,7,4],[20,25,7,4]])rect(x,y,w,h,edge);
+  for(const [x,y,w,h] of [[9,5,3,6],[22,4,2,7],[8,10,18,8],[11,18,12,8],[6,19,4,4],[24,18,4,4],[9,26,5,2],[21,26,5,2]])rect(x,y,w,h,cloth);
+  rect(9,10,15,2,light);rect(9,12,2,4,light);rect(22,14,4,4,shade);rect(19,20,4,6,shade);rect(11,18,11,2,thread);
+  if(view==="back"){
+    rect(16,11,1,7,shade);rect(16,20,1,6,shade);
+    for(const y of [12,15,21,24])rect(14,y,5,1,thread);
+    rect(9,13,4,4,shade);rect(10,14,2,2,thread);
+  }else{
+    for(const x of [12,21]){rect(x,13,3,3,edge);rect(x+1,14,1,1,thread);}
+    rect(16,17,4,1,edge);rect(17,16,1,3,thread);rect(12,21,5,4,shade);rect(13,22,3,2,thread);
+  }
+}
+function drawBattleSprite(cv,unit,view="front",phase=0){
+  const decoy=unit.sub>0&&!unit.dead&&unit.hp>0;
+  if(decoy)drawSubstitute(cv,view);else drawSprite(cv,unit.id,view,phase);
+  cv.setAttribute?.("aria-label",unit.name+(decoy?"の身代わり":""));
+}
+
 const idleMotionPreference = typeof window.matchMedia === "function"
   ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
 const IdleAnimation = {
@@ -2948,8 +2973,8 @@ const IdleAnimation = {
     this.handle=null; this.running=false; this.invalidate();
     if(reset && wasRunning && B){
       const mine=MY(), foe=OP();
-      if(mine) drawSprite($("#spYou"),mine.id,"back");
-      if(foe) drawSprite($("#spFoe"),foe.id);
+      if(mine) drawBattleSprite($("#spYou"),mine,"back");
+      if(foe) drawBattleSprite($("#spFoe"),foe);
     }
     StatusEffects.sync();
   },
@@ -2959,13 +2984,18 @@ const IdleAnimation = {
     if(!this.canRun()){ this.stop(); return; }
     if(this.epoch===null) this.epoch=now;
     for(const [canvas,unit,view] of [[$("#spYou"),MY(),"back"],[$("#spFoe"),OP(),"front"]]){
+      if(unit.sub>0&&!unit.dead&&unit.hp>0){
+        const key="substitute:"+view;
+        if(this.last.get(canvas)!==key){drawBattleSprite(canvas,unit,view);this.last.set(canvas,key);}
+        continue;
+      }
       const paused=unit.dead || unit.hp<=0 || getStatusVisualKeys(unit).includes("freeze") || ["enter","lunge","hit","faint","move-lunge","move-cast","move-rise","move-brace","move-recoil"].some(c=>canvas.classList.contains(c));
       if(paused){ this.last.delete(canvas); continue; }
       const offset=[...unit.id].reduce((n,c)=>n+c.charCodeAt(0),0)*13+(view==="back"?170:0);
       const cycle=((now-this.epoch+offset)%IDLE_PROFILES[unit.id].period)/IDLE_PROFILES[unit.id].period;
       const phase=cycle<.3?0:cycle<.48?1:cycle<.7?2:cycle<.86?3:0;
       const key=`${unit.id}:${view}:${phase}`;
-      if(this.last.get(canvas)!==key){ drawSprite(canvas,unit.id,view,phase); this.last.set(canvas,key); }
+      if(this.last.get(canvas)!==key){ drawBattleSprite(canvas,unit,view,phase); this.last.set(canvas,key); }
     }
     StatusEffects.render(now,true);
     this.handle=requestAnimationFrame(time=>this.tick(time));
@@ -4281,7 +4311,7 @@ const sleep = ms => new Promise(r=>setTimeout(r,ms));
 
 function paint(enter){
   const y = MY(), f = OP();
-  drawSprite($("#spYou"), y.id, "back"); drawSprite($("#spFoe"), f.id);
+  drawBattleSprite($("#spYou"), y, "back"); drawBattleSprite($("#spFoe"), f);
   IdleAnimation.invalidate();
   if(enter){
     [[y.side,y],[f.side,f]].forEach(([s,u])=>{
@@ -4292,8 +4322,8 @@ function paint(enter){
   }
   const fieldState=$("#fieldState");
   if(fieldState){fieldState.hidden=!(B.reverseTurns>0);fieldState.textContent=B.reverseTurns>0?`アベコベルーム：相性反転中（残り${B.reverseTurns}ターン）`:"";}
-  $("#youName").innerHTML = `${y.name} ${chip(y.type)}`;
-  $("#foeName").innerHTML = `<span class="pfx">相手の</span>${f.name} ${chip(f.type)}`;
+  $("#youName").innerHTML = `${y.name} ${chip(y.type)}${y.sub>0?'<span class="sub-marker">身代わり</span>':""}`;
+  $("#foeName").innerHTML = `<span class="pfx">相手の</span>${f.name} ${chip(f.type)}${f.sub>0?'<span class="sub-marker">身代わり</span>':""}`;
   $("#youTags").innerHTML = tags(y);
   $("#foeTags").innerHTML = tags(f);
   const yp = Math.max(0,y.hp/y.maxhp), fp = Math.max(0,f.hp/f.maxhp);
@@ -4752,6 +4782,7 @@ const MoveMotion = {
   },
   play(u,target,m,kind="attack"){
     this.stop();
+    if(kind==="miss")return;
     const key=Object.keys(MOVES).find(k=>MOVES[k]===m),profile=MOVE_MOTION_PROFILES[key];
     const canvas=document.getElementById("moveCanvas");
     if(!profile || !canvas || document.hidden || !document.getElementById("scBattle")?.classList.contains("on"))return;
@@ -5098,6 +5129,11 @@ function fxNullified(m, target){
   return false;
 }
 
+function statusEffectSnapshot(u,target){
+  const fields=["hp","en","status","pendingStatus","rank","sub","restTurns","guarding","guardStreak","bond","perish","equip","encore","disabled","tauntTurns","bindTurns","seedTurns"];
+  return JSON.stringify([[u,target].map(x=>fields.map(k=>x[k])),B.hazard,B.reverseTurns]);
+}
+
 async function doMove(u, target, key, canFlinch=true){
   const battle=B;
   if(!battle || battle.over)return;
@@ -5173,7 +5209,6 @@ async function doMove(u, target, key, canFlinch=true){
     const stage = Math.max(-6, Math.min(6, u.rank.acc - target.rank.eva));
     const blur = hasVs(target,"blur",u) ? 0.9 : 1;               // 見切り
     if(rng()*100 > m.acc * accMul(stage) * blur){
-      playFx(u, target, m, "miss");
       say("しかし外れた。"); await sleep(450);
   if(B!==battle || battle.over)return; return;
     }
@@ -5230,7 +5265,7 @@ async function doMove(u, target, key, canFlinch=true){
     let landed=0;
     for(let hit=0;hit<total;hit++){
       if(B.over || u.dead || u.hp<=0 || target.dead || target.hp<=0) break;
-      playFx(u,target,m,"attack");
+      if(attackEff(m.t,target.type)!==0)playFx(u,target,m,"attack");
       await sleep(180);
   if(B!==battle || battle.over)return;
       if(B.over) return;
@@ -5300,14 +5335,13 @@ async function doMove(u, target, key, canFlinch=true){
     }
     if(total>1) say(`<span class="sys">${landed}回 当たった！</span>`);
   } else {
-    playFx(u, target, m, (m.fx === "heal" || m.fx === "repose") ? "heal" : "status");
+    const effectBefore=statusEffectSnapshot(u,target);
     await sleep(200);
   if(B!==battle || battle.over)return;
     if(m.fx === "heal"){
-      const h = Math.floor(u.maxhp*.35);
-      u.hp = Math.min(u.maxhp, u.hp+h);
-      popDmg(u.side, "+"+h, "#63c07d");
-      say(`${nm(u)} は体力を回復した (+${h})`);
+      const h = Math.min(u.maxhp-u.hp,Math.floor(u.maxhp*.35));
+      if(h>0){u.hp+=h;popDmg(u.side,"+"+h,"#63c07d");say(`${nm(u)} は体力を回復した (+${h})`);}
+      else say("しかし 体力は満タンだ。");
     }
     if(m.fx === "guard"){
       u.guarding = true; u.guardStreak++;
@@ -5438,6 +5472,8 @@ async function doMove(u, target, key, canFlinch=true){
       else say("これ以上は上がらない。");
     }
     if(m.fx === "accdown") lowerRank(target, "acc", 1, u);
+    if(statusEffectSnapshot(u,target)!==effectBefore || ["reverseRoom","guard","repose"].includes(m.fx))
+      playFx(u,target,m,(m.fx==="heal"||m.fx==="repose")?"heal":"status");
   }
   paint();
   await sleep(560);
