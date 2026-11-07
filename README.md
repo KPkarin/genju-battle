@@ -19,6 +19,7 @@
 
 - [幻獣名の変更一覧](docs/monster-names.md)
 
+- [技と気力溜めの調整](docs/combat-tuning.md)
 - [技の属性の見直し](docs/move-types.md)
 - [野生属性のワイルドラ・ジャングマ](docs/wild-roster.md)
 - [11属性・相性表・シンボル](docs/eleven-elements.md)

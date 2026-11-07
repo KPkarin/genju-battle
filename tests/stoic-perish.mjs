@@ -158,7 +158,7 @@ await run(`(async()=>{
   }
   {
     const [a,d]=setup();d.ability='stoic';B.hazard.foe.sand=true;
-    await applyHazards(d);assert.equal(d.status,null);assert.equal(d.pendingStatus.status,'麻痺','environmental status also respects stoic');
+    rng=()=>.49;await applyHazards(d);restoreRandom();assert.equal(d.status,null);assert.equal(d.pendingStatus.status,'麻痺','environmental status also respects stoic');
   }
   {
     const [a,d]=setup();d.ability='stoic';stableRandom();await doMove(a,d,'parasite');restoreRandom();

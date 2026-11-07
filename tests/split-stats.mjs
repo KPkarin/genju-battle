@@ -89,8 +89,8 @@ run(`
   assert.ok(sampleDamage(physicalProbe,gritty)>physicalBase,'grit boosts physical attacks at low HP');
   assert.equal(sampleDamage(specialProbe,gritty),specialBase,'grit does not boost special attacks');
   const guarded=probeUnit('foe');guarded.guarding=true;
-  assert.ok(sampleDamage(physicalProbe,probeUnit(),guarded)<physicalBase,'guard reduces physical damage');
-  assert.ok(sampleDamage(specialProbe,probeUnit(),guarded)<specialBase,'guard reduces special damage');
+  assert.equal(sampleDamage(physicalProbe,probeUnit(),guarded),0,'guard prevents physical damage');
+  assert.equal(sampleDamage(specialProbe,probeUnit(),guarded),0,'guard prevents special damage');
 `);
 console.log('PASS independent damage paths, all four ranks, physical burn/grit, and guard for both categories');
 
