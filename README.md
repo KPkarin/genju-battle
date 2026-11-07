@@ -17,8 +17,10 @@
 
 ## ドキュメント
 
+- [幻獣名の変更一覧](docs/monster-names.md)
+
 - [技の属性の見直し](docs/move-types.md)
-- [野生属性の牙虎・荒熊](docs/wild-roster.md)
+- [野生属性のワイルドラ・ジャングマ](docs/wild-roster.md)
 - [11属性・相性表・シンボル](docs/eleven-elements.md)
 - [物理・特殊と幻獣の役割](docs/battle-stats.md)
 - [連続技・相性反転・身代わりの調整](docs/balance-update.md)

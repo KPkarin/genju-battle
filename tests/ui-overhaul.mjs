@@ -144,7 +144,7 @@ console.log('PASS dialog resources, semantic labels, focus/scroll/background lif
 
 w.run("party=[];renderAll()");w.click(w.get('roster').children[0]);
 assert.equal(w.get('uiModal').hidden,false,'monster inspection opens in a dialog');
-assert.ok(w.get('modalBody').textContent.includes('焔犬'),'inspection names the selected monster');
+assert.ok(w.get('modalBody').textContent.includes('ワホームラ'),'inspection names the selected monster');
 w.click(w.get('modalBody').querySelector('[data-choose-species="homura"]'));
 assert.ok(w.document.activeElement.isConnected&&w.get('uiModal').contains(w.document.activeElement),'adding a monster retains usable focus inside its inspection dialog');
 assert.deepEqual(w.json('party.map(p=>p.id)'),['homura'],'inspection can add a monster');

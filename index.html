@@ -677,7 +677,7 @@ canvas.substitute-actor[hidden]{display:none!important}
       <button type="button" data-status-preview="sleep" aria-pressed="false">眠り（予定）</button>
       <button type="button" data-status-preview="confusion" aria-pressed="false">混乱（予定）</button>
     </div>
-    <canvas id="statusDemo" width="192" height="112" role="img" aria-label="朧狐の状態異常の表示"></canvas>
+    <canvas id="statusDemo" width="192" height="112" role="img" aria-label="フォクシャドウの状態異常の表示"></canvas>
     <p class="status-preview-note" id="statusCaption" aria-live="polite"></p>
   </details></section>
   <details id="teamPanel">
@@ -2802,26 +2802,26 @@ Object.assign(BACK_SPRITES,{"gako": {"pal": {"o": "#262b35", "s": "#734735", "b"
 
 /* ================= monsters ================= */
 const SPECIES = [
-  {"id":"homura","n":"焔犬","t":"炎","hp":120,"atk":105,"spatk":85,"def":70,"spdef":70,"spd":95,"aff":"岩","role":"物理アタッカー","roleDesc":"炎牙と岩技で攻める。不屈と気合いで物理火力を伸ばす。"},
-  {"id":"shiogame","n":"潮亀","t":"水","hp":160,"atk":65,"spatk":75,"def":115,"spdef":95,"spd":45,"aff":"岩","role":"物理受け","roleDesc":"高いHPと物理防御で受け、白霧や渦潮で相手の攻めを抑える。"},
-  {"id":"kokejyu","n":"苔獣","t":"草","hp":140,"atk":85,"spatk":70,"def":95,"spdef":100,"spd":65,"aff":"水","role":"回復サポート","roleDesc":"両防御と光合成・寄生種で粘る。再生で交代を支える。"},
-  {"id":"raitachi","n":"雷鼬","t":"雷","hp":95,"atk":100,"spatk":95,"def":60,"spdef":60,"spd":135,"aff":"影","role":"高速両刀","roleDesc":"最速級の素早さから物理の雷爪と特殊の雷撃を使い分ける。"},
-  {"id":"iwaushi","n":"岩牛","t":"岩","hp":150,"atk":95,"spatk":50,"def":130,"spdef":75,"spd":40,"aff":"草","role":"物理の壁","roleDesc":"最も高い物理防御で攻撃を受け、岩棘を置く。特殊技には注意。"},
-  {"id":"fukurou","n":"影梟","t":"影","hp":100,"atk":90,"spatk":125,"def":60,"spdef":70,"spd":110,"aff":"雷","role":"特殊アタッカー","roleDesc":"悪夢と雷撃の高い特殊火力で攻め、貪食で回復する。"},
-  {"id":"doryu","n":"土竜","t":"地","hp":145,"atk":100,"spatk":60,"def":110,"spdef":70,"spd":55,"aff":"影","role":"物理攻防型","roleDesc":"物理防御で受けつつ地響き・大地割で押し返す。"},
-  {"id":"fuen","n":"風燕","t":"空","hp":105,"atk":95,"spatk":80,"def":70,"spdef":70,"spd":125,"aff":"雷","role":"高速交代役","roleDesc":"翔撃で攻め、翻しと再生で味方へつなぐ。雷の特殊技も補助に使える。"},
-  {"id":"youcho","n":"熔猪","t":"炎","hp":155,"atk":90,"spatk":95,"def":110,"spdef":85,"spd":45,"aff":"地","role":"耐久両刀","roleDesc":"物理耐久を活かし、地技と火炎放射を相手の守りに合わせる。"},
-  {"id":"soukou","n":"蒼鮫","t":"水","hp":105,"atk":120,"spatk":70,"def":65,"spdef":65,"spd":110,"aff":"影","role":"高速物理アタッカー","roleDesc":"潮噛みと闇喰らいで一気に攻める。貪食で攻撃を回復につなげる。"},
-  {"id":"tsutazaru","n":"蔦猿","t":"草","hp":115,"atk":105,"spatk":65,"def":70,"spdef":70,"spd":110,"aff":"影","role":"吸収物理アタッカー","roleDesc":"蔦打ち・闇喰らいと貪食で削りながら回復する。"},
-  {"id":"rainen","n":"雷鯰","t":"雷","hp":150,"atk":60,"spatk":105,"def":90,"spdef":115,"spd":50,"aff":"水","role":"特殊受け兼アタッカー","roleDesc":"特殊技を受け、雷撃や濁流で反撃する。痺れ砂でも支援できる。"},
-  {"id":"saikaku","n":"砕角","t":"岩","hp":115,"atk":130,"spatk":55,"def":85,"spdef":60,"spd":70,"aff":"地","role":"物理突破役","roleDesc":"最高の物理攻撃で岩・地技を通す。不屈や反骨でさらに強化。"},
-  {"id":"yoigumo","n":"宵蜘蛛","t":"影","hp":140,"atk":65,"spatk":85,"def":105,"spdef":95,"spd":70,"aff":"草","role":"妨害サポート","roleDesc":"耐久を活かして挑発・道連れで妨害する。草技で攻撃範囲を補い、霊体で間接ダメージにも強い。"},
-  {"id":"sarou","n":"砂狼","t":"地","hp":110,"atk":115,"spatk":70,"def":75,"spdef":65,"spd":100,"aff":"炎","role":"物理突破役","roleDesc":"大地割と炎牙で攻め、型破りで相手の防御特性を無視する。"},
-  {"id":"ungei","n":"雲鯨","t":"空","hp":160,"atk":60,"spatk":90,"def":80,"spdef":115,"spd":55,"aff":"水","role":"特殊の壁","roleDesc":"特殊技を受け、突風・水技で反撃する。威圧で物理側も補える。"},
-  {"id":"mubaku","n":"夢貘","t":"幻","hp":145,"atk":60,"spatk":85,"def":95,"spdef":115,"spd":65,"aff":"影","role":"特殊受け・行動妨害","roleDesc":"特殊耐久と封技・反響で相手を止め、幻痛で気力を削る。"},
-  {"id":"oborogi","n":"朧狐","t":"幻","hp":105,"atk":65,"spatk":115,"def":60,"spdef":80,"spd":110,"aff":"雷","role":"高速特殊アタッカー","roleDesc":"幻月・迅雷で攻め、見切りや好機を活かして先手を取る。"},
-{"id": "gako", "n": "牙虎", "t": "野", "hp": 110, "atk": 115, "spatk": 55, "def": 75, "spdef": 70, "spd": 115, "aff": "影", "role": "高速物理アタッカー", "roleDesc": "高い素早さと物理攻撃を持つ。牙・爪と暗闇の技が得意。"},
-{"id": "arakuma", "n": "荒熊", "t": "野", "hp": 155, "atk": 100, "spatk": 50, "def": 110, "spdef": 80, "spd": 45, "aff": "地", "role": "物理受け兼アタッカー", "roleDesc": "HPと物理防御が高い。威圧や重心で攻撃を受け、大地の技で反撃する。"}
+  {"id":"homura","n":"ワホームラ","t":"炎","hp":120,"atk":105,"spatk":85,"def":70,"spdef":70,"spd":95,"aff":"岩","role":"物理アタッカー","roleDesc":"炎牙と岩技で攻める。不屈と気合いで物理火力を伸ばす。"},
+  {"id":"shiogame","n":"ミズカガメ","t":"水","hp":160,"atk":65,"spatk":75,"def":115,"spdef":95,"spd":45,"aff":"岩","role":"物理受け","roleDesc":"高いHPと物理防御で受け、白霧や渦潮で相手の攻めを抑える。"},
+  {"id":"kokejyu","n":"カモスカ","t":"草","hp":140,"atk":85,"spatk":70,"def":95,"spdef":100,"spd":65,"aff":"水","role":"回復サポート","roleDesc":"両防御と光合成・寄生種で粘る。再生で交代を支える。"},
+  {"id":"raitachi","n":"ジンライタチ","t":"雷","hp":95,"atk":100,"spatk":95,"def":60,"spdef":60,"spd":135,"aff":"影","role":"高速両刀","roleDesc":"最速級の素早さから物理の雷爪と特殊の雷撃を使い分ける。"},
+  {"id":"iwaushi","n":"モーロック","t":"岩","hp":150,"atk":95,"spatk":50,"def":130,"spdef":75,"spd":40,"aff":"草","role":"物理の壁","roleDesc":"最も高い物理防御で攻撃を受け、岩棘を置く。特殊技には注意。"},
+  {"id":"fukurou","n":"メイホー","t":"影","hp":100,"atk":90,"spatk":125,"def":60,"spdef":70,"spd":110,"aff":"雷","role":"特殊アタッカー","roleDesc":"悪夢と雷撃の高い特殊火力で攻め、貪食で回復する。"},
+  {"id":"doryu","n":"モグラウンド","t":"地","hp":145,"atk":100,"spatk":60,"def":110,"spdef":70,"spd":55,"aff":"影","role":"物理攻防型","roleDesc":"物理防御で受けつつ地響き・大地割で押し返す。"},
+  {"id":"fuen","n":"スワローラ","t":"空","hp":105,"atk":95,"spatk":80,"def":70,"spdef":70,"spd":125,"aff":"雷","role":"高速交代役","roleDesc":"翔撃で攻め、翻しと再生で味方へつなぐ。雷の特殊技も補助に使える。"},
+  {"id":"youcho","n":"シラヌイノ","t":"炎","hp":155,"atk":90,"spatk":95,"def":110,"spdef":85,"spd":45,"aff":"地","role":"耐久両刀","roleDesc":"物理耐久を活かし、地技と火炎放射を相手の守りに合わせる。"},
+  {"id":"soukou","n":"カプケード","t":"水","hp":105,"atk":120,"spatk":70,"def":65,"spdef":65,"spd":110,"aff":"影","role":"高速物理アタッカー","roleDesc":"潮噛みと闇喰らいで一気に攻める。貪食で攻撃を回復につなげる。"},
+  {"id":"tsutazaru","n":"ワカクサル","t":"草","hp":115,"atk":105,"spatk":65,"def":70,"spdef":70,"spd":110,"aff":"影","role":"吸収物理アタッカー","roleDesc":"蔦打ち・闇喰らいと貪食で削りながら回復する。"},
+  {"id":"rainen","n":"イナマヅ","t":"雷","hp":150,"atk":60,"spatk":105,"def":90,"spdef":115,"spd":50,"aff":"水","role":"特殊受け兼アタッカー","roleDesc":"特殊技を受け、雷撃や濁流で反撃する。痺れ砂でも支援できる。"},
+  {"id":"saikaku","n":"ペトライノ","t":"岩","hp":115,"atk":130,"spatk":55,"def":85,"spdef":60,"spd":70,"aff":"地","role":"物理突破役","roleDesc":"最高の物理攻撃で岩・地技を通す。不屈や反骨でさらに強化。"},
+  {"id":"yoigumo","n":"コモリクモ","t":"影","hp":140,"atk":65,"spatk":85,"def":105,"spdef":95,"spd":70,"aff":"草","role":"妨害サポート","roleDesc":"耐久を活かして挑発・道連れで妨害する。草技で攻撃範囲を補い、霊体で間接ダメージにも強い。"},
+  {"id":"sarou","n":"ジョウルフ","t":"地","hp":110,"atk":115,"spatk":70,"def":75,"spdef":65,"spd":100,"aff":"炎","role":"物理突破役","roleDesc":"大地割と炎牙で攻め、型破りで相手の防御特性を無視する。"},
+  {"id":"ungei","n":"ホゲール","t":"空","hp":160,"atk":60,"spatk":90,"def":80,"spdef":115,"spd":55,"aff":"水","role":"特殊の壁","roleDesc":"特殊技を受け、突風・水技で反撃する。威圧で物理側も補える。"},
+  {"id":"mubaku","n":"バクネス","t":"幻","hp":145,"atk":60,"spatk":85,"def":95,"spdef":115,"spd":65,"aff":"影","role":"特殊受け・行動妨害","roleDesc":"特殊耐久と封技・反響で相手を止め、幻痛で気力を削る。"},
+  {"id":"oborogi","n":"フォクシャドウ","t":"幻","hp":105,"atk":65,"spatk":115,"def":60,"spdef":80,"spd":110,"aff":"雷","role":"高速特殊アタッカー","roleDesc":"幻月・迅雷で攻め、見切りや好機を活かして先手を取る。"},
+{"id": "gako", "n": "ワイルドラ", "t": "野", "hp": 110, "atk": 115, "spatk": 55, "def": 75, "spdef": 70, "spd": 115, "aff": "影", "role": "高速物理アタッカー", "roleDesc": "高い素早さと物理攻撃を持つ。牙・爪と暗闇の技が得意。"},
+{"id": "arakuma", "n": "ジャングマ", "t": "野", "hp": 155, "atk": 100, "spatk": 50, "def": 110, "spdef": 80, "spd": 45, "aff": "地", "role": "物理受け兼アタッカー", "roleDesc": "HPと物理防御が高い。威圧や重心で攻撃を受け、大地の技で反撃する。"}
 ];
 /* 基本の2特性に加え、4種族は3つ目の選択肢「やせ我慢」を選べる */
 const ABIL_OF = {
@@ -2851,7 +2851,7 @@ function statPct(key, v){
 }
 /* 習得できる技。own:true の技は一致タイプの個体しか覚えられない
    （適性で持ち込むと壊れる技を、そのタイプの専売にするための仕組み）。
-   例: 寄生種は草タイプ専用 → 適性が草の岩牛は覚えられない。 */
+   例: 寄生種は草タイプ専用 → 適性が草のモーロックは覚えられない。 */
 const WILD_LEARNERS = {wildfang:["homura","youcho","soukou","sarou"],wildclaw:["raitachi","tsutazaru","sarou","oborogi"]};
 const learnable = s => [...new Set(COMMON_MOVES.concat(
   BY_TYPE[s.t]||[], BY_TYPE[s.aff]||[],

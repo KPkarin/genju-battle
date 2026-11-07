@@ -213,7 +213,7 @@ assert.equal(details.get('btnUnitBack'),null,'a short touch does not open detail
 await details.advance(1);
 assert.ok(details.get('btnUnitBack'),'a continuous half-second hold opens details');
 let detailText=details.get('modalBody').textContent;
-for(const text of ['焔犬','やせ我慢','猛火の牙','麻痺','滅び'])assert.ok(detailText.includes(text),'detail view includes '+text);
+for(const text of ['ワホームラ','やせ我慢','猛火の牙','麻痺','滅び'])assert.ok(detailText.includes(text),'detail view includes '+text);
 assert.ok(detailText.includes('物攻')||detailText.includes('物理攻撃'),'detail view names physical attack');
 assert.ok(detailText.includes('+2'),'detail view includes positive rank changes');
 assert.ok(detailText.includes('-1'),'detail view includes negative rank changes');
