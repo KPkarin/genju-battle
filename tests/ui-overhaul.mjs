@@ -214,20 +214,20 @@ console.log('PASS explicit close, screen navigation cleanup, dialog tab containm
 const canceled=world(new Map(),{queuedTimers:true});
 canceled.run("beginBattle(randBuild(),randBuild(),123,'you');B.busy=true;YOU().baseSpd=220;FOE().baseSpd=1;globalThis.oldBattle=B;globalThis.oldTurn=takeTurn({kind:'move',key:'reverseRoom'},{kind:'move',key:null})");
 await canceled.advance(0); // Allow the initial async faint check to schedule the first move delay.
-await canceled.advance(360);
+await canceled.advance(5000); // Finish the paced announcement; cancel during the following status delay.
 canceled.click('btnLeaveBattle');canceled.click(canceled.get('modalBody').querySelector('button.primary'));
 assert.equal(canceled.run('oldBattle.over'),true,'exiting cancels the current battle');
 canceled.click('btnStart');
 assert.equal(canceled.run('B===oldBattle'),false,'a new battle has a separate session');
 const nextSeed=canceled.run('_seed');assert.equal(canceled.run('B.reverseTurns'),0,'a rematch begins without the old room');
-await canceled.advance(200);
+await canceled.advance(5000);
 assert.equal(canceled.run('B.reverseTurns'),0,'an old delayed status animation cannot mutate a new battle');
 assert.equal(canceled.run('B.turn'),1,'an old turn cannot advance the new battle');
 assert.equal(canceled.run('_seed'),nextSeed,'a canceled turn cannot consume the new battle RNG');
 await canceled.run('oldTurn');
 const outcome=world(new Map(),{queuedTimers:true});outcome.click('btnStart');outcome.run("finish('you')");
 outcome.click('btnLeaveBattle');outcome.click(outcome.get('modalBody').querySelector('button.primary'));outcome.click('btnStart');
-await outcome.advance(900);
+await outcome.advance(5000);
 assert.equal(outcome.get('scBattle').classList.contains('on'),true,'an old result timeout cannot replace a newly started battle');
 assert.equal(outcome.get('scResult').classList.contains('on'),false,'an abandoned result screen remains hidden');
 console.log('PASS exit/rematch session isolation across delayed moves, turn resolution, and old result timeouts');

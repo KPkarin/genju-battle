@@ -4263,7 +4263,7 @@ function hurt(u, amount){
 let B = null;
 
 function beginBattle(youTeam, foeTeam, seed, meSide){
-  GameUI.cancelReplacement();GameUI.cancelUnitPress();
+  GameUI.cancelReplacement();GameUI.cancelUnitPress();BattleLog.reset();
   MoveMotion.stop();VictoryAudio.stop();
   document.getElementById("stage")?.querySelectorAll(".dmg,.pt,.ring,.flashfx,.streak,.bolt").forEach(node=>node.remove());
   setSeed(seed);
@@ -4316,12 +4316,36 @@ const nm = u => u.side === ME
   ? `<span class="u-you">${u.name}</span>`
   : `<span class="u-foe">相手の${u.name}</span>`;
 
-function say(h){
-  const l = $("#log");
-  l.appendChild(el("p",null,h));
-  l.scrollTop = l.scrollHeight;
-}
-const sleep = ms => new Promise(r=>setTimeout(r,ms));
+/* Cosmetic message queue; battle calculations and RNG remain synchronous. */
+const BattleLog = {
+  queue:[],timer:null,scheduled:false,battle:null,lastAt:-Infinity,gap:280,
+  reset(){
+    if(this.timer!==null)clearTimeout(this.timer);
+    this.timer=null;this.scheduled=false;this.queue=[];this.battle=null;this.lastAt=-Infinity;
+  },
+  append(h){
+    const l=$("#log");l.appendChild(el("p",null,h));l.scrollTop=l.scrollHeight;this.lastAt=visualNow();
+  },
+  push(h){
+    if(this.battle!==B){this.reset();this.battle=B;}
+    if(!this.scheduled&&!this.queue.length&&visualNow()-this.lastAt>=this.gap){this.append(h);return;}
+    this.queue.push(h);this.schedule();
+  },
+  schedule(){
+    if(this.scheduled||!this.queue.length)return;
+    this.scheduled=true;const battle=this.battle;
+    this.timer=setTimeout(()=>{
+      this.timer=null;this.scheduled=false;
+      if(B!==battle){this.reset();return;}
+      this.append(this.queue.shift());this.schedule();
+    },Math.max(0,this.lastAt+this.gap-visualNow()));
+  },
+  readDelay(){
+    return Math.max(0,this.lastAt+(this.queue.length?this.queue.length*this.gap:0)+500-visualNow());
+  }
+};
+function say(h){BattleLog.push(h);}
+const sleep = ms => new Promise(r=>setTimeout(r,Math.max(Math.round(ms*1.18),BattleLog.readDelay())));
 
 function paint(enter){
   const y = MY(), f = OP();
@@ -5746,7 +5770,7 @@ function finish(winner){
     if(B!==battle || !$("#scBattle").classList.contains("on"))return;
     $("#btnAgain").style.display = NET.host === null ? "" : "";
     show("scResult");
-  }, 900);
+  }, Math.max(900,BattleLog.readDelay()));
 }
 
 /* ================= 通信（PeerJS / ロックステップ） =================
@@ -5900,6 +5924,7 @@ async function joinGame(pass){
 
 /* ================= nav ================= */
 function show(id){
+  if(id!=="scBattle")BattleLog.reset();
   if(id!=="scBattle"){GameUI.cancelReplacement();GameUI.cancelUnitPress();}
   GameUI.close(false);
   document.querySelectorAll(".screen").forEach(s=>s.classList.remove("on"));
