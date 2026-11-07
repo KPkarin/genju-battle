@@ -69,7 +69,7 @@ for(let a=0;a<11;a++)for(let d=0;d<11;d++){
 }
 assert.equal(Object.values(TYPE_NAMES).join(),'火炎,流水,草木,雷電,岩石,暗闇,大地,天空,幽玄,野生,無属性');
 for(const t of TYPES){assert.ok(TYPE_SYMBOLS[t]);assert.ok(chip(t).includes('<svg'));assert.ok(chip(t).includes(typeName(t)));}
-assert.equal(SPECIES.map(s=>s.t).join(),'炎,水,草,雷,岩,影,地,空,炎,水,草,雷,岩,影,地,空,幻,幻');
+assert.equal(SPECIES.slice(0,18).map(s=>s.t).join(),'炎,水,草,雷,岩,影,地,空,炎,水,草,雷,岩,影,地,空,幻,幻');
 assert.ok(learnable(spec('homura')).includes('wildfang'));
 assert.ok(learnable(spec('raitachi')).includes('wildclaw'));
 assert.ok(!learnable(spec('shiogame')).includes('wildclaw'));

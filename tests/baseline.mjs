@@ -44,8 +44,8 @@ vm.runInContext(script, context, {filename: 'index.html', timeout: 10_000});
 console.log('PASS JavaScript syntax and startup with DOM stubs');
 
 await vm.runInContext(`(async () => {
-  assert.equal(SPECIES.length, 18);
-  assert.equal(new Set(SPECIES.map(s => s.id)).size, 18);
+  assert.equal(SPECIES.length, 20);
+  assert.equal(new Set(SPECIES.map(s => s.id)).size, 20);
   for (const s of SPECIES) {
     assert.ok(TYPES.includes(s.t) && TYPES.includes(s.aff), s.id + ': types');
     for (const key of ['hp', 'atk', 'def', 'spd']) assert.ok(s[key] > 0, s.id + ': ' + key);
@@ -63,7 +63,7 @@ await vm.runInContext(`(async () => {
     assert.ok(TYPES.includes(move.t), key + ': type');
     assert.ok(Number.isFinite(move.p) && Number.isFinite(move.en), key + ': numeric data');
   }
-  console.log('PASS all 18 species, sprites, abilities, moves, and type chart');
+  console.log('PASS all 20 species, sprites, abilities, moves, and type chart');
 
   setSeed(12345);
   for (let n = 0; n < 100; n++) {

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>幻獣闘記 — 月下の闘技場</title>
 <meta name="theme-color" content="#0b1821">
-<meta name="description" content="18体の幻獣を編成して戦う、3対3のターン制バトルゲーム。コンピューター対戦と通信対戦に対応。">
+<meta name="description" content="20体の幻獣を編成して戦う、3対3のターン制バトルゲーム。コンピューター対戦と通信対戦に対応。">
 <style>
 :root{
   --bg:#0d1020;
@@ -583,7 +583,7 @@ canvas.substitute-actor[hidden]{display:none!important}
     <details class="coverage-panel"><summary>編成の相性を見る</summary><div id="coverage"></div></details>
   </section>
   <section id="rosterSection" aria-labelledby="rosterHeading">
-    <div class="section-heading"><div><span class="section-kicker">BESTIARY</span><h2 id="rosterHeading">幻獣図鑑</h2><small>能力・特性を確認し、チームに追加できます。</small></div><span class="section-count" id="rosterCount">18体の幻獣</span></div>
+    <div class="section-heading"><div><span class="section-kicker">BESTIARY</span><h2 id="rosterHeading">幻獣図鑑</h2><small>能力・特性を確認し、チームに追加できます。</small></div><span class="section-count" id="rosterCount">20体の幻獣</span></div>
     <div class="roster-toolbar"><div class="tfbar" id="typeFilter" aria-label="属性で絞り込む"></div></div>
     <div class="mongrid" id="roster"></div>
   </section>
@@ -2797,6 +2797,9 @@ function drawField(canvas){
 }
 
 
+Object.assign(SPRITES,{"gako": {"pal": {"o": "#262b35", "s": "#734735", "b": "#bb773c", "l": "#e9ad60", "h": "#ffe0a0", "w": "#fff0cb", "n": "#171e28", "e": "#9cd8c2", "d": "#8d5a36", "g": "#ba593d"}, "px": ["................................", "................................", "................................", "...........o...........o........", "..........bbb....o....bbb.......", ".........ossbolllllllossbo......", ".........osollllsssllllobo......", "........ooollllllllbllllooo.....", ".........lllllllssllbbbllo......", "........olllllllllllbbbbblo.....", "........lssslllllllllbsssso.....", "......o.olllllllllllbbbbbbo.....", "....ooloolooooolllllbooooooo....", "...oooloolooeeolllbbboeeoob.....", "..ooloooollllblbbhbbbbbbbbo.....", "...oooo.oolllhhhnnnhhhbbbbo.....", "..olo....wwwhhhhnnnhhhhbwww.....", ".ooloo...oshhhhhhshhhhhhs.......", "..ooo....olowwhhhshhhwwobo......", "..ooo...oollwwhhhhhhhwwbbbo.....", ".ooloo..oollwwlllhbbbwwbbbo.....", "..oooo.ooolllllllooobbsssooo....", "..ooloo.oollllllloobbbbbbbo.....", "...ooo..oollllllloossbbbbbo.....", "....o....ollllllloobbbbbssoo....", ".........oolllllooobbbbbbbo.....", "..........ohhhhhoooobohhhhho....", "..........ohshhsoo.ooohshhso....", "..........ooooooo....ooooooo....", "................................", "................................", "................................"]}, "arakuma": {"pal": {"o": "#262b35", "s": "#483c37", "b": "#796044", "l": "#ab875c", "h": "#dac397", "w": "#fff0cb", "n": "#171e28", "e": "#9cd8c2", "d": "#8d5a36", "g": "#625345"}, "px": ["................................", "................................", "................................", "................................", "..........o......o.....o........", "........olllooblbbbbbolllo......", ".......ollslllllllllbbbollo.....", ".......olslllllllllllbbbolo.....", "......ooslllllllllllllbbbooo....", ".......oolllllllllllllbbbbo.....", ".......olllllllllllllllbsbo.....", "........olsssssllllllssssso.....", ".......oolsssssllllllsssssoo....", "........obllhnlllllllbhnsso.....", "........obblnnlllhllbbnnsss.....", "........oobbbhhnnnnnhhbssso.....", ".......o.oobhhhnnnnnhhhssso.....", ".....osssoohhhhhhshhhhhhsssso...", ".....sssssbohhhhhshhhhhosssss...", "....osssssobbhhssssshhbossssso..", "....ossssshhhhbbbhbbbhhhssssso..", "....ossssshhhhhhbbhhhhhhssssso..", "...oosssssoohhhhhhhhhhoosssssoo.", "....osssssobbbbhhhhbbbbossssso..", "....osssssobbbbbbbbbbbbossssso..", "....owswssobbbbbbbbbbbbosswswo..", ".....wswobbbbbbobbbbobbbbbwow...", ".....oooobbbbbbobbbbobbbbbboo...", ".......oobsbsbboooooobsbsbbo....", "........oooooooo.o..oooooooo....", "................................", "................................"]}});
+Object.assign(BACK_SPRITES,{"gako": {"pal": {"o": "#262b35", "s": "#734735", "b": "#bb773c", "l": "#e9ad60", "h": "#ffe0a0", "w": "#fff0cb", "n": "#171e28", "e": "#9cd8c2", "d": "#8d5a36", "g": "#ba593d"}, "px": ["................................", "................................", "................................", "...........o...........o........", "..........bbb....o....bbb.......", ".........ossbolllllllossbo......", ".........osollllsssllllobo......", "........ooollllllllbllllooo.....", ".........lllllllssllbbbllo......", "........olllllllllllbbbbblo.....", "........lssslllllllllbsssso.....", "......o.ollllllsssllbbbbbbo.....", "....ooloollllsssssssbbbbbboo....", "...oooloollllllsssbbbbbbbbb.....", "..ooloooollllblsssbbbbbbbbo.....", "...oooo.oolllbsssssbbbbbbbo.....", "..olo....oollbbsssbbbbbbbb......", ".ooloo...ossslbbbbbbbbsss.......", "..ooo....olooollbbbbbbbobo......", "..ooo...oollloooossboobbbbo.....", ".ooloo..oolssslllssbbbobbbo.....", "..oooo.ooolssslllssobbsssooo....", "..ooloo.oolssslllssbbbbbbbo.....", "...ooo..oolssslllssssbbbbbo.....", "....o....olllllllssbbbbbssoo....", ".........oolllllooobbbbbbbo.....", "..........ohhhhhoooobohhhhho....", "..........ohshhsoo.ooohshhso....", "..........ooooooo....ooooooo....", "................................", "................................", "................................"]}, "arakuma": {"pal": {"o": "#262b35", "s": "#483c37", "b": "#796044", "l": "#ab875c", "h": "#dac397", "w": "#fff0cb", "n": "#171e28", "e": "#9cd8c2", "d": "#8d5a36", "g": "#625345"}, "px": ["................................", "................................", "................................", "................................", "..........o......o.....o........", "........olllooblbbbbbolllo......", ".......ollslllllllllbbbollo.....", ".......olslllllllllllbbbolo.....", "......ooslllllllllllllbbbooo....", ".......oollllllllbbbllbbbbo.....", ".......olllllbbllbbblllbsbo.....", "........ollllbbllbbbllbssso.....", ".......oollllbbllbbbllbsssoo....", "........oblllllllllllbbssso.....", "........obblllllllllbbsssss.....", "........oobbbbblbbbbbbbssso.....", ".......o.oobbbbbbbbbbbbssso.....", ".....osssoolllllllllllllsssso...", ".....sssssblllllllllllllsssss...", "....osssssobbodddddddobossssso..", "....osssssobbbbbbobbbbbossssso..", "....osssssobbbbbbbssbbbossssso..", "...oosssssoobbbbbbssbboosssssoo.", "....osssssobbbbbbbssbboossssso..", "....osssssobbbbbbbssbolossssso..", "....owswssobbbbbbbbboolooswswo..", ".....wswobbbbbbobbbboooobbwow...", ".....oooobbbbbbobbbbobobbbboo...", ".......oobsbsbboooooobsbsbbo....", "........oooooooo.o..oooooooo....", "................................", "................................"]}});
+
 /* ================= monsters ================= */
 const SPECIES = [
   {"id":"homura","n":"焔犬","t":"炎","hp":120,"atk":105,"spatk":85,"def":70,"spdef":70,"spd":95,"aff":"岩","role":"物理アタッカー","roleDesc":"炎牙と岩技で攻める。不屈と気合いで物理火力を伸ばす。"},
@@ -2816,10 +2819,13 @@ const SPECIES = [
   {"id":"sarou","n":"砂狼","t":"地","hp":110,"atk":115,"spatk":70,"def":75,"spdef":65,"spd":100,"aff":"炎","role":"物理突破役","roleDesc":"大地割と炎牙で攻め、型破りで相手の防御特性を無視する。"},
   {"id":"ungei","n":"雲鯨","t":"空","hp":160,"atk":60,"spatk":90,"def":80,"spdef":115,"spd":55,"aff":"水","role":"特殊の壁","roleDesc":"特殊技を受け、突風・水技で反撃する。威圧で物理側も補える。"},
   {"id":"mubaku","n":"夢貘","t":"幻","hp":145,"atk":60,"spatk":85,"def":95,"spdef":115,"spd":65,"aff":"影","role":"特殊受け・行動妨害","roleDesc":"特殊耐久と封技・反響で相手を止め、幻痛で気力を削る。"},
-  {"id":"oborogi","n":"朧狐","t":"幻","hp":105,"atk":65,"spatk":115,"def":60,"spdef":80,"spd":110,"aff":"雷","role":"高速特殊アタッカー","roleDesc":"幻月・迅雷で攻め、見切りや好機を活かして先手を取る。"}
+  {"id":"oborogi","n":"朧狐","t":"幻","hp":105,"atk":65,"spatk":115,"def":60,"spdef":80,"spd":110,"aff":"雷","role":"高速特殊アタッカー","roleDesc":"幻月・迅雷で攻め、見切りや好機を活かして先手を取る。"},
+{"id": "gako", "n": "牙虎", "t": "野", "hp": 110, "atk": 115, "spatk": 55, "def": 75, "spdef": 70, "spd": 115, "aff": "影", "role": "高速物理アタッカー", "roleDesc": "高い素早さと物理攻撃を持つ。牙・爪と暗闇の技が得意。"},
+{"id": "arakuma", "n": "荒熊", "t": "野", "hp": 155, "atk": 100, "spatk": 50, "def": 110, "spdef": 80, "spd": 45, "aff": "地", "role": "物理受け兼アタッカー", "roleDesc": "HPと物理防御が高い。威圧や重心で攻撃を受け、大地の技で反撃する。"}
 ];
 /* 基本の2特性に加え、4種族は3つ目の選択肢「やせ我慢」を選べる */
 const ABIL_OF = {
+  gako:["grit","blur"],arakuma:["pressure","ballast"],
   homura:["grit","tempo","stoic"],      youcho:["hide","ballast"],
   shiogame:["ballast","mirror","stoic"], soukou:["glutton","tempo"],
   kokejyu:["regen","quick"],     tsutazaru:["glutton","tempo"],
@@ -2853,6 +2859,8 @@ const learnable = s => NEUTRAL.concat(BY_TYPE[s.t]||[], BY_TYPE[s.aff]||[], Obje
 /* ================= idle pixel animation ================= */
 // The four native-grid poses are cosmetic; they never consume battle RNG.
 const IDLE_PROFILES = {
+  gako:{period:2100,front:{bodyY:17,footY:27,appendages:[{rect:[2,12,6,22],delta:[1,0]}]},back:{bodyY:17,footY:27,appendages:[{rect:[2,12,6,22],delta:[1,0]}]}},
+  arakuma:{period:3200,front:{bodyY:18,footY:28,appendages:[]},back:{bodyY:18,footY:28,appendages:[]}},
   "homura":{"period":2200,"front":{"bodyY":18,"footY":27,"appendages":[{"part":"flame-tail-tip","rect":[1,12,7,21],"delta":[1,-1]}]},"back":{"bodyY":16,"footY":27,"appendages":[{"part":"flame-tail-tip","rect":[2,11,9,20],"delta":[1,-1]}]}},
   "youcho":{"period":2700,"front":{"bodyY":17,"footY":26,"appendages":[{"part":"dorsal-flame-tips","rect":[9,3,20,9],"delta":[0,-1]}]},"back":{"bodyY":15,"footY":27,"appendages":[{"part":"dorsal-flame-tips","rect":[9,3,23,10],"delta":[0,-1]}]}},
   "iwaushi":{"period":3200,"rigid":true,"front":{"bodyY":17,"footY":27,"appendages":[]},"back":{"bodyY":15,"footY":27,"appendages":[{"part":"tail-tuft","rect":[15,23,19,28],"delta":[1,0]}]}},
@@ -5845,7 +5853,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "elements-eleven-v6";
+const BATTLE_RULES_VERSION = "wild-roster-v7";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});
