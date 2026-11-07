@@ -17,6 +17,7 @@
 
 ## ドキュメント
 
+- [技の属性の見直し](docs/move-types.md)
 - [野生属性の牙虎・荒熊](docs/wild-roster.md)
 - [11属性・相性表・シンボル](docs/eleven-elements.md)
 - [物理・特殊と幻獣の役割](docs/battle-stats.md)

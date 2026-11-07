@@ -740,15 +740,15 @@ const MOVES = {
   waterfang:{"n":"潮噛み","t":"水","category":"physical","p":75,"acc":100,"en":30,"d":"水をまとった牙で噛みつく"},
   thunderclaw:{"n":"雷爪","t":"雷","category":"physical","p":75,"acc":100,"en":30,"d":"電気をまとった爪で切り裂く"},
   meditate:{"n":"精神統一","t":"無","category":"status","p":0,"acc":null,"en":25,"fx":"spatkup","d":"自分の特殊攻撃+1"},
-  barrier:{"n":"結界","t":"無","category":"status","p":0,"acc":null,"en":25,"fx":"spdefup","d":"自分の特殊防御+1"},
+  barrier:{"n":"結界","t":"幻","category":"status","p":0,"acc":null,"en":25,"fx":"spdefup","d":"自分の特殊防御+1"},
 
   tackle:{category:"physical",n:"体当たり",t:"無",p:35,acc:100,en:10},
   guard :{category:"status",n:"守る",   t:"無",p:0, acc:null,en:25,pri:PRI.guard,fx:"guard",d:"そのターンの被ダメ80%減。必ず先制。連続使用で消費気力が倍増"},
   focus :{category:"status",n:"気合い", t:"無",p:0, acc:null,en:25,fx:"atkup",  d:"自分の物理攻撃+1"},
-  sand  :{category:"status",n:"砂かけ", t:"無",p:0, acc:100, en:25,fx:"accdown",d:"相手の命中-1"},
-  ambush:{category:"physical",n:"不意打ち",t:"無",p:70, acc:100,en:30,pri:PRI.ambush,fx:"ambush",
+  sand  :{category:"status",n:"砂かけ", t:"地",p:0, acc:100, en:25,fx:"accdown",d:"相手の命中-1"},
+  ambush:{category:"physical",n:"不意打ち",t:"影",p:70, acc:100,en:30,pri:PRI.ambush,fx:"ambush",
           d:"相手が攻撃技を選んでいれば先制。そうでなければ失敗"},
-  startle:{category:"special",n:"おどかす",t:"無",p:45,acc:100,en:25,pri:PRI.startle,fx:"startle",
+  startle:{category:"special",n:"おどかす",t:"野",p:45,acc:100,en:25,pri:PRI.startle,fx:"startle",
           d:"相手が変化技を選んでいれば先制し、その技を失敗させて物理攻撃-1。そうでなければ失敗"},
   sub   :{category:"status",n:"身代わり",t:"無",p:0, acc:null,en:30,fx:"sub",
           d:"最大HPの1/4を払って盾を作る。攻撃を肩代わりし、状態異常・能力低下・新たな寄生種を防ぐ。反響・封技・挑発・拘束は防げない"},
@@ -776,7 +776,7 @@ const MOVES = {
 
   spark :{category:"special",n:"静電気", t:"雷",p:40, acc:100,en:25,fx:"para",pr:.15,d:"15%で麻痺"},
   sand2 :{category:"status",n:"痺れ砂", t:"雷",p:0, acc:null,en:30,fx:"hzSand",
-          d:"相手側に設置。交代で出てきた相手を麻痺させる。空・地・雷には効かない"},
+          d:"相手側に設置。交代で出てきた相手を麻痺させる。天空・大地・雷電には効かない"},
   bolt  :{category:"special",n:"雷撃",   t:"雷",p:85, acc:90, en:35,fx:"para",pr:.10,d:"10%で麻痺"},
   thunder:{category:"special",n:"迅雷",  t:"雷",p:110,acc:75, en:45,fx:"para",pr:.20,d:"20%で麻痺"},
 
@@ -788,14 +788,14 @@ const MOVES = {
   slide :{category:"physical",n:"岩雪崩", t:"岩",p:80, acc:90, en:35,fx:"flinch",pr:.20,d:"先手なら20%でひるみ"},
   edge  :{category:"physical",n:"岩の刃", t:"岩",p:110,acc:75, en:45},
 
-  gravel:{category:"physical",n:"砂礫",   t:"地",p:45, acc:100,en:15},
+  gravel:{category:"physical",n:"砂礫",   t:"岩",p:45, acc:100,en:15},
   quake :{category:"physical",n:"地響き", t:"地",p:80, acc:100,en:35},
   rift  :{category:"physical",n:"大地割", t:"地",p:115,acc:85, en:45},
-  root  :{category:"status",n:"根を張る",t:"地",p:0, acc:null,en:25,fx:"rootup",d:"自分の物理防御+1、素早さ-1"},
+  root  :{category:"status",n:"根を張る",t:"草",p:0, acc:null,en:25,fx:"rootup",d:"自分の物理防御+1、素早さ-1"},
 
   gust  :{category:"special",n:"風切り", t:"空",p:45, acc:100,en:15},
   blast :{category:"special",n:"突風",   t:"空",p:80, acc:95, en:35,fx:"accdownfx",pr:.20,d:"20%で相手の命中-1"},
-  pivot :{category:"physical",n:"翻し",   t:"空",p:60, acc:100,en:30,fx:"pivot",
+  pivot :{category:"physical",n:"翻し",   t:"野",p:60, acc:100,en:30,fx:"pivot",
           d:"攻撃したあと控えと入れ替わる"},
   sweep :{category:"status",n:"払い風", t:"空",p:0, acc:null,en:20,fx:"hzClear",
           d:"自分側に置かれた設置をすべて吹き飛ばす"},
@@ -807,7 +807,7 @@ const MOVES = {
   phantom:{category:"special",n:"幻痛",  t:"幻",p:45, acc:100,en:25,fx:"endrain",d:"相手の気力を15奪う"},
   mirage:{category:"physical",n:"虚像斬", t:"幻",p:80, acc:95, en:35},
   lunacy:{category:"special",n:"幻月",   t:"幻",p:110,acc:80, en:45},
-  swap  :{category:"status",n:"奇術",   t:"幻",p:0,  acc:100,en:25,fx:"swapitem",
+  swap  :{category:"status",n:"奇術",   t:"無",p:0,  acc:100,en:25,fx:"swapitem",
           d:"自分と相手の持ち物を入れ替える。両者とも持っていなければ失敗"},
   perish:{category:"status",n:"滅びの唄",t:"幻",p:0, acc:null,en:35,fx:"perish",
           d:"使用ターン終了時にカウント3。その後のターン終了ごとに2→1→0となり、0で倒れる。交代すれば逃れられる"},
@@ -816,22 +816,22 @@ const MOVES = {
   disable:{category:"status",n:"封技",  t:"幻",p:0,  acc:100,en:25,fx:"disable",
           d:"相手が直前に使った技を3ターン封じる。技を使っていなければ失敗"},
 
-  bond  :{category:"status",n:"道連れ", t:"影",p:0,  acc:null,en:30,pri:3,fx:"bond",
+  bond  :{category:"status",n:"道連れ", t:"幻",p:0,  acc:null,en:30,pri:3,fx:"bond",
           d:"このターン中に倒されたら、倒した相手も道連れにする"},
-  taunt :{category:"status",n:"挑発",   t:"影",p:0,  acc:100,en:25,fx:"taunt",
+  taunt :{category:"status",n:"挑発",   t:"無",p:0,  acc:100,en:25,fx:"taunt",
           d:"相手は3ターン 変化技を使えなくなる"},
   touch :{category:"physical",n:"影撫で", t:"影",p:45, acc:100,en:25,fx:"defdown",d:"相手の物理防御-1"},
   devour:{category:"physical",n:"闇喰らい",t:"影",p:80, acc:100,en:35,fx:"drain",dr:.50,d:"与ダメの50%を吸収"},
-  night :{category:"special",n:"悪夢",   t:"影",p:110,acc:80, en:45}
+  night :{category:"special",n:"悪夢",   t:"幻",p:110,acc:80, en:45}
 };
 const MOVE_CATEGORY_LABEL = {physical:"物理", special:"特殊", status:"変化"};
 const isStatusMove = m => m.category === "status";
 const moveBadge = m => `<span class="category ${m.category}">${MOVE_CATEGORY_LABEL[m.category]}</span>`;
-/* 無属性の技は全員が覚えられる。MOVES から自動で拾うので、
-   技を足したときに登録を忘れて一覧から消える事故が起きない。 */
-const NEUTRAL = Object.keys(MOVES).filter(k => MOVES[k].t === "無");
+/* Common learning is independent of damage type. These legacy basics stay available to all. */
+const COMMON_MOVES = ["meditate","barrier","tackle","guard","focus","sand","ambush","startle","sub","repose","revenge"];
+const MOVE_ORIGINS = {"barrier": "無", "sand": "無", "ambush": "無", "startle": "無", "gravel": "地", "root": "地", "pivot": "空", "swap": "幻", "taunt": "影", "bond": "影", "night": "影"};
 const BY_TYPE = {};
-for (const k in MOVES){ const t=MOVES[k].t; if(t!=="無"){ (BY_TYPE[t]=BY_TYPE[t]||[]).push(k); } }
+for(const k in MOVES){const t=MOVES[k].t;(BY_TYPE[t]||(BY_TYPE[t]=[])).push(k);}
 
 /* ================= equipment ================= */
 const EQUIPS = {
@@ -2853,8 +2853,12 @@ function statPct(key, v){
    （適性で持ち込むと壊れる技を、そのタイプの専売にするための仕組み）。
    例: 寄生種は草タイプ専用 → 適性が草の岩牛は覚えられない。 */
 const WILD_LEARNERS = {wildfang:["homura","youcho","soukou","sarou"],wildclaw:["raitachi","tsutazaru","sarou","oborogi"]};
-const learnable = s => NEUTRAL.concat(BY_TYPE[s.t]||[], BY_TYPE[s.aff]||[], Object.keys(WILD_LEARNERS).filter(k=>WILD_LEARNERS[k].includes(s.id)))
-  .filter(k => !MOVES[k].own || MOVES[k].t === s.t);
+const learnable = s => [...new Set(COMMON_MOVES.concat(
+  BY_TYPE[s.t]||[], BY_TYPE[s.aff]||[],
+  Object.keys(MOVE_ORIGINS).filter(k=>MOVE_ORIGINS[k]===s.t||MOVE_ORIGINS[k]===s.aff),
+  Object.keys(WILD_LEARNERS).filter(k=>WILD_LEARNERS[k].includes(s.id))
+))].filter(k=>!MOVES[k].own||MOVES[k].t===s.t);
+
 
 /* ================= idle pixel animation ================= */
 // The four native-grid poses are cosmetic; they never consume battle RNG.
@@ -3942,7 +3946,7 @@ const GameUI = {
       panel.appendChild(el("p","hint",`技を4つ選びます。一致タイプの攻撃技は1.5倍。選択済みの技を押すと外せます。`));
       const pool=learnable(species);
       for(const type of [species.t,species.aff,...pool.map(key=>MOVES[key].t),"無"].filter((type,index,array)=>array.indexOf(type)===index)){
-        panel.appendChild(el("div","mgrp",`${chip(type)} <span>${type===species.t?"タイプ一致 / 1.5倍":type===species.aff?"適性の技":type==="無"?"共通の技":"その他の習得技"}</span>`));
+        panel.appendChild(el("div","mgrp",`${chip(type)} <span>${type===species.t?"タイプ一致 / 1.5倍":type===species.aff?"適性の技":type==="無"?"無属性の技":"その他の習得技"}</span>`));
         for(const key of pool.filter(key=>MOVES[key].t===type)){
           const on=build.moves.includes(key),disabled=build.moves.length>=4&&!on;
           const row=moveRow(MOVES[key],key,on,disabled,()=>this.selectMove(this.index,key));
@@ -5853,7 +5857,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "wild-roster-v7";
+const BATTLE_RULES_VERSION = "move-origins-v8";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});
