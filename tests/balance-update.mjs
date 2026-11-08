@@ -124,7 +124,8 @@ await run(`(async()=>{
   }
   {
     const [a,d]=setup();a.hp=15;d.maxhp=d.hp=200;d.equip='thorn';fixedRandom(.9);fixedDamage(10);
-    await doMove(a,d,'crushrock');
+    const oldContact=MOVES.crushrock.contact;MOVES.crushrock.contact=true; // Synthetic contact multi-hit preserves the retaliation/KO regression.
+    try{await doMove(a,d,'crushrock');}finally{MOVES.crushrock.contact=oldContact;}
     assert.equal(damageRecords.length,2,'stop hits if contact recoil defeats the attacker');
     assert.equal(d.hp,180);assert.ok(a.hp<=0);restoreRandom();
   }

@@ -557,6 +557,7 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
 .sub-marker{font:9px/1.3 var(--gothic);color:#e6d5a6;border:1px solid #8da995;border-radius:3px;padding:1px 3px;white-space:nowrap}.battle-active .stage .hud .nm{flex-wrap:wrap}
 canvas.substitute-actor[hidden]{display:none!important}
 .focus-risk{display:block;font-size:9px;font-weight:400;line-height:1.4;margin-top:2px;color:#c5d8c6}
+.contact-badge{display:inline-block;font:9px/1.4 var(--gothic);border:1px solid #506c75;border-radius:3px;padding:0 3px;color:#bbd0d3;white-space:nowrap}.contact-badge.touch{color:#eac699;border-color:#80634c}.battle-active .cmd .contact-badge{font-size:8px}
 </style>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -659,6 +660,7 @@ canvas.substitute-actor[hidden]{display:none!important}
 </section>
   <section id="resourceGuide"><p class="role-desc">3体の幻獣で対戦します。各幻獣には技を4つ、特性と装備を1つずつ設定します。ターンごとに技・気力回復・交代のいずれかを選びます。</p>  <p class="hint">おまかせ編成は持ち物に合わせて技と特性を選びます。技制限のない持ち物では攻撃2・変化2、制限のある持ち物では攻撃4で編成します。属性一致の攻撃技を必ず含みます。</p>
   <p class="hint">「気を溜める」で気力を25回復します（集中は50）。選んだターンは、行動順にかかわらず攻撃から受けるダメージが1.2倍になります。</p>
+  <p class="hint">接触技は身体で相手に触れる攻撃です。毒棘は接触技で本体を攻撃した場合だけ発動します。特殊技はすべて非接触で、物理技にも岩投げなどの非接触技があります。護りの札はHP満タンから倒されるときだけ発動します。</p>
   <details>
     <summary>物理・特殊と役割について</summary>
     <p class="hint">HP・物攻（物理攻撃）・物防（物理防御）・特攻（特殊攻撃）・特防（特殊防御）・素早さの6能力です。技の属性とは別に、各技に「物理」「特殊」「変化」の分類があります。</p>
@@ -737,99 +739,100 @@ const expectedHits = m => m.fx === "multi" ? 3.1 : 1;
 const PRI = {startle:5, guard:4, ambush:2, normal:0, counter:-3};
 
 const MOVES = {
-  wildfang:{category:"physical",n:"かみつく",t:"野",p:60,acc:100,en:20,d:"牙で噛みつく野生の攻撃"},
-  wildclaw:{category:"physical",n:"ひっかく",t:"野",p:40,acc:100,en:10,d:"鋭い爪で引き裂く野生の攻撃"},
-  firefang:{"n":"炎牙","t":"炎","category":"physical","p":75,"acc":100,"en":30,"d":"炎をまとった牙で噛みつく"},
-  waterfang:{"n":"潮噛み","t":"水","category":"physical","p":75,"acc":100,"en":30,"d":"水をまとった牙で噛みつく"},
-  thunderclaw:{"n":"雷爪","t":"雷","category":"physical","p":75,"acc":100,"en":30,"d":"電気をまとった爪で切り裂く"},
-  meditate:{"n":"精神統一","t":"無","category":"status","p":0,"acc":null,"en":25,"fx":"spatkup","d":"自分の特殊攻撃+1"},
-  barrier:{"n":"結界","t":"幻","category":"status","p":0,"acc":null,"en":25,"fx":"spdefup","d":"自分の特殊防御+1"},
+  wildfang:{contact:true,category:"physical",n:"かみつく",t:"野",p:60,acc:100,en:20,d:"牙で噛みつく野生の攻撃"},
+  wildclaw:{contact:true,category:"physical",n:"ひっかく",t:"野",p:40,acc:100,en:10,d:"鋭い爪で引き裂く野生の攻撃"},
+  firefang:{contact:true,"n":"炎牙","t":"炎","category":"physical","p":75,"acc":100,"en":30,"d":"炎をまとった牙で噛みつく"},
+  waterfang:{contact:true,"n":"潮噛み","t":"水","category":"physical","p":75,"acc":100,"en":30,"d":"水をまとった牙で噛みつく"},
+  thunderclaw:{contact:true,"n":"雷爪","t":"雷","category":"physical","p":75,"acc":100,"en":30,"d":"電気をまとった爪で切り裂く"},
+  meditate:{contact:false,"n":"精神統一","t":"無","category":"status","p":0,"acc":null,"en":25,"fx":"spatkup","d":"自分の特殊攻撃+1"},
+  barrier:{contact:false,"n":"結界","t":"幻","category":"status","p":0,"acc":null,"en":25,"fx":"spdefup","d":"自分の特殊防御+1"},
 
-  tackle:{category:"physical",n:"体当たり",t:"無",p:55,acc:100,en:20},
-  guard :{category:"status",n:"守る",   t:"無",p:0, acc:null,en:25,pri:PRI.guard,fx:"guard",d:"そのターンの攻撃ダメージと追加効果を防ぐ。おどかすでは阻止されない。連続使用で消費気力が倍増"},
-  focus :{category:"status",n:"気合い", t:"無",p:0, acc:null,en:25,fx:"atkup",  d:"自分の物理攻撃+1"},
-  sand  :{category:"status",n:"砂かけ", t:"地",p:0, acc:100, en:25,fx:"accdown",d:"相手の命中-1"},
-  ambush:{category:"physical",n:"不意打ち",t:"影",p:70, acc:100,en:30,pri:PRI.ambush,fx:"ambush",
+  tackle:{contact:true,category:"physical",n:"体当たり",t:"無",p:55,acc:100,en:20},
+  guard :{contact:false,category:"status",n:"守る",   t:"無",p:0, acc:null,en:25,pri:PRI.guard,fx:"guard",d:"そのターンの攻撃ダメージと追加効果を防ぐ。おどかすでは阻止されない。連続使用で消費気力が倍増"},
+  focus :{contact:false,category:"status",n:"気合い", t:"無",p:0, acc:null,en:25,fx:"atkup",  d:"自分の物理攻撃+1"},
+  sand  :{contact:false,category:"status",n:"砂かけ", t:"地",p:0, acc:100, en:25,fx:"accdown",d:"相手の命中-1"},
+  ambush:{contact:true,category:"physical",n:"不意打ち",t:"影",p:70, acc:100,en:30,pri:PRI.ambush,fx:"ambush",
           d:"相手が攻撃技を選んでいれば先制。そうでなければ失敗"},
-  startle:{category:"special",n:"おどかす",t:"野",p:45,acc:100,en:25,pri:PRI.startle,fx:"startle",
+  startle:{contact:false,category:"special",n:"おどかす",t:"野",p:45,acc:100,en:25,pri:PRI.startle,fx:"startle",
           d:"相手の変化技に先制し、行動を止めて物理攻撃-1。守ると攻撃技には失敗"},
-  sub   :{category:"status",n:"身代わり",t:"無",p:0, acc:null,en:30,fx:"sub",
+  sub   :{contact:false,category:"status",n:"身代わり",t:"無",p:0, acc:null,en:30,fx:"sub",
           d:"最大HPの1/4を払って盾を作る。攻撃を肩代わりし、状態異常・能力低下・新たな寄生種を防ぐ。反響・封技・挑発・拘束は防げない"},
-  repose:{category:"status",n:"静養",   t:"無",p:0, acc:null,en:40,fx:"repose",
+  repose:{contact:false,category:"status",n:"静養",   t:"無",p:0, acc:null,en:40,fx:"repose",
           d:"最大HPの50%を回復し状態異常を治すが、次のターン行動できない"},
-  revenge:{category:"physical",n:"仕返し",t:"無",p:0, acc:100, en:30,pri:PRI.counter,fx:"counter",d:"このターンに物理・特殊技から受けたダメージの1.5倍を返す固定ダメージ。攻防値を使わず、必ず後攻"},
+  revenge:{contact:true,category:"physical",n:"仕返し",t:"無",p:0, acc:100, en:30,pri:PRI.counter,fx:"counter",d:"このターンに物理・特殊技から受けたダメージの1.5倍を返す固定ダメージ。攻防値を使わず打撃で返す。必ず後攻"},
 
-  ember :{category:"special",n:"火の粉",  t:"炎",p:40, acc:100,en:15,fx:"burn",pr:.20,d:"20%でやけど"},
-  flame :{category:"special",n:"火炎放射",t:"炎",p:80, acc:100,en:35,fx:"burn",pr:.10,d:"10%でやけど"},
-  inferno:{category:"special",n:"業火",   t:"炎",p:110,acc:80, en:45,fx:"recoil",d:"与ダメの1/3を自分も受ける"},
-  coal  :{category:"status",n:"熾火",    t:"炎",p:0,  acc:90, en:25,fx:"burnsure",d:"相手をやけどにする"},
+  ember :{contact:false,category:"special",n:"火の粉",  t:"炎",p:40, acc:100,en:15,fx:"burn",pr:.20,d:"20%でやけど"},
+  flame :{contact:false,category:"special",n:"火炎放射",t:"炎",p:80, acc:100,en:35,fx:"burn",pr:.10,d:"10%でやけど"},
+  inferno:{contact:false,category:"special",n:"業火",   t:"炎",p:110,acc:80, en:45,fx:"recoil",d:"与ダメの1/3を自分も受ける"},
+  coal  :{contact:false,category:"status",n:"熾火",    t:"炎",p:0,  acc:90, en:25,fx:"burnsure",d:"相手をやけどにする"},
 
-  squirt:{category:"special",n:"水鉄砲", t:"水",p:40, acc:100,en:20,fx:"spddown",pr:.35,d:"35%で相手の素早さ-1"},
-  aqua  :{category:"special",n:"濁流",   t:"水",p:80, acc:100,en:35,fx:"spddown",pr:.20,d:"20%で相手の素早さ-1"},
-  tsunami:{category:"special",n:"大波",  t:"水",p:110,acc:80, en:45},
-  haze  :{category:"status",n:"白霧",   t:"水",p:0,  acc:null,en:20,fx:"haze",
+  squirt:{contact:false,category:"special",n:"水鉄砲", t:"水",p:40, acc:100,en:20,fx:"spddown",pr:.35,d:"35%で相手の素早さ-1"},
+  aqua  :{contact:false,category:"special",n:"濁流",   t:"水",p:80, acc:100,en:35,fx:"spddown",pr:.20,d:"20%で相手の素早さ-1"},
+  tsunami:{contact:false,category:"special",n:"大波",  t:"水",p:110,acc:80, en:45},
+  haze  :{contact:false,category:"status",n:"白霧",   t:"水",p:0,  acc:null,en:20,fx:"haze",
           d:"両者の能力ランクをすべて元に戻す"},
-  whirl :{category:"status",n:"渦潮",   t:"水",p:0,  acc:95, en:25,fx:"bind",d:"相手の素早さ-1。5ターンのあいだ相手は交代できない"},
+  whirl :{contact:false,category:"status",n:"渦潮",   t:"水",p:0,  acc:95, en:25,fx:"bind",d:"相手の素早さ-1。5ターンのあいだ相手は交代できない"},
 
-  vine  :{category:"physical",n:"蔦打ち", t:"草",p:45, acc:100,en:20,fx:"drain",dr:.30,d:"与ダメの30%を吸収"},
-  seed  :{category:"physical",n:"種爆弾", t:"草",p:80, acc:95, en:35},
-  leaf  :{category:"physical",n:"葉の刃", t:"草",p:110,acc:80, en:45},
-  photo :{category:"status",n:"光合成", t:"草",p:0,  acc:null,en:30,fx:"heal",d:"最大HPの35%回復"},
-  parasite:{category:"status",n:"寄生種",t:"草",p:0, acc:90, en:25,fx:"seedfx",own:true,d:"5ターンの間、相手の最大HPの1/10を毎ターン吸い取る。交代されると消える"},
+  vine  :{contact:true,category:"physical",n:"蔦打ち", t:"草",p:45, acc:100,en:20,fx:"drain",dr:.30,d:"与ダメの30%を吸収"},
+  seed  :{contact:false,category:"physical",n:"種爆弾", t:"草",p:80, acc:95, en:35},
+  leaf  :{contact:false,category:"physical",n:"葉の刃", t:"草",p:110,acc:80, en:45,d:"鋭い葉を飛ばして攻撃する"},
+  photo :{contact:false,category:"status",n:"光合成", t:"草",p:0,  acc:null,en:30,fx:"heal",d:"最大HPの35%回復"},
+  parasite:{contact:false,category:"status",n:"寄生種",t:"草",p:0, acc:90, en:25,fx:"seedfx",own:true,d:"5ターンの間、相手の最大HPの1/10を毎ターン吸い取る。交代されると消える"},
 
-  spark :{category:"special",n:"静電気", t:"雷",p:40, acc:100,en:20,fx:"para",pr:.25,d:"25%で麻痺"},
-  sand2 :{category:"status",n:"痺れ砂", t:"雷",p:0, acc:null,en:30,fx:"hzSand",
+  spark :{contact:false,category:"special",n:"静電気", t:"雷",p:40, acc:100,en:20,fx:"para",pr:.25,d:"25%で麻痺"},
+  sand2 :{contact:false,category:"status",n:"痺れ砂", t:"雷",p:0, acc:null,en:30,fx:"hzSand",
           d:"相手側に設置。交代で出てきた相手を50%で麻痺させる。天空・大地・雷電には効かない"},
-  bolt  :{category:"special",n:"雷撃",   t:"雷",p:85, acc:90, en:35,fx:"para",pr:.10,d:"10%で麻痺"},
-  thunder:{category:"special",n:"迅雷",  t:"雷",p:110,acc:75, en:45,fx:"para",pr:.20,d:"20%で麻痺"},
+  bolt  :{contact:false,category:"special",n:"雷撃",   t:"雷",p:85, acc:90, en:35,fx:"para",pr:.10,d:"10%で麻痺"},
+  thunder:{contact:false,category:"special",n:"迅雷",  t:"雷",p:110,acc:75, en:45,fx:"para",pr:.20,d:"20%で麻痺"},
 
-  spikes:{category:"status",n:"岩棘",   t:"岩",p:0, acc:null,en:30,fx:"hzRock",
+  spikes:{contact:false,category:"status",n:"岩棘",   t:"岩",p:0, acc:null,en:30,fx:"hzRock",
           d:"相手側に設置。交代で出てきた相手に最大HPの1/8×岩相性のダメージ"},
-  crushrock:{category:"physical",n:"粉砕岩",t:"岩",p:20,acc:100,en:30,fx:"multi",minHits:2,maxHits:5,
+  crushrock:{contact:false,category:"physical",n:"粉砕岩",t:"岩",p:20,acc:100,en:30,fx:"multi",minHits:2,maxHits:5,
           d:"威力20で2〜5回攻撃。2回35%・3回35%・4回15%・5回15%。身代わりが壊れた次の一撃から本体へ当たる"},
-  rock  :{category:"physical",n:"岩投げ", t:"岩",p:60, acc:100,en:20},
-  slide :{category:"physical",n:"岩雪崩", t:"岩",p:80, acc:90, en:35,fx:"flinch",pr:.20,d:"先手なら20%でひるみ"},
-  edge  :{category:"physical",n:"岩の刃", t:"岩",p:110,acc:75, en:45},
+  rock  :{contact:false,category:"physical",n:"岩投げ", t:"岩",p:60, acc:100,en:20},
+  slide :{contact:false,category:"physical",n:"岩雪崩", t:"岩",p:80, acc:90, en:35,fx:"flinch",pr:.20,d:"先手なら20%でひるみ"},
+  edge  :{contact:false,category:"physical",n:"岩の刃", t:"岩",p:110,acc:75, en:45},
 
-  gravel:{category:"physical",n:"砂礫",   t:"岩",p:45, acc:100,en:25,fx:"defdown",d:"相手の物理防御-1"},
-  quake :{category:"physical",n:"地響き", t:"地",p:80, acc:100,en:35},
-  rift  :{category:"physical",n:"大地割", t:"地",p:115,acc:85, en:45},
-  root  :{category:"status",n:"根を張る",t:"草",p:0, acc:null,en:25,fx:"rootup",d:"自分の物理防御+1、素早さ-1"},
+  gravel:{contact:false,category:"physical",n:"砂礫",   t:"岩",p:45, acc:100,en:25,fx:"defdown",d:"相手の物理防御-1"},
+  quake :{contact:false,category:"physical",n:"地響き", t:"地",p:80, acc:100,en:35},
+  rift  :{contact:false,category:"physical",n:"大地割", t:"地",p:115,acc:85, en:45},
+  root  :{contact:false,category:"status",n:"根を張る",t:"草",p:0, acc:null,en:25,fx:"rootup",d:"自分の物理防御+1、素早さ-1"},
 
-  gust  :{category:"special",n:"風切り", t:"空",p:45, acc:100,en:20,fx:"accdownfx",pr:.30,d:"30%で相手の命中-1"},
-  blast :{category:"special",n:"突風",   t:"空",p:80, acc:95, en:35,fx:"accdownfx",pr:.20,d:"20%で相手の命中-1"},
-  pivot :{category:"physical",n:"翻し",   t:"野",p:60, acc:100,en:30,fx:"pivot",
+  gust  :{contact:false,category:"special",n:"風切り", t:"空",p:45, acc:100,en:20,fx:"accdownfx",pr:.30,d:"30%で相手の命中-1"},
+  blast :{contact:false,category:"special",n:"突風",   t:"空",p:80, acc:95, en:35,fx:"accdownfx",pr:.20,d:"20%で相手の命中-1"},
+  pivot :{contact:true,category:"physical",n:"翻し",   t:"野",p:60, acc:100,en:30,fx:"pivot",
           d:"攻撃したあと控えと入れ替わる"},
-  sweep :{category:"status",n:"払い風", t:"空",p:0, acc:null,en:20,fx:"hzClear",
+  sweep :{contact:false,category:"status",n:"払い風", t:"空",p:0, acc:null,en:20,fx:"hzClear",
           d:"自分側に置かれた設置をすべて吹き飛ばす"},
-  dive  :{category:"physical",n:"翔撃",   t:"空",p:110,acc:85, en:45},
-  soar  :{category:"status",n:"舞い上がる",t:"空",p:0,acc:null,en:25,fx:"soar",d:"自分の回避+1"},
+  dive  :{contact:true,category:"physical",n:"翔撃",   t:"空",p:110,acc:85, en:45},
+  soar  :{contact:false,category:"status",n:"舞い上がる",t:"空",p:0,acc:null,en:25,fx:"soar",d:"自分の回避+1"},
 
-  reverseRoom:{category:"status",n:"アベコベルーム",t:"幻",p:0,acc:null,en:30,fx:"reverseRoom",
+  reverseRoom:{contact:false,category:"status",n:"アベコベルーム",t:"幻",p:0,acc:null,en:30,fx:"reverseRoom",
           d:"使用ターンを含む3ターン、双方の攻撃技の相性を反転。2倍→0.5倍、0.5倍→2倍、無効→4倍。再使用で残り3ターンに戻る"},
-  phantom:{category:"special",n:"幻痛",  t:"幻",p:45, acc:100,en:25,fx:"endrain",d:"相手の気力を15奪う"},
-  mirage:{category:"physical",n:"虚像斬", t:"幻",p:80, acc:95, en:35},
-  lunacy:{category:"special",n:"幻月",   t:"幻",p:110,acc:80, en:45},
-  swap  :{category:"status",n:"奇術",   t:"無",p:0,  acc:100,en:25,fx:"swapitem",
+  phantom:{contact:false,category:"special",n:"幻痛",  t:"幻",p:45, acc:100,en:25,fx:"endrain",d:"相手の気力を15奪う"},
+  mirage:{contact:false,category:"physical",n:"虚像斬", t:"幻",p:80, acc:95, en:35,d:"虚像に斬りつけさせる非接触の攻撃"},
+  lunacy:{contact:false,category:"special",n:"幻月",   t:"幻",p:110,acc:80, en:45},
+  swap  :{contact:false,category:"status",n:"奇術",   t:"無",p:0,  acc:100,en:25,fx:"swapitem",
           d:"自分と相手の持ち物を入れ替える。両者とも持っていなければ失敗"},
-  perish:{category:"status",n:"滅びの唄",t:"幻",p:0, acc:null,en:35,fx:"perish",
+  perish:{contact:false,category:"status",n:"滅びの唄",t:"幻",p:0, acc:null,en:35,fx:"perish",
           d:"使用ターン終了時にカウント3。その後のターン終了ごとに2→1→0となり、0で倒れる。交代すれば逃れられる"},
-  encore:{category:"status",n:"反響",   t:"幻",p:0,  acc:100,en:30,fx:"encore",
+  encore:{contact:false,category:"status",n:"反響",   t:"幻",p:0,  acc:100,en:30,fx:"encore",
           d:"相手は3ターン、直前に使った技しか出せない。技を使っていなければ失敗"},
-  disable:{category:"status",n:"封技",  t:"幻",p:0,  acc:100,en:25,fx:"disable",
+  disable:{contact:false,category:"status",n:"封技",  t:"幻",p:0,  acc:100,en:25,fx:"disable",
           d:"相手が直前に使った技を3ターン封じる。技を使っていなければ失敗"},
 
-  bond  :{category:"status",n:"道連れ", t:"幻",p:0,  acc:null,en:30,pri:3,fx:"bond",
+  bond  :{contact:false,category:"status",n:"道連れ", t:"幻",p:0,  acc:null,en:30,pri:3,fx:"bond",
           d:"このターン中に倒されたら、倒した相手も道連れにする"},
-  taunt :{category:"status",n:"挑発",   t:"無",p:0,  acc:100,en:25,fx:"taunt",
+  taunt :{contact:false,category:"status",n:"挑発",   t:"無",p:0,  acc:100,en:25,fx:"taunt",
           d:"相手は3ターン 変化技を使えなくなる"},
-  touch :{category:"physical",n:"影撫で", t:"影",p:45, acc:100,en:25,fx:"defdown",d:"相手の物理防御-1"},
-  devour:{category:"physical",n:"闇喰らい",t:"影",p:80, acc:100,en:35,fx:"drain",dr:.50,d:"与ダメの50%を吸収"},
-  night :{category:"special",n:"悪夢",   t:"幻",p:110,acc:80, en:45}
+  touch :{contact:false,category:"physical",n:"影撫で", t:"影",p:45, acc:100,en:25,fx:"defdown",d:"影を伸ばして攻撃。相手の物理防御-1"},
+  devour:{contact:true,category:"physical",n:"闇喰らい",t:"影",p:80, acc:100,en:35,fx:"drain",dr:.50,d:"闇をまとった牙で噛みつき、与ダメの50%を吸収"},
+  night :{contact:false,category:"special",n:"悪夢",   t:"幻",p:110,acc:80, en:45}
 };
 const MOVE_CATEGORY_LABEL = {physical:"物理", special:"特殊", status:"変化"};
 const isStatusMove = m => m.category === "status";
-const moveBadge = m => `<span class="category ${m.category}">${MOVE_CATEGORY_LABEL[m.category]}</span>`;
+const isContactMove = m => m.category==="physical"&&m.contact===true;
+const moveBadge = m => `<span class="category ${m.category}">${MOVE_CATEGORY_LABEL[m.category]}</span>${isStatusMove(m)?"":`<span class="contact-badge ${isContactMove(m)?"touch":"ranged"}">${isContactMove(m)?"接触":"非接触"}</span>`}`;
 /* Common learning is independent of damage type. These legacy basics stay available to all. */
 const COMMON_MOVES = ["meditate","barrier","tackle","guard","focus","sand","ambush","startle","sub","repose","revenge"];
 const MOVE_ORIGINS = {"barrier": "無", "sand": "無", "ambush": "無", "startle": "無", "gravel": "地", "root": "地", "pivot": "空", "swap": "幻", "taunt": "影", "bond": "影", "night": "影"};
@@ -846,8 +849,8 @@ const EQUIPS = {
   veil  :{n:"霊紗の幕",  d:"特殊防御 ×1.2 / 同じ技を連続で使えない", lock:true},
   robe  :{n:"結界衣",    d:"特殊防御 ×1.35 だが変化技を使えない", noStatus:true},
   belt  :{n:"気力帯",    d:"気力回復 +10/ターン"},
-  charm :{n:"護りの札",  d:"HP50%以上から倒されるとき、1回だけHP1で耐える"},
-  thorn :{n:"毒棘",      d:"被弾時、相手に最大HPの5%"},
+  charm :{n:"護りの札",  d:"HP満タンから倒されるとき、1回だけHP1で耐える"},
+  thorn :{n:"毒棘",      d:"接触技で本体が攻撃されたとき、相手に自分の最大HPの5%のダメージ"},
   berry :{n:"命の実",    d:"毎ターン 最大HPの5%回復"},
   ward  :{n:"破魔石",    d:"いまひとつ(0.5倍)を0.75倍に緩和"},
   bell  :{n:"癒しの鈴",  d:"場に出たとき、状態異常を1回だけ治す"},
@@ -5350,17 +5353,14 @@ async function doMove(u, target, key, canFlinch=true){
     playFx(u, target, m, "attack");
     await sleep(180);
   if(B!==battle || battle.over)return;
-    const dealtC = Math.min(d, Math.max(0, target.hp));
-    hurt(target, d);
+    const beforeC=Math.max(0,target.hp);
+    hurt(target,d);tryCharm(target);
+    const dealtC=beforeC-Math.max(0,target.hp);
     target.dmgTaken += dealtC;
     flash(target.side); popDmg(target.side, "-"+d, "#e9e5d8");
     say(`${nm(u)} は受けた ${taken} を ${d} にして返した！`);
     if(target.guarding) say(`${nm(target)} は守りに徹していた。`);
-    if(target.equip === "thorn" && target.hp > 0){
-      const t = Math.max(1, Math.floor(target.maxhp*.05));
-      hurt(u, t); flash(u.side); popDmg(u.side, "-"+t, "#b58cf0");
-      say(`毒棘が ${nm(u)} を刺した (-${t})`);
-    }
+    applyContactThorns(u,target,m);
     paint(); await sleep(560);
   if(B!==battle || battle.over)return; return;
   }
@@ -5414,10 +5414,7 @@ async function doMove(u, target, key, canFlinch=true){
         const recoil=Math.max(1,Math.floor(dealt/3));
         if(indirect(u,recoil,"反動")){flash(u.side);popDmg(u.side,"-"+recoil,"#ff9450");say(`${nm(u)} は反動を受けた (-${recoil})`);}
       }
-      if(!shielded && target.equip==="thorn" && target.hp>0){
-        const thorn=Math.max(1,Math.floor(target.maxhp*.05));
-        if(indirect(u,thorn,"毒棘")){flash(u.side);popDmg(u.side,"-"+thorn,"#b58cf0");say(`毒棘が ${nm(u)} を刺した (-${thorn})`);}
-      }
+      if(!shielded)applyContactThorns(u,target,m);
       // Only status ailments, rank drops, and new parasitic seeds are stopped by a shield.
       // A shield broken by this hit still blocks this hit's status/rank additions.
       if(!shielded){
@@ -5608,8 +5605,16 @@ async function doMove(u, target, key, canFlinch=true){
   }
 }
 
+function applyContactThorns(att,def,m){
+  if(!isContactMove(m)||def.equip!=="thorn"||def.dead||def.hp<=0||att.dead||att.hp<=0)return false;
+  const amount=Math.max(1,Math.floor(def.maxhp*.05));
+  if(!indirect(att,amount,"毒棘"))return false;
+  flash(att.side);popDmg(att.side,"-"+amount,"#b58cf0");say(`毒棘が ${nm(att)} を刺した (-${amount})`);
+  return true;
+}
+
 function tryCharm(u){
-  if(u.hp>0 || u.dead || u.equip!=="charm" || u.charmUsed || u.preHitHp<u.maxhp*.5) return false;
+  if(u.hp>0 || u.dead || u.equip!=="charm" || u.charmUsed || u.preHitHp!==u.maxhp) return false;
   u.charmUsed=true;u.hp=1;
   say(`<span class="good">護りの札が</span> ${nm(u)} <span class="good">を踏みとどまらせた！</span>`);
   return true;
@@ -5622,7 +5627,7 @@ async function markFaints(){
   if(B.over) return; // A multihit move may already have resolved the final knockout.
   for(const u of [YOU(), FOE()]){
     if(u.hp <= 0 && !u.dead){
-      // 護りの札は「HP50%以上から倒されたとき」だけ発動する。
+      // 護りの札は「HP満タンから倒されたとき」だけ発動する。
       // 条件を満たさなければ使用済みにはならず、次の機会に持ち越す。
       if(tryCharm(u)){
         paint(); await sleep(600);
@@ -5913,7 +5918,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "combat-tuning-v9";
+const BATTLE_RULES_VERSION = "contact-charm-v10";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});

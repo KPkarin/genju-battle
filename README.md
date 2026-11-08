@@ -20,6 +20,7 @@
 
 - [幻獣名の変更一覧](docs/monster-names.md)
 
+- [接触技と護りの札](docs/contact-charm.md)
 - [おまかせ編成のルール](docs/smart-builds.md)
 - [技と気力溜めの調整](docs/combat-tuning.md)
 - [技の属性の見直し](docs/move-types.md)
