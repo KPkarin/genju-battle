@@ -579,7 +579,7 @@ canvas.substitute-actor[hidden]{display:none!important}
   <section class="formation-section" aria-labelledby="formationHeading">
     <div class="squad-heading"><div><span class="section-kicker">TEAM</span><h2 id="formationHeading">チーム編成</h2><small id="formationState">幻獣 3体 ／ 技 各4つ</small></div><span id="partyCount" class="section-count">0 / 3</span></div>
     <div id="slots" class="party-dock"></div>
-    <div class="utility-actions"><button class="ghost" id="btnRand">↻ おまかせ編成</button><button class="ghost" id="btnClearDraft">編成をクリア</button><span class="draft-feedback" id="draftStatus">自動保存</span></div>
+    <div class="utility-actions"><button class="ghost" id="btnRand" title="持ち物に合わせて技と特性を選び、属性一致の攻撃技を必ず含めます">↻ おまかせ編成</button><button class="ghost" id="btnClearDraft">編成をクリア</button><span class="draft-feedback" id="draftStatus">自動保存</span></div>
     <p class="hint" id="buildHint"></p>
     <details class="coverage-panel"><summary>編成の相性を見る</summary><div id="coverage"></div></details>
   </section>
@@ -657,7 +657,8 @@ canvas.substitute-actor[hidden]{display:none!important}
     <p class="hint" id="lobbyStatus"></p>
   </div>
 </section>
-  <section id="resourceGuide"><p class="role-desc">3体の幻獣で対戦します。各幻獣には技を4つ、特性と装備を1つずつ設定します。ターンごとに技・気力回復・交代のいずれかを選びます。</p>  <p class="hint">「気を溜める」で気力を25回復します（集中は50）。選んだターンは、行動順にかかわらず攻撃から受けるダメージが1.2倍になります。</p>
+  <section id="resourceGuide"><p class="role-desc">3体の幻獣で対戦します。各幻獣には技を4つ、特性と装備を1つずつ設定します。ターンごとに技・気力回復・交代のいずれかを選びます。</p>  <p class="hint">おまかせ編成は持ち物に合わせて技と特性を選びます。技制限のない持ち物では攻撃2・変化2、制限のある持ち物では攻撃4で編成します。属性一致の攻撃技を必ず含みます。</p>
+  <p class="hint">「気を溜める」で気力を25回復します（集中は50）。選んだターンは、行動順にかかわらず攻撃から受けるダメージが1.2倍になります。</p>
   <details>
     <summary>物理・特殊と役割について</summary>
     <p class="hint">HP・物攻（物理攻撃）・物防（物理防御）・特攻（特殊攻撃）・特防（特殊防御）・素早さの6能力です。技の属性とは別に、各技に「物理」「特殊」「変化」の分類があります。</p>
@@ -3643,13 +3644,56 @@ function initTeamStorage(){
   };
 }
 
+function shuffleBuildChoices(values){
+  const out=values.slice();
+  for(let i=out.length-1;i>0;i--){const j=ri(i+1);[out[i],out[j]]=[out[j],out[i]];}
+  return out;
+}
+const ROLLED_SECONDARY_FX = ["para","burn","accdownfx","spddown","flinch"];
+function usefulBuildAbility(key,moves,equip){
+  const attacks=moves.map(k=>MOVES[k]).filter(m=>m.p>0);
+  if(EQUIPS[equip].mask&&!moves.some(k=>MOVES[k].fx==="swapitem"))return false;
+  if(key==="grit"||key==="spite")return attacks.some(m=>m.category==="physical");
+  if(key==="tempo")return attacks.some(m=>ROLLED_SECONDARY_FX.includes(m.fx)&&m.pr>0&&m.pr<1);
+  if(key==="glutton")return attacks.length>0;
+  return true;
+}
+function randomBuildRules(species,equip){
+  const item=EQUIPS[equip];if(!item)return null;
+  const pool=learnable(species);
+  const attackCount=item.noStatus||item.lock?4:2;
+  const attacks=pool.filter(k=>!isStatusMove(MOVES[k]))
+    .filter(k=>equip!=="fang"||(MOVES[k].category==="physical"&&MOVES[k].p>0))
+    .filter(k=>equip!=="orb"||(MOVES[k].category==="special"&&MOVES[k].p>0));
+  const stab=attacks.filter(k=>MOVES[k].p>0&&MOVES[k].t===species.t);
+  const statuses=pool.filter(k=>isStatusMove(MOVES[k]));
+  if(attacks.length<attackCount||!stab.length)return null;
+  if(attackCount===2&&statuses.filter(k=>!["atkup","spatkup"].includes(MOVES[k].fx)).length<2)return null;
+  if(item.mask&&!statuses.some(k=>MOVES[k].fx==="swapitem"))return null;
+  return {attacks,stab,statuses,attackCount};
+}
+function randomBuildForSpecies(species,chosenEquip=null){
+  // Item first. Exclude items that cannot support four legal moves and a STAB attack.
+  const equip=chosenEquip===null?pick(Object.keys(EQUIPS).filter(k=>k!=="none"&&randomBuildRules(species,k))):chosenEquip;
+  const rules=randomBuildRules(species,equip);
+  if(!rules)throw new Error("No compatible automatic build: "+species.id+" / "+equip);
+  const moves=[pick(rules.stab)];
+  moves.push(...shuffleBuildChoices(rules.attacks.filter(k=>!moves.includes(k))).slice(0,rules.attackCount-1));
+  const physical=moves.some(k=>MOVES[k].p>0&&MOVES[k].category==="physical");
+  const special=moves.some(k=>MOVES[k].p>0&&MOVES[k].category==="special");
+  if(rules.attackCount===2){
+    const statuses=rules.statuses.filter(k=>MOVES[k].fx!=="atkup"||physical)
+      .filter(k=>MOVES[k].fx!=="spatkup"||special);
+    if(EQUIPS[equip].mask)moves.push(statuses.find(k=>MOVES[k].fx==="swapitem"));
+    moves.push(...shuffleBuildChoices(statuses.filter(k=>!moves.includes(k))).slice(0,4-moves.length));
+  }
+  // Ability last, after the actual attacks and support moves have been chosen.
+  const abilities=ABIL_OF[species.id].filter(key=>usefulBuildAbility(key,moves,equip));
+  if(!abilities.length)throw new Error("No compatible automatic ability: "+species.id);
+  return {id:species.id,moves,equip,ability:pick(abilities)};
+}
 function randBuild(){
-  const ids = SPECIES.map(s=>s.id).sort(()=>rng()-.5).slice(0,3);
-  return ids.map(id=>{
-    const pool = learnable(spec(id)).slice().sort(()=>rng()-.5);
-    return {id, moves:pool.slice(0,4), equip:pick(Object.keys(EQUIPS).filter(k=>k!=="none")),
-            ability:pick(ABIL_OF[id])};
-  });
+  return shuffleBuildChoices(SPECIES).slice(0,3).map(species=>randomBuildForSpecies(species));
 }
 
 const $ = s => document.querySelector(s);
