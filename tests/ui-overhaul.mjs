@@ -116,7 +116,9 @@ assert.match(html,/aria-labelledby="modalTitle"/,'modal has an accessible title'
 for(const id of ['btnOpenSound','btnOpenGuide','btnOpenSaves','btnOpenLobby','btnModalClose','uiResources','modalBody'])assert.ok(html.includes('id="'+id+'"'),id+' is present');
 const w=world();
 assert.equal(w.run('typeof GameUI'),'object','UI controller is initialized');
-assert.equal(w.get('uiModal').hidden,true,'modal is closed on initial page load');
+assert.equal(w.run('GameUI.kind'),'news','unread latest update opens on initial load');
+w.click('btnNewsDone');
+assert.equal(w.get('uiModal').hidden,true,'latest update can be dismissed before ordinary controls');
 const draftBefore=w.storage.get('genju_battle_draft_v1');w.run('setSeed(84279)');
 for(const [button,resource]of [['btnOpenSound','resourceSound'],['btnOpenGuide','resourceGuide'],['btnOpenSaves','resourceSaves'],['btnOpenLobby','resourceLobby']]){
   const opener=w.get(button),panel=w.get(resource);assert.ok(panel,resource+' exists');
@@ -211,7 +213,7 @@ assert.equal(previewFrames.has(previewHandle),false,'closing the guide cancels i
 delete w.context.requestAnimationFrame;delete w.context.cancelAnimationFrame;
 assert.ok(/prefers-reduced-motion/.test(html),'motion preference remains supported');
 console.log('PASS explicit close, screen navigation cleanup, dialog tab containment, and reduced-motion support');
-const canceled=world(new Map(),{queuedTimers:true});
+const canceled=world(new Map(),{queuedTimers:true});canceled.click('btnNewsDone');
 canceled.run("beginBattle(randBuild(),randBuild(),123,'you');B.busy=true;YOU().baseSpd=220;FOE().baseSpd=1;globalThis.oldBattle=B;globalThis.oldTurn=takeTurn({kind:'move',key:'reverseRoom'},{kind:'move',key:null})");
 await canceled.advance(0); // Allow the initial async faint check to schedule the first move delay.
 await canceled.advance(5000); // Finish the paced announcement; cancel during the following status delay.
@@ -225,7 +227,7 @@ assert.equal(canceled.run('B.reverseTurns'),0,'an old delayed status animation c
 assert.equal(canceled.run('B.turn'),1,'an old turn cannot advance the new battle');
 assert.equal(canceled.run('_seed'),nextSeed,'a canceled turn cannot consume the new battle RNG');
 await canceled.run('oldTurn');
-const outcome=world(new Map(),{queuedTimers:true});outcome.click('btnStart');outcome.run("finish('you')");
+const outcome=world(new Map(),{queuedTimers:true});outcome.click('btnNewsDone');outcome.click('btnStart');outcome.run("finish('you')");
 outcome.click('btnLeaveBattle');outcome.click(outcome.get('modalBody').querySelector('button.primary'));outcome.click('btnStart');
 await outcome.advance(5000);
 assert.equal(outcome.get('scBattle').classList.contains('on'),true,'an old result timeout cannot replace a newly started battle');

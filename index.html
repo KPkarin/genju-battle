@@ -558,6 +558,8 @@ select,.pass{min-height:46px;border-radius:6px;background:#0a1721;border:1px sol
 canvas.substitute-actor[hidden]{display:none!important}
 .focus-risk{display:block;font-size:9px;font-weight:400;line-height:1.4;margin-top:2px;color:#c5d8c6}
 .contact-badge{display:inline-block;font:9px/1.4 var(--gothic);border:1px solid #506c75;border-radius:3px;padding:0 3px;color:#bbd0d3;white-space:nowrap}.contact-badge.touch{color:#eac699;border-color:#80634c}.battle-active .cmd .contact-badge{font-size:8px}
+
+.news-entry{border:1px solid #3f5962;border-radius:7px;background:#132a34;margin:0 0 12px;overflow:hidden}.news-heading{display:flex;align-items:center;flex-wrap:wrap;gap:7px 12px;padding:14px;color:#eddfbf;line-height:1.6}.news-heading time{font:11px var(--mono);color:#a5bec6}.news-heading strong{font-size:15px}.news-latest{font-size:10px;color:#edd19b;border:1px solid #88744e;border-radius:3px;padding:1px 5px}.news-items{padding:0 20px 14px 33px;margin:0;color:#c9d8d8;font-size:13px;line-height:1.9}.news-items li+li{margin-top:7px}.news-entry summary{cursor:pointer;list-style:revert}.news-entry summary::before{content:"▸";color:#b8a77b}.news-entry[open] summary::before{content:"▾"}.news-storage-note{font-size:10px;margin:14px 0 0}.news-footer{display:flex;justify-content:flex-end;gap:8px}.news-footer button{min-height:44px}.news-footer .primary{min-width:96px}
 </style>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -566,7 +568,7 @@ canvas.substitute-actor[hidden]{display:none!important}
 <header class="game-header">
   <div class="brand"><span class="brand-mark" aria-hidden="true">幻</span><div><h1>幻獣闘記</h1><span class="brand-kicker">GENJU TOUKI</span></div></div>
   <nav class="header-actions" aria-label="ゲームメニュー">
-    <button id="btnOpenSaves">◇ 編成の保存</button><button id="btnOpenGuide">？ 遊び方</button><button id="btnOpenSound"><span id="soundSummary">音 ON</span> ♫</button>
+    <button id="btnOpenNews">お知らせ</button><button id="btnOpenSaves">◇ 編成の保存</button><button id="btnOpenGuide">？ 遊び方</button><button id="btnOpenSound"><span id="soundSummary">音 ON</span> ♫</button>
   </nav>
 </header>
 <button id="audioNotice" class="audio-notice" hidden></button>
@@ -3834,14 +3836,42 @@ function renderChart(){
   $("#chartBox").innerHTML = h+"</table>";
 }
 
+/* Newest first. Add a new immutable ID and Japan-local release date for each update. */
+const UPDATE_NEWS = [{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UpdateNews = {
+  key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
+  load(){
+    for(const scope of ["localStorage","sessionStorage"]){
+      try{
+        const storage=scope==="localStorage"?localStorage:sessionStorage;
+        const ids=JSON.parse(storage.getItem(this.key)||"[]");
+        if(Array.isArray(ids))for(const id of ids)if(typeof id==="string")this.seen.add(id);
+      }catch(e){}
+    }
+  },
+  markLatest(){
+    if(!UPDATE_NEWS.length)return;
+    this.seen.delete(UPDATE_NEWS[0].id);this.seen.add(UPDATE_NEWS[0].id);
+    const value=JSON.stringify([...this.seen].slice(-64));
+    try{localStorage.setItem(this.key,value);}catch(e){}
+    try{sessionStorage.setItem(this.key,value);}catch(e){}
+  },
+  start(){
+    if(this.started)return;
+    this.started=true;this.load();
+    if(UPDATE_NEWS.length&&!this.seen.has(UPDATE_NEWS[0].id))GameUI.open("news",{latestOnly:true});
+  }
+};
+
 /* Interface state is cosmetic: no battle RNG, turn state, or saved battle data lives here. */
 const GameUI = {
   ready:false,kind:null,index:0,tab:"moves",speciesId:null,opener:null,resource:null,oldOverflow:"",
   resources:{sound:"resourceSound",guide:"resourceGuide",saves:"resourceSaves",lobby:"resourceLobby",team:"teamPanel"},
-  titles:{sound:"音の設定",guide:"幻獣闘記の手引き",saves:"編成の保存",lobby:"友だちと対戦",team:"戦況の詳細",monsters:"幻獣",unit:"幻獣の状態",battleMenu:"戦闘メニュー",battleLog:"バトルログ",editor:"幻獣の設定",inspect:"幻獣図鑑",leave:"対戦を終了しますか？"},
+  newsLatestOnly:false,
+  titles:{news:"お知らせ",sound:"音の設定",guide:"幻獣闘記の手引き",saves:"編成の保存",lobby:"友だちと対戦",team:"戦況の詳細",monsters:"幻獣",unit:"幻獣の状態",battleMenu:"戦闘メニュー",battleLog:"バトルログ",editor:"幻獣の設定",inspect:"幻獣図鑑",leave:"対戦を終了しますか？"},
   init(){
     this.ready=true;
-    for(const [id,kind] of [["btnOpenSound","sound"],["btnOpenGuide","guide"],["btnOpenSaves","saves"],["btnOpenLobby","lobby"],["btnBattleTeam","team"],["btnBattleGuide","guide"],["btnLeaveBattle","leave"],["btnBattleMonsters","monsters"],["battleQuickMenu","battleMenu"],["btnBattleLog","battleLog"]]){
+    for(const [id,kind] of [["btnOpenNews","news"],["btnOpenSound","sound"],["btnOpenGuide","guide"],["btnOpenSaves","saves"],["btnOpenLobby","lobby"],["btnBattleTeam","team"],["btnBattleGuide","guide"],["btnLeaveBattle","leave"],["btnBattleMonsters","monsters"],["battleQuickMenu","battleMenu"],["btnBattleLog","battleLog"]]){
       const button=document.getElementById(id);if(button)button.onclick=()=>this.open(kind);
     }
     const close=document.getElementById("btnModalClose");if(close)close.onclick=()=>this.close();
@@ -3875,6 +3905,8 @@ const GameUI = {
     if(!this.ready || !this.titles[kind])return;
     if(!this.kind){this.opener=document.activeElement;this.oldOverflow=document.body?.style?.overflow||"";}
     this.release();this.kind=kind;
+    if(kind==="news"&&options.latestOnly&&this.opener===document.body)this.opener=document.getElementById("btnOpenNews");
+    if(kind==="news")this.newsLatestOnly=!!options.latestOnly;
     if(kind==="monsters"&&!options.keepSelection){this.selectedBattleIndex=null;this.battleSelectionNote="";}
     if(Number.isInteger(options.index))this.index=options.index;
     if(options.tab)this.tab=options.tab;
@@ -3887,7 +3919,9 @@ const GameUI = {
       this.resource=document.getElementById(this.resources[kind]);
       if(this.resource){if(kind==="team")this.resource.open=true;body.appendChild(this.resource);}
     }
-    this.render();document.getElementById("btnModalClose")?.focus?.({preventScroll:true});
+    this.render();
+    if(kind==="news")UpdateNews.markLatest();
+    document.getElementById("btnModalClose")?.focus?.({preventScroll:true});
   },
   close(restore=true){
     if(!this.ready)return;
@@ -3940,13 +3974,30 @@ const GameUI = {
     this.battle();
     if(!this.kind)return;
     const title=document.getElementById("modalTitle");if(title)title.textContent=this.titles[this.kind];
-    if(this.kind==="editor")this.renderEditor();
+    if(this.kind==="news")this.renderNews();
+    else if(this.kind==="editor")this.renderEditor();
     else if(this.kind==="inspect")this.renderInspect();
     else if(this.kind==="leave")this.renderLeave();
     else if(this.kind==="monsters")this.renderBattleMonsters();
     else if(this.kind==="unit")this.renderBattleUnit();
     else if(this.kind==="battleMenu")this.renderBattleMenu();
     else if(this.kind==="battleLog")this.renderBattleLog();
+  },
+  renderNews(){
+    const body=document.getElementById("modalBody");body.innerHTML="";
+    const entries=this.newsLatestOnly?UPDATE_NEWS.slice(0,1):UPDATE_NEWS;
+    for(const [index,entry] of entries.entries()){
+      const card=el(this.newsLatestOnly?"article":"details","news-entry");
+      card.setAttribute?.("data-news-id",entry.id);
+      if(!this.newsLatestOnly)card.open=index===0;
+      const heading=el(this.newsLatestOnly?"div":"summary","news-heading",`<time datetime="${entry.date}">${entry.date.replaceAll("-",".")}</time><strong>${entry.title}</strong>${index===0?'<span class="news-latest">最新</span>':""}`);
+      card.appendChild(heading);
+      const list=el("ul","news-items");for(const text of entry.items)list.appendChild(el("li",null,text));card.appendChild(list);body.appendChild(card);
+    }
+    const footer=el("div","modal-footer news-footer");
+    if(this.newsLatestOnly){const history=el("button","ghost","更新履歴を見る");history.setAttribute?.("id","btnNewsHistory");history.onclick=()=>this.open("news");footer.appendChild(history);}
+    const done=el("button","primary","閉じる");done.setAttribute?.("id","btnNewsDone");done.onclick=()=>this.close();footer.appendChild(done);body.appendChild(footer);
+    body.appendChild(el("p","hint news-storage-note","既読はこのブラウザに保存されます。"));
   },
   renderInspect(){
     const species=spec(this.speciesId);if(!species)return;
@@ -4142,7 +4193,7 @@ const GameUI = {
   renderBattleMenu(){
     const body=document.getElementById("modalBody");body.innerHTML="";
     const grid=el("div","battle-menu");
-    for(const [kind,label] of [["sound","♫ 音の設定"],["guide","？ 相性・ルール"],["battleLog","バトルログを読む"],["leave","対戦を終了する"]]){const button=el("button","ghost",label);button.onclick=()=>this.open(kind);grid.appendChild(button);}body.appendChild(grid);
+    for(const [kind,label] of [["news","お知らせ"],["sound","♫ 音の設定"],["guide","？ 相性・ルール"],["battleLog","バトルログを読む"],["leave","対戦を終了する"]]){const button=el("button","ghost",label);button.onclick=()=>this.open(kind);grid.appendChild(button);}body.appendChild(grid);
   },
   renderBattleLog(){
     const body=document.getElementById("modalBody");body.innerHTML="";
@@ -6041,6 +6092,7 @@ initTeamStorage();
 renderAll();
 StatusPreview.init();
 BattleMusic.init();
+UpdateNews.start();
 </script>
 </body>
 </html>
