@@ -823,7 +823,7 @@ const MOVES = {
   disable:{contact:false,category:"status",n:"封技",  t:"幻",p:0,  acc:100,en:25,fx:"disable",
           d:"相手が直前に使った技を3ターン封じる。技を使っていなければ失敗"},
 
-  bond  :{contact:false,category:"status",n:"道連れ", t:"幻",p:0,  acc:null,en:30,pri:3,fx:"bond",
+  bond  :{contact:false,category:"status",n:"道連れ", t:"幻",p:0,  acc:null,en:30,pri:PRI.normal,fx:"bond",
           d:"このターン中に倒されたら、倒した相手も道連れにする"},
   taunt :{contact:false,category:"status",n:"挑発",   t:"無",p:0,  acc:100,en:25,fx:"taunt",
           d:"相手は3ターン 変化技を使えなくなる"},
@@ -836,6 +836,16 @@ const isStatusMove = m => m.category === "status";
 const isContactMove = m => m.category==="physical"&&m.contact===true;
 const moveBadge = m => `<span class="category ${m.category}">${MOVE_CATEGORY_LABEL[m.category]}</span>${isStatusMove(m)?"":`<span class="contact-badge ${isContactMove(m)?"touch":"ranged"}">${isContactMove(m)?"接触":"非接触"}</span>`}`;
 /* Common learning is independent of damage type. These legacy basics stay available to all. */
+// 通常の習得技一覧には含めない、強制行動の攻撃扱い。
+Object.defineProperty(MOVES,"desperate",{value:{n:"やけくそ",category:"physical",contact:false,p:0,en:0,pri:0}});
+function forcedAction(u, action){
+  if(u.restTurns>0)return {kind:"move",key:null};
+  if(u.encore){
+    const key=u.encore.key;
+    return {kind:"move",key:moveBlocked(u,key)||u.en<enCost(u,key)?"desperate":key};
+  }
+  return action;
+}
 const COMMON_MOVES = ["meditate","barrier","tackle","guard","focus","sand","ambush","startle","sub","repose","revenge"];
 const MOVE_ORIGINS = {"barrier": "無", "sand": "無", "ambush": "無", "startle": "無", "gravel": "地", "root": "地", "pivot": "空", "swap": "幻", "taunt": "影", "bond": "影", "night": "影"};
 const BY_TYPE = {};
@@ -3837,7 +3847,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
@@ -4556,6 +4566,15 @@ function renderTeams(){
 function renderCmd(){
   const y = MY(), f = OP(), box = $("#cmd");
   box.innerHTML = "";
+  if(y.restTurns>0){
+    box.appendChild(el("div","rest-command","反動で動けない…"));
+    const focus=$("#btnFocusEnergy");if(focus){focus.disabled=true;focus.textContent="反動で動けない";}
+    const monsters=$("#btnBattleMonsters");if(monsters)monsters.disabled=true;
+    if(!B.busy&&!B.over){const battle=B,turn=B.turn;Promise.resolve().then(()=>{
+      if(B===battle&&B.turn===turn&&!B.busy&&!B.over)void resolve({kind:"move",key:null});
+    });}
+    return;
+  }
   let anyMove = false;
   y.moves.forEach(k=>{
     const m = MOVES[k];
@@ -4589,7 +4608,7 @@ function renderCmd(){
 
   const focus=$("#btnFocusEnergy");
   if(focus){
-    focus.textContent=y.encore?(!anyMove?"行動できない":"反響中"):"気を溜める";
+    focus.textContent=y.encore?(!anyMove?"やけくそ":"反響中"):"気を溜める";
     if(!y.encore)focus.appendChild(el("small","focus-risk",`気力+${has(y,"focus2")?EN_FOCUS*2:EN_FOCUS} ／ 被ダメ1.2倍`));
     focus.disabled=B.busy||B.over||!!(y.encore&&anyMove);
     focus.setAttribute?.("title",y.encore?"反響中は気力を溜められません":`気力を${has(y,"focus2")?EN_FOCUS*2:EN_FOCUS}回復。このターン、攻撃から受けるダメージ1.2倍`);
@@ -4973,6 +4992,7 @@ function flash(side){
 /* ---- AI ---- */
 function aiChoose(){
   const f = FOE(), y = YOU();
+  if(f.restTurns>0)return {kind:"move",key:null};
   const usable = f.moves.filter(k => f.en >= enCost(f, k) && !moveBlocked(f, k));
   // 交代判断: 今の相手に2倍を取られていて、控えに有利な子がいる
   if(!isBound(f) && rng() < .35 && attackEff(y.type, f.type) > 1){
@@ -5077,6 +5097,7 @@ async function resolve(myAct){
   const battle=B;
   if(!battle || battle.over)return;
   if(B.over || B.busy) return;
+  myAct=forcedAction(MY(),myAct);
   lockCmd();
   let opAct;
   if(NET.on){
@@ -5096,8 +5117,8 @@ async function takeTurn(myAct, opAct){
   const battle=B;
   if(!battle || battle.over)return;
   // 内部処理は常にホスト視点(you)で行う
-  const playerAct = ME === "you" ? myAct : opAct;
-  const foeAct    = ME === "you" ? opAct : myAct;
+  const playerAct = forcedAction(YOU(),ME === "you" ? myAct : opAct);
+  const foeAct    = forcedAction(FOE(),ME === "you" ? opAct : myAct);
 
   // 1. 交代は先に処理
   if(playerAct.kind === "switch"){
@@ -5129,8 +5150,8 @@ async function takeTurn(myAct, opAct){
 
   // このターンの被ダメ記録と、選択した技の記録をリセット
   for(const u of [...B.you,...B.foe])u.focusExposed=false;
-  YOU().focusExposed=playerAct.kind==="move"&&playerAct.key===null;
-  FOE().focusExposed=foeAct.kind==="move"&&foeAct.key===null;
+  YOU().focusExposed=playerAct.kind==="move"&&playerAct.key===null&&YOU().restTurns===0;
+  FOE().focusExposed=foeAct.kind==="move"&&foeAct.key===null&&FOE().restTurns===0;
   YOU().dmgTaken = 0; FOE().dmgTaken = 0;
   YOU().actionCancelled = false; FOE().actionCancelled = false;
   YOU().plannedMove = playerAct.kind === "move" ? playerAct.key : null;
@@ -5293,7 +5314,7 @@ function statusEffectSnapshot(u,target){
 async function doMove(u, target, key, canFlinch=true){
   const battle=B;
   if(!battle || battle.over)return;
-  if(u.actionCancelled){
+  if(u.actionCancelled && u.restTurns===0){
     u.actionCancelled = false;
     say(`${nm(u)} は怯んで ${MOVES[key].n} を出せなかった！`);
     await sleep(500);
@@ -5309,6 +5330,14 @@ async function doMove(u, target, key, canFlinch=true){
   if(B!==battle || battle.over)return; return; }
   if(u.status === "麻痺" && rng() < PARA_FAIL){ StatusEffects.pulse(u,"麻痺"); say(`${nm(u)} は痺れて動けない！`); await sleep(500);
   if(B!==battle || battle.over)return; return; }
+  if(key==="desperate" || (u.encore && (moveBlocked(u,u.encore.key)||u.en<enCost(u,u.encore.key)))){
+    u.guardStreak=0;
+    const loss=Math.max(1,Math.floor(u.maxhp*.2));
+    u.hp=Math.max(0,u.hp-loss);
+    say(`${nm(u)} はやけくそになった！ 自分を傷つけた (-${loss})`);
+    flash(u.side);popDmg(u.side,"-"+loss,"#ff9450");
+    paint();await sleep(560);return;
+  }
   if(!key){
     u.guardStreak = 0;                       // 守る以外を挟んだ扱い。lastMove は保持する
     u.focusExposed=true;
@@ -5373,7 +5402,7 @@ async function doMove(u, target, key, canFlinch=true){
 
   if(m.fx === "ambush"){
     const t = target.plannedMove;
-    if(!t || isStatusMove(MOVES[t])){
+    if(target.restTurns>0 || !t || isStatusMove(MOVES[t])){
       say(`しかし ${nm(target)} は攻撃してこなかった。不意打ちは失敗した。`);
       await sleep(500);
   if(B!==battle || battle.over)return; return;
@@ -5382,7 +5411,7 @@ async function doMove(u, target, key, canFlinch=true){
   if(m.fx === "startle"){
     const t = target.plannedMove;
     if(t && MOVES[t].fx==="guard"){say("守るには おどかすが効かない！");await sleep(500);return;}
-    if(!t || !isStatusMove(MOVES[t])){
+    if(target.restTurns>0 || !t || !isStatusMove(MOVES[t])){
       say(`しかし ${nm(target)} は変化技を使わなかった。おどかすは失敗した。`);
       await sleep(500);
   if(B!==battle || battle.over)return; return;
@@ -5969,7 +5998,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "contact-charm-v10";
+const BATTLE_RULES_VERSION = "forced-action-v11";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});
