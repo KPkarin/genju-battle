@@ -27,7 +27,7 @@ const context = vm.createContext({
 vm.runInContext(source, context, {filename:'index.html', timeout:10_000});
 const sprites = JSON.parse(vm.runInContext('JSON.stringify(SPRITES)', context));
 const backSprites = JSON.parse(vm.runInContext('JSON.stringify(BACK_SPRITES)', context));
-assert.equal(Object.keys(sprites).length, 20);
+assert.equal(Object.keys(sprites).length, 21);
 assert.deepEqual(Object.keys(backSprites).sort(),Object.keys(sprites).sort(),'every species has a back sprite');
 
 function rgba(color) {
@@ -87,7 +87,7 @@ for(const id of Object.keys(sprites)) {
   assert.notDeepEqual(back,front,id+': back differs from front');
   assert.notDeepEqual(back,front.map(row=>[...row].reverse()),id+': back is not a mirrored front');
 }
-console.log('PASS 20 front/back pairs: native 32x32 detail, transparency, palettes, and exact drawing');
+console.log('PASS 21 front/back pairs: native 32x32 detail, transparency, palettes, and exact drawing');
 
 // Exercise real paint() through battle startup for both local/host and guest perspectives.
 context.drawCalls=[];

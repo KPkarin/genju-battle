@@ -591,7 +591,7 @@ canvas.substitute-actor[hidden]{display:none!important}
     <div class="roster-toolbar"><div class="tfbar" id="typeFilter" aria-label="属性で絞り込む"></div></div>
     <div class="mongrid" id="roster"></div>
   </section>
-  <div class="launchbar"><div class="launch-copy"><span class="section-kicker">BATTLE</span><strong>対戦モード</strong></div><div class="row"><button id="btnOpenLobby" class="ghost">友だちと対戦</button><button class="primary" id="btnStart" disabled>ひとりで対戦 <span aria-hidden="true">→</span></button></div></div>
+  <div class="launchbar"><div class="launch-copy"><span class="section-kicker">BATTLE</span><strong>対戦モード</strong></div><div class="row"><button id="btnOpenLobby" class="ghost">友だちと対戦</button><button id="btnChallenge" class="ghost">チャレンジ</button><button class="primary" id="btnStart" disabled>ひとりで対戦 <span aria-hidden="true">→</span></button></div></div>
 </section>
 <section id="scBattle" class="screen" aria-label="戦闘">
   <div class="battle-topbar"><div><span class="section-kicker">MOONLIT ARENA</span><h2>月下の闘技場 <small id="battleMode">コンピューター対戦</small></h2></div><div class="turn-badge"><span>TURN</span><b id="battleTurn">01</b></div></div>
@@ -719,10 +719,17 @@ const TYPES = ["炎", "水", "草", "雷", "岩", "影", "地", "空", "幻", "�
 const TYPE_NAMES = {"炎": "火炎", "水": "流水", "草": "草木", "雷": "雷電", "岩": "岩石", "影": "暗闇", "地": "大地", "空": "天空", "幻": "幽玄", "野": "野生", "無": "無属性"};
 const typeName = t => TYPE_NAMES[t] || t;
 const CHART = {"炎": {"炎": 0.5, "水": 0.5, "草": 2, "雷": 1, "岩": 0.5, "影": 2, "地": 0.5, "空": 1, "幻": 1, "野": 2, "無": 1}, "水": {"炎": 2, "水": 0.5, "草": 0.5, "雷": 0.5, "岩": 2, "影": 1, "地": 2, "空": 1, "幻": 1, "野": 0.5, "無": 1}, "草": {"炎": 0.5, "水": 2, "草": 0.5, "雷": 1, "岩": 2, "影": 0.5, "地": 2, "空": 0.5, "幻": 1, "野": 0.5, "無": 1}, "雷": {"炎": 1, "水": 2, "草": 0.5, "雷": 0.5, "岩": 0.5, "影": 1, "地": 0, "空": 2, "幻": 2, "野": 1, "無": 1}, "岩": {"炎": 2, "水": 0.5, "草": 0.5, "雷": 2, "岩": 1, "影": 1, "地": 0.5, "空": 2, "幻": 1, "野": 1, "無": 1}, "影": {"炎": 1, "水": 1, "草": 2, "雷": 1, "岩": 1, "影": 0.5, "地": 1, "空": 1, "幻": 1, "野": 0.5, "無": 2}, "地": {"炎": 2, "水": 0.5, "草": 0.5, "雷": 2, "岩": 2, "影": 1, "地": 1, "空": 0, "幻": 1, "野": 0.5, "無": 1}, "空": {"炎": 0.5, "水": 1, "草": 2, "雷": 1, "岩": 1, "影": 1, "地": 1, "空": 0.5, "幻": 1, "野": 2, "無": 1}, "幻": {"炎": 1, "水": 1, "草": 1, "雷": 1, "岩": 1, "影": 2, "地": 1, "空": 1, "幻": 0.5, "野": 1, "無": 0}, "野": {"炎": 1, "水": 1, "草": 2, "雷": 0.5, "岩": 0.5, "影": 2, "地": 1, "空": 0.5, "幻": 0.5, "野": 2, "無": 1}, "無": {"炎": 1, "水": 1, "草": 1, "雷": 1, "岩": 1, "影": 1, "地": 1, "空": 1, "幻": 0, "野": 1, "無": 1}};
-const eff = (a,d) => CHART[a][d];
+const unitTypes = u => Array.isArray(u)?u:typeof u==="string"?[u]:unitTypes(u.type);
+const hasType = (u,t) => unitTypes(u).includes(t);
+const eff = (a,d) => unitTypes(d).reduce((v,t)=>v*CHART[a][t],1);
 const inverseEff = value => value === 0 ? 4 : 1/value;
-function attackEff(a,d){
-  const normal=eff(a,d);
+function attackEff(a,d,att=null){
+  let normal=unitTypes(d).reduce((v,t)=>{
+    let n=CHART[a][t];
+    if(t==="野"&&d.wildAwakened)n*=n;
+    return v*n;
+  },1);
+  if(a==="野"&&att&&(att.wildAwakened||att.attackAwakened))normal*=normal;
   return B && B.reverseTurns>0 ? inverseEff(normal) : normal;
 }
 // One draw per multihit move, after its single accuracy check.
@@ -846,6 +853,11 @@ function forcedAction(u, action){
   }
   return action;
 }
+Object.defineProperties(MOVES,{
+ wildrock:{value:{key:"wildrock",contact:true,rush:true,category:"physical",n:"ワイルドロック",t:"岩",p:130,acc:90,en:50,fx:"recoil",recoil:.5,d:"与ダメージの半分の反動を受ける"}},
+ wildreturn:{value:{key:"wildreturn",contact:false,rush:false,category:"status",n:"野生回帰",t:"野",p:0,acc:null,en:35,fx:"wildreturn",d:"次の攻撃まで野生の相性を激化。次の野生技の威力1.5倍"}}
+});
+for(const [key,m] of Object.entries(MOVES))m.rush=["tackle","pivot","dive"].includes(key);
 const COMMON_MOVES = ["meditate","barrier","tackle","guard","focus","sand","ambush","startle","sub","repose","revenge"];
 const MOVE_ORIGINS = {"barrier": "無", "sand": "無", "ambush": "無", "startle": "無", "gravel": "地", "root": "地", "pivot": "空", "swap": "幻", "taunt": "影", "bond": "影", "night": "影"};
 const BY_TYPE = {};
@@ -874,6 +886,7 @@ const EQUIPS = {
    持ち物が「常時の数値補正」なのに対し、特性は
    状況・登場・交代・状態異常・確率 といったルール側に干渉する。 */
 const ABILITIES = {
+  rockhead:{n:"いしあたま",d:"突進技の威力が1.5倍になり、その技の反動ダメージを受けない"},
   pressure:{n:"威圧", d:"場に出たとき、相手の物理攻撃-1"},
   grit    :{n:"不屈", d:"HPが1/3以下のあいだ 物理攻撃1.5倍"},
   ballast :{n:"重心", d:"自分より速い相手からの被ダメ0.8倍"},
@@ -2819,6 +2832,8 @@ Object.assign(SPRITES,{"gako": {"pal": {"o": "#262b35", "s": "#734735", "b": "#b
 Object.assign(BACK_SPRITES,{"gako": {"pal": {"o": "#262b35", "s": "#734735", "b": "#bb773c", "l": "#e9ad60", "h": "#ffe0a0", "w": "#fff0cb", "n": "#171e28", "e": "#9cd8c2", "d": "#8d5a36", "g": "#ba593d"}, "px": ["................................", "................................", "................................", "...........o...........o........", "..........bbb....o....bbb.......", ".........ossbolllllllossbo......", ".........osollllsssllllobo......", "........ooollllllllbllllooo.....", ".........lllllllssllbbbllo......", "........olllllllllllbbbbblo.....", "........lssslllllllllbsssso.....", "......o.ollllllsssllbbbbbbo.....", "....ooloollllsssssssbbbbbboo....", "...oooloollllllsssbbbbbbbbb.....", "..ooloooollllblsssbbbbbbbbo.....", "...oooo.oolllbsssssbbbbbbbo.....", "..olo....oollbbsssbbbbbbbb......", ".ooloo...ossslbbbbbbbbsss.......", "..ooo....olooollbbbbbbbobo......", "..ooo...oollloooossboobbbbo.....", ".ooloo..oolssslllssbbbobbbo.....", "..oooo.ooolssslllssobbsssooo....", "..ooloo.oolssslllssbbbbbbbo.....", "...ooo..oolssslllssssbbbbbo.....", "....o....olllllllssbbbbbssoo....", ".........oolllllooobbbbbbbo.....", "..........ohhhhhoooobohhhhho....", "..........ohshhsoo.ooohshhso....", "..........ooooooo....ooooooo....", "................................", "................................", "................................"]}, "arakuma": {"pal": {"o": "#262b35", "s": "#483c37", "b": "#796044", "l": "#ab875c", "h": "#dac397", "w": "#fff0cb", "n": "#171e28", "e": "#9cd8c2", "d": "#8d5a36", "g": "#625345"}, "px": ["................................", "................................", "................................", "................................", "..........o......o.....o........", "........olllooblbbbbbolllo......", ".......ollslllllllllbbbollo.....", ".......olslllllllllllbbbolo.....", "......ooslllllllllllllbbbooo....", ".......oollllllllbbbllbbbbo.....", ".......olllllbbllbbblllbsbo.....", "........ollllbbllbbbllbssso.....", ".......oollllbbllbbbllbsssoo....", "........oblllllllllllbbssso.....", "........obblllllllllbbsssss.....", "........oobbbbblbbbbbbbssso.....", ".......o.oobbbbbbbbbbbbssso.....", ".....osssoolllllllllllllsssso...", ".....sssssblllllllllllllsssss...", "....osssssobbodddddddobossssso..", "....osssssobbbbbbobbbbbossssso..", "....osssssobbbbbbbssbbbossssso..", "...oosssssoobbbbbbssbboosssssoo.", "....osssssobbbbbbbssbboossssso..", "....osssssobbbbbbbssbolossssso..", "....owswssobbbbbbbbboolooswswo..", ".....wswobbbbbbobbbboooobbwow...", ".....oooobbbbbbobbbbobobbbboo...", ".......oobsbsbboooooobsbsbbo....", "........oooooooo.o..oooooooo....", "................................", "................................"]}});
 
 /* ================= monsters ================= */
+SPRITES.kefarock={"pal":{"o":"#181a29","b":"#4c435b","s":"#302b40","l":"#8a7994","r":"#b84458","h":"#e7d9ae","d":"#a99b7e","w":"#fff0cf","e":"#ffcf69","g":"#687e72"},"px":["................................",".................ro.ro..........","...............roro.ro..........","...............rorohro..........",".............rorooohoohdd.......",".............rooowwwwhhhddo.....",".............rowwwwwwwhhhldo....","............roowwwwwwwwhhlddo...","............rohwwwwwwwhhhlddo...","............rohhwwwwwhhhhdddd...","...........ooohhhhwhhhhhhdddoo..","............odddddhhhhhoeoddo...","............ooddhhhhhhhoooddoo..","............oooddddhdddodddddo..",".............ooodddddddodddddo..",".............ooooooodoooowwwoo..","...........ohsssoooooooooh......","..........hoosssodddodddooho....",".........obbbossoodddddoobbo....",".........obbborrlooodooobbboo...","........oobbborrlgggoggobbbo....",".........obbborrlggggggooohhh...",".....ggggobbborrlggggggggohhh...","..ggggggggddddrrlggggggggso.....","..ooooooooddddrrlggggggggso.....","...........ossrrlgggggggso......","...........oosrrlsgggggsoo......","............oossssssgssooo......","...........oddoooosoooohhhho....","...........oddddddo.ohhhhhho....","...........oooooooo.oooooooo....","................................"]};
+BACK_SPRITES.kefarock={"pal":{"o":"#181a29","b":"#4c435b","s":"#302b40","l":"#8a7994","r":"#b84458","h":"#e7d9ae","d":"#a99b7e","w":"#fff0cf","e":"#ffcf69","g":"#687e72"},"px":["................................",".................ro.ro..........","...............roro.ro..........","...............rorohro..........",".............rorooohoohdd.......",".............rooowwwwhhhddo.....",".............rowwwwwwwhhhldo....","............roowwwwwwwwhhlddo...","............rohwwwwwwwhhhlddo...","............rohhwwwwwhhhhdddd...","...........ooohhhhwhhhhhhdddoo..","............odddddhddhhhddddo...","............ooddhhhddhhddddoo...","............ooodddgddgddddooo...",".............oooddggggdddooo....",".............oooooggggooooo.....","...........ohsssooggggoooh......","..........hoosssodddodddooho....",".........obbbossoodddddoobbo....",".........obbborrlooodooobbboo...","........oobbborrlgggoggobbbo....",".........obbborrlggggggooohhh...",".....ggggobbborrlggggggggohhh...","..ggggggggddddrrlggggggggso.....","..ooooooooddddrrlggggggggso.....","...........ossrrlgggggggso......","...........oosrrlsgggggsoo......","............oossssssgssooo......","...........oddoooosoooohhhho....","...........oddddddo.ohhhhhho....","...........oooooooo.oooooooo....","................................"]};
 const SPECIES = [
   {"id":"homura","n":"ワホームラ","t":"炎","hp":120,"atk":105,"spatk":85,"def":70,"spdef":70,"spd":95,"aff":"岩","role":"物理アタッカー","roleDesc":"炎牙と岩技で攻める。不屈と気合いで物理火力を伸ばす。"},
   {"id":"shiogame","n":"ミズカガメ","t":"水","hp":160,"atk":65,"spatk":75,"def":115,"spdef":95,"spd":45,"aff":"岩","role":"物理受け","roleDesc":"高いHPと物理防御で受け、白霧や渦潮で相手の攻めを抑える。"},
@@ -2854,7 +2869,9 @@ const ABIL_OF = {
   fuen:["blur","regen","stoic"],         ungei:["pressure","heavy"],
   mubaku:["mirror","glutton"],   oborogi:["blur","tempo"]
 };
-const spec = id => SPECIES.find(s => s.id === id);
+const KEFAROCK = {id:"kefarock",n:"ケファロック",t:["岩","野"],hp:230,atk:140,def:135,spatk:50,spdef:85,spd:50,aff:"野",role:"チャレンジボス"};
+ABIL_OF.kefarock=["rockhead"];
+const spec = id => id==="kefarock"?KEFAROCK:SPECIES.find(s => s.id === id);
 
 /* ステータスバーの正規化。実際の最小〜最大を 18%〜100% に伸ばして差を見せる */
 const STAT_RANGE = ["hp","atk","def","spatk","spdef","spd"].reduce((o,k)=>{
@@ -2902,6 +2919,7 @@ const IDLE_PROFILES = {
   "mubaku":{"period":3000,"front":{"bodyY":18,"footY":27,"appendages":[{"part":"trunk-tip","rect":[5,18,12,23],"delta":[0,1]}]},"back":{"bodyY":17,"footY":27,"appendages":[{"part":"short-tail-tip","rect":[6,23,11,27],"delta":[1,0]}]}},
   "oborogi":{"period":2400,"front":{"bodyY":18,"footY":27,"appendages":[{"part":"spirit-tail-plume","rect":[2,12,9,24],"delta":[1,0]}]},"back":{"bodyY":17,"footY":27,"appendages":[{"part":"spirit-tail-plume","rect":[2,13,10,26],"delta":[1,0]}]}},
 };
+IDLE_PROFILES.kefarock={period:1900,front:{bodyY:15,footY:28,appendages:[]},back:{bodyY:15,footY:28,appendages:[]}};
 const idleFrameCache = new Map();
 function getIdleFrame(id, view="front", phase=0){
   const base = (view === "back" ? BACK_SPRITES : SPRITES)[id];
@@ -3715,7 +3733,7 @@ const $ = s => document.querySelector(s);
 const el = (t,c,h) => { const e=document.createElement(t); if(c)e.className=c; if(h!=null)e.innerHTML=h; return e; };
 const TYPE_SYMBOLS = {"炎": "<path fill=\"#8d3838\" stroke=\"#ffae74\" stroke-width=\"1\" d=\"M12 1c2 4 7 5 8 11 1 7-4 10-8 11-5-1-9-5-8-10 .3-3 2-5 3-7 0 3 1 4 2 5 2-3 4-5 3-10z\"/><path fill=\"#f47b46\" d=\"M13 6c1 4 5 5 5 9 0 4-3 6-6 7-4-2-6-4-6-7 0-2 1-3 2-5 0 3 2 4 3 4 0-3 2-5 2-8z\"/><path fill=\"#ffe0a0\" d=\"M12 13c-1 3-3 4-2 6l2 3c3-1 4-3 3-5-1-2-2-2-3-4z\"/>", "水": "<path fill=\"#164b74\" stroke=\"#71d5ff\" stroke-width=\"1.3\" d=\"M12 2c-1.8 3.9-7 8-7 12a7 7 0 0 0 14 0c0-4-5.2-8.1-7-12z\"/><path fill=\"none\" stroke=\"#b3eeff\" stroke-width=\"1.5\" stroke-linecap=\"round\" d=\"M7.5 14c2-2 3 2 5 0s3-1 4 0M8 17c2-2 3 2 5 0s2-1 3 0\"/>", "草": "<path fill=\"#204c42\" stroke=\"#84d697\" stroke-width=\"1\" d=\"M11 12C3 13 1 7 2 2c7-1 12 2 10 9C11 3 18 2 22 4c1 7-3 12-10 11z\"/><path fill=\"#63bb7b\" d=\"M3 3c5 0 8 3 8 8C6 11 3 8 3 3zm18 2c-5 0-8 3-8 8 5 0 8-3 8-8z\"/><path fill=\"none\" stroke=\"#c5edab\" stroke-width=\"1.3\" stroke-linecap=\"round\" d=\"m5 5 7 8 6-6m-6 6v8\"/><path fill=\"#45794e\" stroke=\"#a8da93\" d=\"m7 22 5-3 5 3z\"/>", "無": "<circle cx=\"12\" cy=\"12\" r=\"9.5\" fill=\"#263346\" stroke=\"#bacbdf\" stroke-width=\"1\"/><path fill=\"#d8e4f0\" stroke=\"#8396ad\" d=\"m12 3 3 6 6 3-6 3-3 6-3-6-6-3 6-3z\"/><path fill=\"#526681\" d=\"m12 7 5 5-5 5-5-5z\"/><path fill=\"#f2f8ff\" d=\"m12 9 3 3-3 3-3-3z\"/>", "雷": "<path fill=\"#d39220\" stroke=\"#ffe77b\" stroke-width=\"1.5\" d=\"M18 1 3 13h8l-5 10L22 10h-9z\"/><path fill=\"#fff1a2\" d=\"m18 3-8 9h4l-5 7 11-8h-6z\"/>", "岩": "<path fill=\"#526781\" stroke=\"#b5d5ef\" stroke-width=\"1.2\" stroke-linejoin=\"round\" d=\"m8 2 5-1 5 4 2 10-7 3-8-5zM2 15l5-3 6 5-3 6H2l-1-4zm12 3 5-5 4 4-1 6h-9z\"/><path fill=\"#96b3d2\" d=\"m9 4 5-1 2 3-8 5zm-6 12 4-2 3 3-7 2zm13 2 3-3 2 2-5 3z\"/>", "地": "<path fill=\"#ac6137\" stroke=\"#ffd18d\" stroke-width=\"1.3\" stroke-linejoin=\"round\" d=\"M1 22 5 9l4-1 2-5h4l-1 4 3 3-2 4 3-3-2-4 3 1 4 14z\"/><path fill=\"#ce8745\" d=\"m5 10 5-1 3 4-3 3-7 2zm12 4 3-3 2 6-6-2z\"/><path fill=\"#823e32\" d=\"m3 18 7-2 6 2 6-1 1 4H2z\"/>", "空": "<path fill=\"#25818d\" stroke=\"#a2f3f4\" stroke-width=\"1.3\" stroke-linejoin=\"round\" d=\"M2 10c7-8 11 2 17-2 4-3 0-8-3-5-2 2 2 4 3 2 0 4-5 3-5 0 0-6 10-5 9 1-1 9-13-2-21 4zM1 16c7-6 14 4 22-4-4 10-15 0-22 4zM5 20c6-4 9 5 14 1-1 5-5 2-7 1-3-2-5-2-7-2z\"/>", "影": "<circle cx=\"12\" cy=\"12\" r=\"10\" fill=\"#151c33\" stroke=\"#c5a0ec\" stroke-width=\"1.3\"/><path fill=\"#594382\" d=\"M20 6C21 17 9 22 4 18c8 9 22 0 16-12z\"/>", "幻": "<path fill=\"#7850a4\" stroke=\"#cfacf1\" stroke-width=\"1.1\" d=\"M12 1c8 2 8 7 4 11 2 0 4-2 4-3 5 9-4 9-7 13-1 1-1 2 0 2-7-1-6-6-3-9-8 3-11-5-5-9-2 4 2 6 4 2 3-4 6-4 3-7z\"/><path fill=\"#a783cf\" d=\"M13 3c6 6-10 9-4 15-1-6 13-8 4-15z\"/><path fill=\"#eed4ff\" d=\"m12 9 3 4-3 4-3-4z\"/>", "野": "<g fill=\"#ad5238\" stroke=\"#ffc497\" stroke-width=\"1.2\"><path d=\"M6 14c-6 2-5-5-2-9 0 3 5 6 2 9zM12 10c-6 0-2-7 1-9-1 4 5 8-1 9zM20 14c-5 0-3-6 1-9-1 4 5 8-1 9zM12 13c4 0 5 3 8 6 3 5-5 4-8 3-3 1-11 2-8-3 3-3 4-6 8-6z\"/></g><path fill=\"#e08a5f\" d=\"M6 19c2-4 6-6 8-3 1 2-6 2-8 3z\"/>"};
 const typeIcon = t => `<svg class="type-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${TYPE_SYMBOLS[t]||""}</svg>`;
-const chip = t => `<span class="t t-${t}" title="${typeName(t)}">${typeIcon(t)}${typeName(t)}</span>`;
+const chip = t => Array.isArray(t)?t.map(chip).join(""):`<span class="t t-${t}" title="${typeName(t)}">${typeIcon(t)}${typeName(t)}</span>`;
 
 let rosterFilter = "all";
 
@@ -3847,7 +3865,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
@@ -3878,7 +3896,7 @@ const GameUI = {
   ready:false,kind:null,index:0,tab:"moves",speciesId:null,opener:null,resource:null,oldOverflow:"",
   resources:{sound:"resourceSound",guide:"resourceGuide",saves:"resourceSaves",lobby:"resourceLobby",team:"teamPanel"},
   newsLatestOnly:false,
-  titles:{news:"お知らせ",sound:"音の設定",guide:"幻獣闘記の手引き",saves:"編成の保存",lobby:"友だちと対戦",team:"戦況の詳細",monsters:"幻獣",unit:"幻獣の状態",battleMenu:"戦闘メニュー",battleLog:"バトルログ",editor:"幻獣の設定",inspect:"幻獣図鑑",leave:"対戦を終了しますか？"},
+  titles:{challenge:"チャレンジ：轟頭のケファロック",news:"お知らせ",sound:"音の設定",guide:"幻獣闘記の手引き",saves:"編成の保存",lobby:"友だちと対戦",team:"戦況の詳細",monsters:"幻獣",unit:"幻獣の状態",battleMenu:"戦闘メニュー",battleLog:"バトルログ",editor:"幻獣の設定",inspect:"幻獣図鑑",leave:"対戦を終了しますか？"},
   init(){
     this.ready=true;
     for(const [id,kind] of [["btnOpenNews","news"],["btnOpenSound","sound"],["btnOpenGuide","guide"],["btnOpenSaves","saves"],["btnOpenLobby","lobby"],["btnBattleTeam","team"],["btnBattleGuide","guide"],["btnLeaveBattle","leave"],["btnBattleMonsters","monsters"],["battleQuickMenu","battleMenu"],["btnBattleLog","battleLog"]]){
@@ -3984,7 +4002,8 @@ const GameUI = {
     this.battle();
     if(!this.kind)return;
     const title=document.getElementById("modalTitle");if(title)title.textContent=this.titles[this.kind];
-    if(this.kind==="news")this.renderNews();
+    if(this.kind==="challenge")this.renderChallenge();
+    else if(this.kind==="news")this.renderNews();
     else if(this.kind==="editor")this.renderEditor();
     else if(this.kind==="inspect")this.renderInspect();
     else if(this.kind==="leave")this.renderLeave();
@@ -3992,6 +4011,18 @@ const GameUI = {
     else if(this.kind==="unit")this.renderBattleUnit();
     else if(this.kind==="battleMenu")this.renderBattleMenu();
     else if(this.kind==="battleLog")this.renderBattleLog();
+  },
+  renderChallenge(){
+    const body=document.getElementById("modalBody");body.innerHTML="";
+    body.appendChild(el("div","unit-detail-hero",'<canvas id="bossPreview" width="32" height="32" style="width:160px;height:160px;image-rendering:pixelated"></canvas><div><h2>ケファロック</h2>'+chip(KEFAROCK.t)+'<p>分厚い石の頭蓋を打ち鳴らす、荒野のヘッドバンガー。</p></div>'));
+    drawSprite(document.getElementById("bossPreview"),"kefarock");
+    body.appendChild(el("p","hint","3体で挑むボス戦。弱点は天空。勝利報酬はありません。"));
+    body.appendChild(el("div","statbox",this.stats(KEFAROCK)));
+    body.appendChild(el("p","hint","特性：いしあたま — 突進技の威力1.5倍・突進技の反動なし。"));
+    for(const key of ["wildrock","wildreturn","wildfang","tackle"]){const m=MOVES[key];body.appendChild(el("div","card",`<b>${chip(m.t)} ${m.n}</b><p>${m.p?"威力 "+m.p+"　":""}命中 ${m.acc||"—"}　気力 ${m.en}</p><p>${m.d||""}</p>`));}
+    body.appendChild(el("p","hint","野生回帰：野生の攻撃相性と、受ける際の野生側の相性を2倍→4倍・半減→¼倍にします。次の攻撃を試みると解除され、野生技なら威力も1.5倍になります。"));
+    const go=el("button","primary","挑戦する");go.disabled=party.length!==3||party.some(u=>u.moves.length!==4);go.onclick=()=>{void BattleMusic.unlock();startChallenge();};body.appendChild(go);
+    if(go.disabled)body.appendChild(el("p","hint","幻獣3体に、それぞれ技を4つ設定してください。"));
   },
   renderNews(){
     const body=document.getElementById("modalBody");body.innerHTML="";
@@ -4187,7 +4218,7 @@ const GameUI = {
     const facts=el("div","unit-detail-facts");
     facts.appendChild(el("div",null,`<strong>特性：${ABILITIES[unit.ability].n}${abilOff(unit)?"（無効）":""}</strong><small>${ABILITIES[unit.ability].d}</small>`));
     facts.appendChild(el("div",null,`<strong>持ち物：${EQUIPS[unit.equip].n}</strong><small>${EQUIPS[unit.equip].d}</small>`));
-    const conditions=[unit.dead?"戦闘不能":unit.status||"状態異常なし",unit.pendingStatus?`${unit.pendingStatus.status}の発症予約（次のターン終了時）`:"",unit.perish?`滅びの唄：あと${unit.perish}`:"",unit.seedTurns?`寄生：あと${unit.seedTurns}ターン`:"",isBound(unit)?`拘束：あと${unit.bindTurns}ターン`:"",unit.sub?`身代わり：耐久${unit.sub}`:"",unit.encore?`反響：${MOVES[unit.encore.key].n}／あと${unit.encore.turns}ターン`:"",unit.disabled?`封技：${MOVES[unit.disabled.key].n}／あと${unit.disabled.turns}ターン`:"",unit.tauntTurns?`挑発：あと${unit.tauntTurns}ターン`:""].filter(Boolean);
+    const conditions=[unit.dead?"戦闘不能":unit.status||"状態異常なし",unit.wildAwakened?"野生に目覚めている!!":"",unit.pendingStatus?`${unit.pendingStatus.status}の発症予約（次のターン終了時）`:"",unit.perish?`滅びの唄：あと${unit.perish}`:"",unit.seedTurns?`寄生：あと${unit.seedTurns}ターン`:"",isBound(unit)?`拘束：あと${unit.bindTurns}ターン`:"",unit.sub?`身代わり：耐久${unit.sub}`:"",unit.encore?`反響：${MOVES[unit.encore.key].n}／あと${unit.encore.turns}ターン`:"",unit.disabled?`封技：${MOVES[unit.disabled.key].n}／あと${unit.disabled.turns}ターン`:"",unit.tauntTurns?`挑発：あと${unit.tauntTurns}ターン`:""].filter(Boolean);
     facts.appendChild(el("div",null,`<strong>現在の状態</strong><small>${conditions.join("<br>")}</small>`));
     const hazards=B.hazard?.[unit.side]||{},names=Object.keys(hazards).filter(key=>hazards[key]).map(key=>HAZARD_NAME[key]);
     facts.appendChild(el("div",null,`<strong>この陣営の足元</strong><small>${names.length?names.join("・"):"設置なし"}</small>`));body.appendChild(facts);
@@ -4280,7 +4311,7 @@ function makeUnit(b, side){
   const s = spec(b.id);
   const eq = b.equip;
   return {
-    side, sp:s, id:b.id, name:s.n, type:s.t, equip:eq,
+    side, sp:s, id:b.id, name:s.n, type:s.t, wildAwakened:false, attackAwakened:false, equip:eq,
     ability: b.ability || ABIL_OF[b.id][0],
     maxhp:s.hp, hp:s.hp, en:100, maxen:100,
     baseAtk:s.atk, baseDef:s.def, baseSpAtk:s.spatk, baseSpDef:s.spdef, baseSpd:s.spd,
@@ -4337,6 +4368,7 @@ function leaveField(u){
   u.rank = {atk:0, def:0, spatk:0, spdef:0, acc:0, spd:0, eva:0};
   u.seedTurns = 0;        // 寄生はランク変化と同じく場を離れると消える
   u.guarding = false;
+  u.wildAwakened=false;u.attackAwakened=false;
   u.focusExposed = false;
   u.flinch = false;
   u.guardStreak = 0;
@@ -4409,7 +4441,16 @@ function beginBattle(youTeam, foeTeam, seed, meSide){
   paint(true); renderCmd();
 }
 
+let challengeMode=false;
+function startChallenge(){
+  if(party.length!==3||party.some(u=>u.moves.length!==4))return;
+  GameUI.close();NET.on=false;challengeMode=true;
+  foeParty=[{id:"kefarock",moves:["wildrock","wildreturn","wildfang","tackle"],equip:"none",ability:"rockhead"}];
+  beginBattle(party,foeParty,(Date.now()^0x9e3779b9)>>>0,"you");
+  say('<span class="sys">── チャレンジ：轟頭のケファロック ──</span>');
+}
 function startBattle(){
+  challengeMode=false;
   NET.on = false;
   foeParty = randBuild();
   beginBattle(party, foeParty, (Date.now() ^ 0x9e3779b9) >>> 0, "you");
@@ -4578,11 +4619,11 @@ function renderCmd(){
   let anyMove = false;
   y.moves.forEach(k=>{
     const m = MOVES[k];
-    const e = m.p>0 ? attackEff(m.t, f.type) : 1;
+    const e = m.p>0 ? attackEff(m.t, f,y) : 1;
     const pr = m.pri || 0;
     const prTag = pr > 0 ? `<span class="eff pri">先制+${pr}</span>`
                 : pr < 0 ? `<span class="eff late">後攻${pr}</span>` : "";
-    const stab = m.p>0 && m.t === y.type && e>0 ? '<span class="eff st">一致</span>' : "";
+    const stab = m.p>0 && hasType(y,m.t) && e>0 ? '<span class="eff st">一致</span>' : "";
     const tag = prTag + stab + (
                 isStatusMove(m) && fxNullified(m, f) ? '<span class="eff no">効果なし</span>'
               : m.p>0 && e===0 ? '<span class="eff no">効果なし</span>'
@@ -4621,12 +4662,13 @@ function lockCmd(){ B.busy=true; renderCmd(); }
 
 /* ---- damage ---- */
 function damage(att, def, m){
-  let base = Math.floor(Math.floor(22 * m.p * moveAttack(att,m) / moveDefense(def,m)) / 55) + 2;
-  let e = attackEff(m.t, def.type);
+  const power=m.p*(m.rush&&has(att,"rockhead")?1.5:1)*(m.t==="野"&&(att.wildAwakened||att.attackAwakened)?1.5:1);
+  let base = Math.floor(Math.floor(22 * power * moveAttack(att,m) / moveDefense(def,m)) / 55) + 2;
+  let e = attackEff(m.t, def, att);
   if(e > 0 && e < 1 && def.equip === "ward") e = 0.75;   // 無効(0)は緩和しない
   const crit = rng() < 0.0625;
   if(e === 0) return {dmg:0, e:0, crit:false, stab:false};
-  const stab = m.t === att.type;                 // 自分のタイプの技は1.5倍
+  const stab = hasType(att,m.t);                 // 自分のタイプの技は1.5倍
   let d = base * e * (stab?1.5:1) * (crit?1.5:1) * (0.85 + rng()*0.15);
   if(hasVs(def,"ballast",att) && SPD(att) > SPD(def)) d *= 0.8;   // 重心
   if(hasVs(def,"hide",att) && e > 1) d *= 0.85;                    // 岩肌
@@ -4730,6 +4772,8 @@ const MOVE_MOTION_PROFILES = {
   focus:{shape:"aura",actor:"brace",scale:19,count:6,self:true},
   sand:{shape:"dust",actor:"cast",scale:14,count:18,tilt:1},
   ambush:{shape:"slash",actor:"lunge",scale:32,count:2,tilt:-1},
+  wildrock:{shape:"crack",actor:"lunge",scale:44,count:12,tilt:1},
+  wildreturn:{shape:"aura",actor:"rise",scale:32,count:10,self:true},
   startle:{shape:"voice",actor:"recoil",scale:27,count:3,tilt:1},
   sub:{shape:"decoy",actor:"recoil",scale:23,count:4,self:true},
   repose:{shape:"heal",actor:"brace",scale:22,count:7,self:true},
@@ -4955,7 +4999,7 @@ const MoveMotion = {
   play(u,target,m,kind="attack"){
     this.stop();
     if(kind==="miss")return;
-    const key=Object.keys(MOVES).find(k=>MOVES[k]===m),profile=MOVE_MOTION_PROFILES[key];
+    const key=m.key||Object.keys(MOVES).find(k=>MOVES[k]===m),profile=MOVE_MOTION_PROFILES[key];
     const canvas=document.getElementById("moveCanvas");
     if(!profile || !canvas || document.hidden || !document.getElementById("scBattle")?.classList.contains("on"))return;
     const points={you:{x:100,y:130},foe:{x:288,y:83}};
@@ -5013,14 +5057,18 @@ function aiChoose(){
     const m = MOVES[k];
     let v;
     if(m.p > 0){
-      v = m.p * expectedHits(m) * moveAttack(f,m) / moveDefense(y,m) * attackEff(m.t, y.type) * (m.acc||100)/100;
+      v = m.p * expectedHits(m) * moveAttack(f,m) / moveDefense(y,m) * attackEff(m.t, y,f) * (m.acc||100)/100;
       if(m.fx === "ambush") v *= .75;
       if(m.fx === "startle") v *= .35;
       if(m.fx === "pivot") v *= 1.1;
       if(hasVs(y,"ballast",f) && SPD(f)>SPD(y)) v *= .8;
-      if(hasVs(y,"hide",f) && attackEff(m.t,y.type)>1) v *= .85;
-      if(m.t === f.type) v *= 1.5;               // タイプ一致補正
+      if(hasVs(y,"hide",f) && attackEff(m.t,y,f)>1) v *= .85;
+      if(m.rush&&has(f,"rockhead"))v*=1.5;
+      if(m.t==="野"&&f.wildAwakened)v*=1.5;
+      if(hasType(f,m.t)) v *= 1.5;               // タイプ一致補正
       if(m.en > f.en * 0.7) v *= 0.8;            // 気力を使い切るのは渋る
+    } else if(m.fx === "wildreturn"){
+      v=f.wildAwakened?0:105;
     } else if(m.fx === "heal"){
       v = lowHp < .45 ? 240 : 10;
     } else if(m.fx === "guard"){
@@ -5032,9 +5080,9 @@ function aiChoose(){
     } else if(m.fx === "spdefup"){
       v = f.rank.spdef >= 3 ? 3 : lowHp > .5 ? 55 : 15;
     } else if(m.fx === "seedfx"){
-      v = (y.seedTurns > 0 || y.type === "草") ? 3 : 100;
+      v = (y.seedTurns > 0 || hasType(y,"草")) ? 3 : 100;
     } else if(m.fx === "burnsure"){
-      v = (y.status || y.pendingStatus || y.type === "炎" || y.sub>0) ? 3 : hasVs(y,"stoic",f)?45:90;
+      v = (y.status || y.pendingStatus || hasType(y,"炎") || y.sub>0) ? 3 : hasVs(y,"stoic",f)?45:90;
     } else if(m.fx === "rootup"){
       v = lowHp > .5 ? 55 : 15;
     } else if(m.fx === "soar"){
@@ -5274,7 +5322,7 @@ async function applyHazards(u){
   }
   if(hz.sand){
     // 空は踏まない。雷技が通らないタイプ（地）も電流が流れず無効
-    if(u.type === "空") say(`${nm(u)} は宙に浮いていて痺れ砂を踏まない。`);
+    if(hasType(u,"空")) say(`${nm(u)} は宙に浮いていて痺れ砂を踏まない。`);
     else if(eff("雷", u.type) === 0) say(`${nm(u)} には電流が流れない。`);
     else if(rng()<0.5 && inflict(u, "麻痺")){
       if(u.status==="麻痺") say(`${nm(u)} は痺れ砂で麻痺した！`);
@@ -5287,7 +5335,7 @@ async function applyHazards(u){
 /* 状態異常は1個だけ。既にかかっていれば上書きしない */
 function inflict(u, st, source=null){
   if(u.sub > 0 || u.status || u.pendingStatus || u.dead || u.hp <= 0) return false;
-  if(STATUS_IMMUNE[st] === u.type) return false;
+  if(hasType(u,STATUS_IMMUNE[st])) return false;
   if(hasVs(u,"stoic",source)){
     u.pendingStatus={status:st,turn:B.turn};
     say(`${nm(u)} はやせ我慢している！`);
@@ -5300,20 +5348,21 @@ function inflict(u, st, source=null){
 
 /* 変化技の効果が相手に通らないか（コマンドの「効果なし」表示にも使う） */
 function fxNullified(m, target){
-  if(m.fx === "burnsure") return target.sub > 0 || target.type === "炎" || !!target.status || !!target.pendingStatus;
-  if(m.fx === "seedfx")   return target.sub > 0 || target.type === "草" || target.seedTurns > 0;
+  if(m.fx === "burnsure") return target.sub > 0 || hasType(target,"炎") || !!target.status || !!target.pendingStatus;
+  if(m.fx === "seedfx")   return target.sub > 0 || hasType(target,"草") || target.seedTurns > 0;
   if(m.fx === "accdown")  return target.sub > 0;
   return false;
 }
 
 function statusEffectSnapshot(u,target){
-  const fields=["hp","en","status","pendingStatus","rank","sub","restTurns","guarding","guardStreak","bond","perish","equip","encore","disabled","tauntTurns","bindTurns","seedTurns"];
+  const fields=["hp","en","status","pendingStatus","rank","sub","restTurns","guarding","guardStreak","bond","perish","equip","encore","disabled","tauntTurns","bindTurns","seedTurns","wildAwakened"];
   return JSON.stringify([[u,target].map(x=>fields.map(k=>x[k])),B.hazard,B.reverseTurns]);
 }
 
 async function doMove(u, target, key, canFlinch=true){
   const battle=B;
   if(!battle || battle.over)return;
+  u.attackAwakened=false;
   if(u.actionCancelled && u.restTurns===0){
     u.actionCancelled = false;
     say(`${nm(u)} は怯んで ${MOVES[key].n} を出せなかった！`);
@@ -5331,7 +5380,7 @@ async function doMove(u, target, key, canFlinch=true){
   if(u.status === "麻痺" && rng() < PARA_FAIL){ StatusEffects.pulse(u,"麻痺"); say(`${nm(u)} は痺れて動けない！`); await sleep(500);
   if(B!==battle || battle.over)return; return; }
   if(key==="desperate" || (u.encore && (moveBlocked(u,u.encore.key)||u.en<enCost(u,u.encore.key)))){
-    u.guardStreak=0;
+    u.guardStreak=0;u.wildAwakened=false;
     const loss=Math.max(1,Math.floor(u.maxhp*.2));
     u.hp=Math.max(0,u.hp-loss);
     say(`${nm(u)} はやけくそになった！ 自分を傷つけた (-${loss})`);
@@ -5386,6 +5435,9 @@ async function doMove(u, target, key, canFlinch=true){
   u.en -= enCost(u, key);
   u.lastMove = key;                          // 外しても「使った」扱い
   if(m.fx !== "guard") u.guardStreak = 0;   // 守る以外を挟めば連続扱いは切れる
+  if(!isStatusMove(m)){
+    u.attackAwakened=!!u.wildAwakened;u.wildAwakened=false;
+  }
   say(`${nm(u)} の ${m.n}！`);
   await sleep(360);
   if(B!==battle || battle.over)return;
@@ -5451,7 +5503,7 @@ async function doMove(u, target, key, canFlinch=true){
     let landed=0;
     for(let hit=0;hit<total;hit++){
       if(B.over || u.dead || u.hp<=0 || target.dead || target.hp<=0) break;
-      if(attackEff(m.t,target.type)!==0)playFx(u,target,m,"attack");
+      if(attackEff(m.t,target,u)!==0)playFx(u,target,m,"attack");
       await sleep(180);
   if(B!==battle || battle.over)return;
       if(B.over) return;
@@ -5490,8 +5542,8 @@ async function doMove(u, target, key, canFlinch=true){
         const gain=Math.min(15,target.en);target.en-=gain;u.en=Math.min(u.maxen,u.en+gain);
         say(`${nm(target)} は気力を ${gain} 奪われた。`);
       }
-      if(m.fx==="recoil" && dealt>0){
-        const recoil=Math.max(1,Math.floor(dealt/3));
+      if(m.fx==="recoil" && dealt>0 && !(m.rush&&has(u,"rockhead"))){
+        const recoil=Math.max(1,Math.floor(dealt*(m.recoil||1/3)));
         if(indirect(u,recoil,"反動")){flash(u.side);popDmg(u.side,"-"+recoil,"#ff9450");say(`${nm(u)} は反動を受けた (-${recoil})`);}
       }
       if(!shielded)applyContactThorns(u,target,m);
@@ -5548,6 +5600,10 @@ async function doMove(u, target, key, canFlinch=true){
       else if(u.hp <= cost) say("しかし 体力が足りなかった。");
       else { hurt(u, cost); u.sub = cost; popDmg(u.side,"-"+cost,"#a8b0cc");
         say(`${nm(u)} は身代わりを立てた！（耐久 ${cost}）`); }
+    }
+    if(m.fx === "wildreturn"){
+      u.wildAwakened=true;
+      say(`${nm(u)} は野生に目覚めている!!`);
     }
     if(m.fx === "repose"){
       const h = Math.floor(u.maxhp*.5);
@@ -5629,7 +5685,7 @@ async function doMove(u, target, key, canFlinch=true){
     }
     if(m.fx === "burnsure"){
       if(inflict(target, "やけど",u)){if(target.status==="やけど") say(`${nm(target)} はやけどを負った！`);}
-      else if(target.type === "炎") say(`${nm(target)} には 効果がないようだ…`);
+      else if(hasType(target,"炎")) say(`${nm(target)} には 効果がないようだ…`);
       else say("しかし 効果がなかった。");
     }
     if(m.fx === "bind"){
@@ -5642,7 +5698,7 @@ async function doMove(u, target, key, canFlinch=true){
     }
     if(m.fx === "seedfx"){
       if(target.sub > 0) say(`${nm(target)} の身代わりが種を防いだ。`);
-      else if(target.type === "草") say(`${nm(target)} には 効果がないようだ…`);
+      else if(hasType(target,"草")) say(`${nm(target)} には 効果がないようだ…`);
       else if(target.seedTurns > 0) say("しかし 効果がなかった。");
       else {
         target.seedTurns = SEED_TURNS;
@@ -5998,7 +6054,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "forced-action-v11";
+const BATTLE_RULES_VERSION = "kefarock-v12";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});
@@ -6103,6 +6159,7 @@ $("#btnHost").onclick = ()=>{ void BattleMusic.unlock(); return hostGame($("#pas
 $("#btnJoin").onclick = ()=>{ void BattleMusic.unlock(); return joinGame($("#passIn").value.trim()); };
 $("#btnCancelNet").onclick = ()=>{ NET.reset(); lobbyStatus("中止しました。"); };
 
+$("#btnChallenge").onclick=()=>GameUI.open("challenge");
 $("#btnStart").onclick = ()=>{ void BattleMusic.unlock(); startBattle(); };
 $("#btnRand").onclick = ()=>{ party = randBuild(); renderAll(); };
 $("#btnClearDraft").onclick = ()=>{
@@ -6110,7 +6167,7 @@ $("#btnClearDraft").onclick = ()=>{
   try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
   renderAll();
 };
-$("#btnAgain").onclick = ()=>{ void BattleMusic.unlock(); startBattle(); };
+$("#btnAgain").onclick = ()=>{ void BattleMusic.unlock(); if(challengeMode)startChallenge();else startBattle(); };
 $("#btnBack").onclick  = ()=>{ NET.reset(); ME = "you"; show("scBuild"); renderAll(); };
 
 drawField(document.getElementById("fieldCanvas"));
