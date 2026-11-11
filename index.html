@@ -2876,9 +2876,9 @@ const ABIL_OF = {
   fuen:["blur","regen","stoic"],         ungei:["pressure","heavy"],
   mubaku:["mirror","glutton"],   oborogi:["blur","tempo"]
 };
-const KEFAROCK = {id:"kefarock",n:"ケファロック",t:["岩","野"],hp:230,atk:140,def:135,spatk:50,spdef:85,spd:50,aff:"野",role:"チャレンジボス"};
+const KEFAROCK = {id:"kefarock",n:"ケファロック",t:["岩","野"],hp:500,atk:140,def:135,spatk:50,spdef:85,spd:50,aff:"野",role:"チャレンジボス"};
 ABIL_OF.kefarock=["rockhead"];
-const YUDACHOU={id:"yudachou",n:"ユダチョウ",t:["炎","水"],hp:210,atk:45,def:80,spatk:145,spdef:145,spd:65,aff:"水",role:"チャレンジボス"};
+const YUDACHOU={id:"yudachou",n:"ユダチョウ",t:["炎","水"],hp:450,atk:45,def:80,spatk:145,spdef:145,spd:65,aff:"水",role:"チャレンジボス"};
 ABIL_OF.yudachou=["steamtank"];
 const CHALLENGES={
  kefarock:{species:KEFAROCK,title:"轟頭のケファロック",moves:["wildrock","wildreturn","wildfang","tackle"],ability:"rockhead",description:"分厚い石の頭蓋を打ち鳴らす、荒野のヘッドバンガー。",hint:"弱点は天空。野生回帰中は、野生側の弱点と耐性も強まります。"},
@@ -2896,7 +2896,7 @@ const STAT_RANGE = ["hp","atk","def","spatk","spdef","spd"].reduce((o,k)=>{
 function statPct(key, v){
   const {min,max} = STAT_RANGE[key];
   if(max === min) return 100;
-  return Math.round(18 + (v-min)/(max-min)*82);
+  return Math.max(18,Math.min(100,Math.round(18 + (v-min)/(max-min)*82)));
 }
 /* 習得できる技。own:true の技は一致タイプの個体しか覚えられない
    （適性で持ち込むと壊れる技を、そのタイプの専売にするための仕組み）。
@@ -3880,7 +3880,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
@@ -4041,6 +4041,7 @@ const GameUI = {
     drawSprite(document.getElementById("bossPreview"),boss.id);
     body.appendChild(el("p","hint","幻獣3体で挑戦。"+data.hint));
     body.appendChild(el("div","statbox",this.stats(boss)));
+    body.appendChild(el("p","hint boss-rule","ボスへの道連れ・滅びの唄は、即戦闘不能の代わりに最大HPの1/3ダメージを与えます。味方への効果は通常どおりです。"));
     const ability=ABILITIES[data.ability];body.appendChild(el("p","hint","特性："+ability.n+" — "+ability.d));
     for(const key of data.moves){const m=MOVES[key];body.appendChild(el("div","card",`<b>${chip(m.t)} ${m.n} ${moveBadge(m)}</b><p>${m.p?"威力 "+m.p+"　":""}命中 ${m.acc||"—"}　気力 ${m.en}</p><p>${m.d||""}</p>`));}
     if(boss.id==="yudachou")body.appendChild(el("p","hint","夕立は属性ごとの影響を合算します。流水は1/8回復、それ以外は流水相性×1/8のダメージ。スチームタンクはダメージ成分も回復に変えます。"));
@@ -4335,7 +4336,7 @@ function makeUnit(b, side){
   const s = spec(b.id);
   const eq = b.equip;
   return {
-    side, sp:s, id:b.id, name:s.n, type:s.t, wildAwakened:false, attackAwakened:false, equip:eq,
+    side, sp:s, id:b.id, name:s.n, type:s.t, boss:!!b.boss&&!!CHALLENGES[b.id], wildAwakened:false, attackAwakened:false, equip:eq,
     ability: b.ability || ABIL_OF[b.id][0],
     maxhp:s.hp, hp:s.hp, en:100, maxen:100,
     baseAtk:s.atk, baseDef:s.def, baseSpAtk:s.spatk, baseSpDef:s.spdef, baseSpd:s.spd,
@@ -4471,7 +4472,7 @@ function startChallenge(id="kefarock"){
   if(party.length!==3||party.some(u=>u.moves.length!==4)||!CHALLENGES[id])return;
   const data=CHALLENGES[id];selectedChallenge=id;
   GameUI.close();NET.on=false;challengeMode=id;
-  foeParty=[{id,moves:data.moves.slice(),equip:"none",ability:data.ability}];
+  foeParty=[{id,boss:true,moves:data.moves.slice(),equip:"none",ability:data.ability}];
   beginBattle(party,foeParty,(Date.now()^0x9e3779b9)>>>0,"you");
   say(`<span class="sys">── チャレンジ：${data.title} ──</span>`);
 }
@@ -5828,6 +5829,13 @@ function tryCharm(u){
   return true;
 }
 
+/* ボス戦の共通ルール。特性・持ち物の効果ではない。 */
+function bossFateDamage(u,label){
+  const amount=Math.max(1,Math.floor(u.maxhp/3));
+  u.hp=Math.max(0,u.hp-amount);u.preHitHp=0;
+  popDmg(u.side,"-"+amount,"#f0937d");
+  say(`${nm(u)} は${label}で最大HPの1/3のダメージを受けた (-${amount})`);
+}
 /* 倒れた個体に印をつけるだけ。交代要員はまだ出さない */
 async function markFaints(){
   const battle=B;
@@ -5849,9 +5857,12 @@ async function markFaints(){
       if(u.bond){
         const killer = u.side === "you" ? FOE() : YOU();
         if(killer && !killer.dead){
-          killer.dead = true; killer.hp = 0;killer.pendingStatus=null;
-          sprite(killer.side).classList.add("faint");
-          say(`${nm(u)} は ${nm(killer)} を道連れにした！`);
+          if(killer.boss)bossFateDamage(killer,"道連れ");else killer.hp=0;
+          if(killer.hp<=0){
+            killer.dead=true;killer.pendingStatus=null;
+            sprite(killer.side).classList.add("faint");
+            say(killer.boss?`${nm(killer)} は倒れた！`:`${nm(u)} は ${nm(killer)} を道連れにした！`);
+          }
           paint(); await sleep(700);
   if(B!==battle || battle.over)return;
         }
@@ -5998,9 +6009,12 @@ async function endTurn(){
       say(`<span class="sys">${u.name} の滅びのカウント: あと${u.perish}</span>`);shown=true;
       if(u.perish===0){
         ringAt(u.side,"#f0937d");screenFlash("#6b3b3466");
-        say(`${nm(u)} は滅びの唄に呑まれた！`);
-        u.hp=0;u.preHitHp=0;u.pendingStatus=null; // A perish knockout cannot use a survival charm.
-        continue;
+        if(u.boss){bossFateDamage(u,"滅びの唄");if(u.hp<=0){u.pendingStatus=null;continue;}}
+        else {
+          say(`${nm(u)} は滅びの唄に呑まれた！`);
+          u.hp=0;u.preHitHp=0;u.pendingStatus=null; // A perish knockout cannot use a survival charm.
+          continue;
+        }
       }
     }
     if(u.encore   && --u.encore.turns   <= 0){ u.encore = null;   say(`<span class="sys">${u.name} の反響は収まった。</span>`); shown = true; }
@@ -6151,7 +6165,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "yudachou-weather-v13";
+const BATTLE_RULES_VERSION = "boss-endurance-v14";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});

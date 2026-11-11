@@ -55,7 +55,7 @@ await run(`(async()=>{
  let [a,d]=setup();
  const boss=makeUnit({id:'kefarock',moves:['wildrock','wildreturn','wildfang','tackle'],equip:'none',ability:'rockhead'},'foe');
  B.foe=[boss];
- assert.equal(boss.maxhp,230);assert.equal(hasType(boss,'岩'),true);assert.equal(hasType(boss,'野'),true);
+ assert.equal(boss.maxhp,500);assert.equal(hasType(boss,'岩'),true);assert.equal(hasType(boss,'野'),true);
  assert.equal(SPECIES.some(s=>s.id==='kefarock'),false,'boss remains outside regular roster');
  for(const t of TYPES)assert.equal(attackEff(t,boss),CHART[t]['岩']*CHART[t]['野']);
  assert.equal(attackEff('空',boss),2);assert.equal(attackEff('水',boss),1);

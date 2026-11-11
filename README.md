@@ -20,6 +20,7 @@
 
 ## ドキュメント
 
+- [ボスのHPと道連れ・滅びの唄](docs/boss-endurance.md)
 - [ユダチョウ・スチームタンク・夕立](docs/yudachou.md)
 - [ケファロック・突進・野生回帰](docs/kefarock.md)
 

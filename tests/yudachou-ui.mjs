@@ -119,6 +119,8 @@ w.click('btnChallenge_yudachou');assert.equal(w.run('selectedChallenge'),'yudach
 assert.ok(w.get('modalBody').textContent.includes('スチームチョイス'));
 assert.ok(w.get('modalBody').textContent.includes('望まぬ夕立'));
 assert.ok(w.get('modalBody').textContent.includes('スチームタンク'));
+assert.ok(w.get('modalBody').textContent.includes('最大HPの1/3'));
+assert.equal(w.run('YUDACHOU.hp'),450);assert.equal(w.run('KEFAROCK.hp'),500);
 assert.equal(w.get('btnChallenge_yudachou').getAttribute('aria-pressed'),'true');
 const go=w.get('modalBody').querySelectorAll('button').find(n=>n.textContent==='挑戦する');assert.ok(go);assert.equal(go.disabled,false);w.click(go);
 assert.equal(w.run('GameUI.kind'),null);assert.equal(w.run('FOE().id'),'yudachou');assert.equal(w.run('B.foe.length'),1);
