@@ -561,6 +561,7 @@ canvas.substitute-actor[hidden]{display:none!important}
 
 .news-entry{border:1px solid #3f5962;border-radius:7px;background:#132a34;margin:0 0 12px;overflow:hidden}.news-heading{display:flex;align-items:center;flex-wrap:wrap;gap:7px 12px;padding:14px;color:#eddfbf;line-height:1.6}.news-heading time{font:11px var(--mono);color:#a5bec6}.news-heading strong{font-size:15px}.news-latest{font-size:10px;color:#edd19b;border:1px solid #88744e;border-radius:3px;padding:1px 5px}.news-items{padding:0 20px 14px 33px;margin:0;color:#c9d8d8;font-size:13px;line-height:1.9}.news-items li+li{margin-top:7px}.news-entry summary{cursor:pointer;list-style:revert}.news-entry summary::before{content:"▸";color:#b8a77b}.news-entry[open] summary::before{content:"▾"}.news-storage-note{font-size:10px;margin:14px 0 0}.news-footer{display:flex;justify-content:flex-end;gap:8px}.news-footer button{min-height:44px}.news-footer .primary{min-width:96px}
 .rain-overlay{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(#46698130,#16394b18),repeating-linear-gradient(110deg,transparent 0 25px,#b8e7ef50 26px 27px,transparent 28px 51px);background-size:100% 100%,83px 67px;animation:shower-fall .65s linear infinite}.rain-overlay[hidden]{display:none}@keyframes shower-fall{to{background-position:0 0,-24px 67px}}@media(prefers-reduced-motion:reduce){.rain-overlay{animation:none}}
+.sandstorm-overlay{background:linear-gradient(#ad875c45,#6b4b3020),repeating-linear-gradient(15deg,transparent 0 17px,#edce8e66 18px 19px,transparent 20px 41px);background-size:100% 100%,79px 53px;animation:sandstorm-drift .9s linear infinite}@keyframes sandstorm-drift{to{background-position:0 0,79px 0}}@media(prefers-reduced-motion:reduce){.sandstorm-overlay{animation:none}}
 </style>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -843,7 +844,7 @@ const MOVES = {
 const MOVE_CATEGORY_LABEL = {physical:"物理", special:"特殊", status:"変化"};
 const isStatusMove = m => m.category === "status";
 const isContactMove = m => m.category==="physical"&&m.contact===true;
-const moveBadge = m => `<span class="category ${m.category}">${MOVE_CATEGORY_LABEL[m.category]}</span>${isStatusMove(m)?"":`<span class="contact-badge ${isContactMove(m)?"touch":"ranged"}">${isContactMove(m)?"接触":"非接触"}</span>`}`;
+const moveBadge = m => `<span class="category ${m.category}">${MOVE_CATEGORY_LABEL[m.category]}</span>${isStatusMove(m)?"":`<span class="contact-badge ${isContactMove(m)?"touch":"ranged"}">${isContactMove(m)?"接触":"非接触"}</span>`}` + (m.explosion?'<span class="contact-badge">爆発</span>':"");
 /* Common learning is independent of damage type. These legacy basics stay available to all. */
 // 通常の習得技一覧には含めない、強制行動の攻撃扱い。
 Object.defineProperty(MOVES,"desperate",{value:{n:"やけくそ",category:"physical",contact:false,p:0,en:0,pri:0}});
@@ -856,12 +857,15 @@ function forcedAction(u, action){
   return action;
 }
 Object.defineProperties(MOVES,{
+ sandbreak:{value:{key:"sandbreak",contact:false,rush:false,category:"special",n:"サンドブレイク",t:"地",p:50,acc:100,en:35,fx:"flinch",pr:.30,weatherOnUse:"sandstorm",d:"30%でひるみ。使用直後から5ターン砂嵐"}},
+ windmantle:{value:{key:"windmantle",contact:false,rush:false,category:"status",n:"風纏",t:"空",p:0,acc:null,en:50,fx:"windmantle",d:"次の特殊攻撃の命中率-100。外れたら元の攻撃側の特攻で威力半分を反射"}},
  steamchoice:{value:{key:"steamchoice",contact:false,rush:false,category:"special",n:"スチームチョイス",t:"水",p:100,acc:85,en:45,fx:"burn",pr:.5,d:"相性が有利なら火炎属性に変化。50%でやけど"}},
  unwantedshower:{value:{key:"unwantedshower",contact:false,rush:false,category:"status",n:"望まぬ夕立",t:"水",p:0,acc:null,en:35,fx:"shower",d:"5ターン夕立。流水の相性に応じて毎ターンHPが変動"}},
  wildrock:{value:{key:"wildrock",contact:true,rush:true,category:"physical",n:"ワイルドロック",t:"岩",p:130,acc:90,en:50,fx:"recoil",recoil:.5,d:"与ダメージの半分の反動を受ける"}},
  wildreturn:{value:{key:"wildreturn",contact:false,rush:false,category:"status",n:"野生回帰",t:"野",p:0,acc:null,en:35,fx:"wildreturn",d:"次の攻撃まで野生の相性を激化。次の野生技の威力1.5倍"}}
 });
 for(const [key,m] of Object.entries(MOVES))m.rush=["tackle","pivot","dive"].includes(key);
+for(const key of Object.getOwnPropertyNames(MOVES))MOVES[key].explosion=["seed","sandbreak"].includes(key);
 const COMMON_MOVES = ["meditate","barrier","tackle","guard","focus","sand","ambush","startle","sub","repose","revenge"];
 const MOVE_ORIGINS = {"barrier": "無", "sand": "無", "ambush": "無", "startle": "無", "gravel": "地", "root": "地", "pivot": "空", "swap": "幻", "taunt": "影", "bond": "影", "night": "影"};
 const BY_TYPE = {};
@@ -890,6 +894,7 @@ const EQUIPS = {
    持ち物が「常時の数値補正」なのに対し、特性は
    状況・登場・交代・状態異常・確率 といったルール側に干渉する。 */
 const ABILITIES = {
+  hani:{n:"はにうんどう",d:"砂嵐中は防御・特防1.5倍、技の追加効果の確率2倍"},
   steamtank:{n:"スチームタンク",d:"流水の攻撃ダメージを回復に変える。火炎攻撃を本体に受けると特攻+1。夕立の流水ダメージ成分も回復に変える"},
   rockhead:{n:"いしあたま",d:"突進技の威力が1.5倍になり、その技の反動ダメージを受けない"},
   pressure:{n:"威圧", d:"場に出たとき、相手の物理攻撃-1"},
@@ -2841,6 +2846,8 @@ SPRITES.kefarock={"pal":{"o":"#181a29","b":"#4c435b","s":"#302b40","l":"#8a7994"
 BACK_SPRITES.kefarock={"pal":{"o":"#181a29","b":"#4c435b","s":"#302b40","l":"#8a7994","r":"#b84458","h":"#e7d9ae","d":"#a99b7e","w":"#fff0cf","e":"#ffcf69","g":"#687e72"},"px":["................................",".................ro.ro..........","...............roro.ro..........","...............rorohro..........",".............rorooohoohdd.......",".............rooowwwwhhhddo.....",".............rowwwwwwwhhhldo....","............roowwwwwwwwhhlddo...","............rohwwwwwwwhhhlddo...","............rohhwwwwwhhhhdddd...","...........ooohhhhwhhhhhhdddoo..","............odddddhddhhhddddo...","............ooddhhhddhhddddoo...","............ooodddgddgddddooo...",".............oooddggggdddooo....",".............oooooggggooooo.....","...........ohsssooggggoooh......","..........hoosssodddodddooho....",".........obbbossoodddddoobbo....",".........obbborrlooodooobbboo...","........oobbborrlgggoggobbbo....",".........obbborrlggggggooohhh...",".....ggggobbborrlggggggggohhh...","..ggggggggddddrrlggggggggso.....","..ooooooooddddrrlggggggggso.....","...........ossrrlgggggggso......","...........oosrrlsgggggsoo......","............oossssssgssooo......","...........oddoooosoooohhhho....","...........oddddddo.ohhhhhho....","...........oooooooo.oooooooo....","................................"]};
 SPRITES.yudachou={"pal":{"o":"#172433","b":"#305c61","s":"#24434e","l":"#55848a","v":"#829e99","w":"#f5e8c8","c":"#b6d7cf","d":"#779fac","n":"#c46657","p":"#eea17b","f":"#e67e3c","h":"#ffd28a","e":"#ffc756"},"px":["................................",".............w..w...............","...........wwwwwwww.............","...........dcwdcwdd.............","..........opdddddd..............",".........oonodnndo..............",".......offfneonnno..............",".......oooonnnnnoo..............","..........oonnnoo...............","...........ooooo................","..........opnno.www..www........","..........opnnwwwwwwwwwwww......","........wwwpnnddcwwddcwwdwww....","......wwwwwwwnoddddddddwwwwwww..","......ddcwwddnobdddbbddddcwwdd..",".......dddddnnoblwwwblbbddddd...","........dddpnnswwwwwwwsbsdddo...",".......oblopnswwwwwwwwwslbbbbo..",".....d.obbopnsswwwwcwcssbbblbo..",".....c.obsbbssssfffffssssbbsbo..",".......obblbbbsssssssssbblbbbo..",".......obblbbbblbssslbbbblbbbo..","........oshnhfnsnnsnnsnfhnnso...",".........ofnffnnnnfnnnnffnnd....","..........oonnnnfnnnnfnnnooc....","........d...ooosssssssoooo......","........c.....oooooooo.ovo......","..............ovo......ovo......","..............lll......lll......",".............oooowo...oooowo....","................................","................................"]};
 BACK_SPRITES.yudachou={"pal":{"o":"#172433","b":"#305c61","s":"#24434e","l":"#55848a","v":"#829e99","w":"#f5e8c8","c":"#b6d7cf","d":"#779fac","n":"#c46657","p":"#eea17b","f":"#e67e3c","h":"#ffd28a","e":"#ffc756"},"px":["................................",".......................w..w.....",".....................wwwwwwww...",".....................dcwdcwdd...","....................opdddddd....","...................ooppdnndo....","...................onpppnoffo...","...................oonnnnoooo...","....................oonnnoo.....",".....................ooooo......","................www.owwwo.......","..............wwwwwwwwwwww......","........www...ddcwwddcwwdwww....","......wwwwwwwooddddddddwwwwwww..","......ddcwwdcbbcddcbocdddcwwdd..",".......ddddcwccwccwccwcpddddd...","........ddccccccccccccccodddo...",".......oblbccccccccccccpobbbbo..",".....d.obbbbcbbcblcbocnpobblbo..",".....c.obsbbsbbsblsbbslbsbbsbo..",".......obblbbbblbbbblbbbblbbbo..",".......obblbbbblbbbblbbbblbbbo..","........osnnsfhsnnhnnsnhsnnso...",".........onnnffnnnfnnnnfnnnd....","..........oonnnnfnnnnfnnnooc....","........d...ooosssssssoooo......","........c.....oooooooo.ovo......","..............ovo......ovo......","..............lll......lll......",".............oooowo...oooowo....","................................","................................"]};
+SPRITES.sarandi={"pal":{"o":"#252b36","b":"#bd8b52","s":"#8e643f","l":"#dec18a","w":"#f5dfb0","t":"#578e98","a":"#9ed2d0","e":"#efb34f","g":"#446873"},"px":["................................","................................",".........o.............o........","..........oo....o....ooo........","..........olooooloooolo.........","...........oloollloollo.........","...........olllblllllo..........","...........obbbbbbbblo..........","..o........obbbbbbbblo.......o..","..oloo...oolooobbbooooo....olo..","...olloooooloaabwbaaooooooblo...","...obwleooollbbbwbbbbloooewlo...","....obwwlloolbbwwwbbllollwloo...","....ooblwllolbbbwbblloblwlloo...",".....olwllloolssssslobbllwoo....",".....owllttbolllllloobttllwo....","....ollltbbtoooooooobtbltlloo...","...ooellbbwwtbbbbbbbtwwbblleoo..","..oolbbbttbtwebbbbbbbtbttbblboo.","...ooobwbbttwbbbbbbbwttbowooo...",".....ooooooobbbbbbeowoooooo.....","......oooooooobotooo....o..aa...","...a......a..ooooto...aaaaa.....","....aaaaaa....oooto.............","................ooto.....oo.....",".................oottooooooo....","...................ootttttooo...",".....................o...oto....","....................aaatttooo...","....................oooooooo....","....................ooooooo.....","................................"]};
+BACK_SPRITES.sarandi={"pal":{"o":"#252b36","b":"#bd8b52","s":"#8e643f","l":"#dec18a","w":"#f5dfb0","t":"#578e98","a":"#9ed2d0","e":"#efb34f","g":"#446873"},"px":["................................","................................",".........o.............o........","..........oo....o....ooo........","..........olooooloooolo.........","...........oloollloollo.........","...........olllbsllllo..........","...........obbssbssblo..........","..o........obsbbbbbslo.......o..","..oloo...oolbbbbsbbsloo....olo..","...ollooooollbbsbsbsboooooblo...","...obwleooollbsbbbbsbloooewlo...","....obwwlloolbbsbssbllollwloo...","....ooblwllolbbbsbblloblwlloo...",".....olwllloolllllllobbllwoo....",".....owllttbolllllloobttllwo....","....ollltbbtoooooooobtbltlloo...","...ooellbbwwtbbbbbbbtwwbblleoo..","..oolbbbttbtwebbbbbbbtbttbblboo.","...ooobwbbttwbbbbbbbwttbowooo...",".....ooooooobbbbbbeowoooooo.....","......oooooooobotooo....o..aa...","...a......a..ooooto...aaaaa.....","....aaaaaa....oooto.............","................ooto.....oo.....",".................oottooooooo....","...................ootttttooo...",".....................o...oto....","....................aaatttooo...","....................oooooooo....","....................ooooooo.....","................................"]};
 const SPECIES = [
   {"id":"homura","n":"ワホームラ","t":"炎","hp":120,"atk":105,"spatk":85,"def":70,"spdef":70,"spd":95,"aff":"岩","role":"物理アタッカー","roleDesc":"炎牙と岩技で攻める。不屈と気合いで物理火力を伸ばす。"},
   {"id":"shiogame","n":"ミズカガメ","t":"水","hp":160,"atk":65,"spatk":75,"def":115,"spdef":95,"spd":45,"aff":"岩","role":"物理受け","roleDesc":"高いHPと物理防御で受け、白霧や渦潮で相手の攻めを抑える。"},
@@ -2880,9 +2887,12 @@ const KEFAROCK = {id:"kefarock",n:"ケファロック",t:["岩","野"],hp:500,at
 ABIL_OF.kefarock=["rockhead"];
 const YUDACHOU={id:"yudachou",n:"ユダチョウ",t:["炎","水"],hp:450,atk:45,def:80,spatk:145,spdef:145,spd:65,aff:"水",role:"チャレンジボス"};
 ABIL_OF.yudachou=["steamtank"];
+const SARANDI={id:"sarandi",n:"サランディ",t:["地","空"],hp:480,atk:55,def:90,spatk:110,spdef:90,spd:105,aff:"空",role:"チャレンジボス"};
+ABIL_OF.sarandi=["hani"];
 const CHALLENGES={
  kefarock:{species:KEFAROCK,title:"轟頭のケファロック",moves:["wildrock","wildreturn","wildfang","tackle"],ability:"rockhead",description:"分厚い石の頭蓋を打ち鳴らす、荒野のヘッドバンガー。",hint:"弱点は天空。野生回帰中は、野生側の弱点と耐性も強まります。"},
- yudachou:{species:YUDACHOU,title:"湯雲のユダチョウ",moves:["steamchoice","unwantedshower","flame","guard"],ability:"steamtank",description:"湯気の羽毛から熱い雨を降らせる、気難しい大鳥。",hint:"弱点は雷電。夕立と特性がそろうと、毎ターン最大HPの3/8を回復します。"}
+ yudachou:{species:YUDACHOU,title:"湯雲のユダチョウ",moves:["steamchoice","unwantedshower","flame","guard"],ability:"steamtank",description:"湯気の羽毛から熱い雨を降らせる、気難しい大鳥。",hint:"弱点は雷電。夕立と特性がそろうと、毎ターン最大HPの3/8を回復します。"},
+ sarandi:{species:SARANDI,title:"砂巡のサランディ",moves:["sandbreak","windmantle","blast","guard"],ability:"hani",description:"砂色の翼で宙を泳ぎ、巡る風の中に身を隠す幻獣。",hint:"弱点は流水。砂嵐中は防御・特防と追加効果が強化され、風纏は特殊攻撃を跳ね返します。"},
 };
 let selectedChallenge="kefarock";
 const spec = id => CHALLENGES[id]?.species||SPECIES.find(s => s.id === id);
@@ -2935,6 +2945,7 @@ const IDLE_PROFILES = {
 };
 IDLE_PROFILES.kefarock={period:1900,front:{bodyY:15,footY:28,appendages:[]},back:{bodyY:15,footY:28,appendages:[]}};
 IDLE_PROFILES.yudachou={period:2300,front:{bodyY:16,footY:27,appendages:[{rect:[24,11,29,15],delta:[1,0]}]},back:{bodyY:16,footY:27,appendages:[{rect:[24,11,29,15],delta:[1,0]}]}};
+IDLE_PROFILES.sarandi={period:2100,front:{bodyY:17,footY:28,appendages:[{rect:[2,17,7,21],delta:[0,1]}]},back:{bodyY:17,footY:28,appendages:[{rect:[23,17,29,21],delta:[0,1]}]}};
 const idleFrameCache = new Map();
 function getIdleFrame(id, view="front", phase=0){
   const base = (view === "back" ? BACK_SPRITES : SPRITES)[id];
@@ -3880,7 +3891,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
@@ -4044,7 +4055,8 @@ const GameUI = {
     body.appendChild(el("p","hint boss-rule","ボスへの道連れ・滅びの唄は、即戦闘不能の代わりに最大HPの1/3ダメージを与えます。味方への効果は通常どおりです。"));
     const ability=ABILITIES[data.ability];body.appendChild(el("p","hint","特性："+ability.n+" — "+ability.d));
     for(const key of data.moves){const m=MOVES[key];body.appendChild(el("div","card",`<b>${chip(m.t)} ${m.n} ${moveBadge(m)}</b><p>${m.p?"威力 "+m.p+"　":""}命中 ${m.acc||"—"}　気力 ${m.en}</p><p>${m.d||""}</p>`));}
-    if(boss.id==="yudachou")body.appendChild(el("p","hint","夕立は属性ごとの影響を合算します。流水は1/8回復、それ以外は流水相性×1/8のダメージ。スチームタンクはダメージ成分も回復に変えます。"));
+    if(boss.id==="sarandi")body.appendChild(el("p","hint","砂嵐は5ターン続き、岩石・大地を含まない幻獣に毎ターン最大HPの1/16ダメージ。岩石は特防1.5倍。風纏は最終命中率から100ポイントを引き、必中技には命中低下が効きません。反射に追加効果は付きません。"));
+    else if(boss.id==="yudachou")body.appendChild(el("p","hint","夕立は属性ごとの影響を合算します。流水は1/8回復、それ以外は流水相性×1/8のダメージ。スチームタンクはダメージ成分も回復に変えます。"));
     else body.appendChild(el("p","hint","野生回帰は、次の攻撃まで野生の攻守の相性を激化。次の攻撃が野生技なら威力も1.5倍になります。"));
     const go=el("button","primary","挑戦する");go.disabled=party.length!==3||party.some(u=>u.moves.length!==4);go.onclick=()=>{void BattleMusic.unlock();startChallenge(selectedChallenge);};body.appendChild(go);
     if(go.disabled)body.appendChild(el("p","hint","幻獣3体に、それぞれ技を4つ設定してください。"));
@@ -4243,7 +4255,7 @@ const GameUI = {
     const facts=el("div","unit-detail-facts");
     facts.appendChild(el("div",null,`<strong>特性：${ABILITIES[unit.ability].n}${abilOff(unit)?"（無効）":""}</strong><small>${ABILITIES[unit.ability].d}</small>`));
     facts.appendChild(el("div",null,`<strong>持ち物：${EQUIPS[unit.equip].n}</strong><small>${EQUIPS[unit.equip].d}</small>`));
-    const conditions=[unit.dead?"戦闘不能":unit.status||"状態異常なし",unit.wildAwakened?"野生に目覚めている!!":"",unit.pendingStatus?`${unit.pendingStatus.status}の発症予約（次のターン終了時）`:"",unit.perish?`滅びの唄：あと${unit.perish}`:"",unit.seedTurns?`寄生：あと${unit.seedTurns}ターン`:"",isBound(unit)?`拘束：あと${unit.bindTurns}ターン`:"",unit.sub?`身代わり：耐久${unit.sub}`:"",unit.encore?`反響：${MOVES[unit.encore.key].n}／あと${unit.encore.turns}ターン`:"",unit.disabled?`封技：${MOVES[unit.disabled.key].n}／あと${unit.disabled.turns}ターン`:"",unit.tauntTurns?`挑発：あと${unit.tauntTurns}ターン`:""].filter(Boolean);
+    const conditions=[unit.dead?"戦闘不能":unit.status||"状態異常なし",unit.wildAwakened?"野生に目覚めている!!":"",unit.windMantle?"風纏：次の特殊攻撃を反射する風":"",unit.pendingStatus?`${unit.pendingStatus.status}の発症予約（次のターン終了時）`:"",unit.perish?`滅びの唄：あと${unit.perish}`:"",unit.seedTurns?`寄生：あと${unit.seedTurns}ターン`:"",isBound(unit)?`拘束：あと${unit.bindTurns}ターン`:"",unit.sub?`身代わり：耐久${unit.sub}`:"",unit.encore?`反響：${MOVES[unit.encore.key].n}／あと${unit.encore.turns}ターン`:"",unit.disabled?`封技：${MOVES[unit.disabled.key].n}／あと${unit.disabled.turns}ターン`:"",unit.tauntTurns?`挑発：あと${unit.tauntTurns}ターン`:""].filter(Boolean);
     facts.appendChild(el("div",null,`<strong>現在の状態</strong><small>${conditions.join("<br>")}</small>`));
     const hazards=B.hazard?.[unit.side]||{},names=Object.keys(hazards).filter(key=>hazards[key]).map(key=>HAZARD_NAME[key]);
     facts.appendChild(el("div",null,`<strong>この陣営の足元</strong><small>${names.length?names.join("・"):"設置なし"}</small>`));body.appendChild(facts);
@@ -4336,7 +4348,7 @@ function makeUnit(b, side){
   const s = spec(b.id);
   const eq = b.equip;
   return {
-    side, sp:s, id:b.id, name:s.n, type:s.t, boss:!!b.boss&&!!CHALLENGES[b.id], wildAwakened:false, attackAwakened:false, equip:eq,
+    side, sp:s, id:b.id, name:s.n, type:s.t, boss:!!b.boss&&!!CHALLENGES[b.id], wildAwakened:false, attackAwakened:false, windMantle:false, equip:eq,
     ability: b.ability || ABIL_OF[b.id][0],
     maxhp:s.hp, hp:s.hp, en:100, maxen:100,
     baseAtk:s.atk, baseDef:s.def, baseSpAtk:s.spatk, baseSpDef:s.spdef, baseSpd:s.spd,
@@ -4357,7 +4369,7 @@ function makeUnit(b, side){
     disabled:null,        // {key,turns} その技だけ出せない
     tauntTurns:0,         // 変化技を出せない残りターン
     plannedMove:null,     // このターンに選んだ技。不意打ち・おどかすが参照する
-    showerInterruptedBy:null, // 夕立をおどかすで阻止した相手（既知の行動だけを記録）
+    windInterruptedBy:null,showerInterruptedBy:null, // 夕立をおどかすで阻止した相手（既知の行動だけを記録）
     actionCancelled:false,// おどかすで潰されたか
     dmgTaken:0,           // このターンに攻撃で受けたダメージ。仕返しが参照する
     lastMove:null,        // 直前に使った技。連続使用を禁じる装備が参照する
@@ -4373,11 +4385,12 @@ const statMul = n => n>=0 ? (2+n)/2 : 2/(2-n);
 const accMul  = n => n>=0 ? (3+n)/3 : 3/(3-n);
 function ATK(u){ let v = u.baseAtk*statMul(u.rank.atk); if(u.equip==="fang") v*=1.2;
   if(has(u,"grit") && u.hp <= u.maxhp/3) v*=1.5; if(u.status==="やけど") v*=.75; return v; }
-function DEF(u){ let v = u.baseDef*statMul(u.rank.def); if(u.equip==="plate") v*=1.2; if(u.equip==="armor") v*=1.35; return v; }
+const inSandstorm=()=>B?.weather?.kind==="sandstorm";
+function DEF(u,att=null){ let v = u.baseDef*statMul(u.rank.def); if(u.equip==="plate") v*=1.2; if(u.equip==="armor") v*=1.35; if(inSandstorm()&&hasVs(u,"hani",att))v*=1.5; return v; }
 function SPATK(u){ let v = u.baseSpAtk*statMul(u.rank.spatk); if(u.equip==="orb") v*=1.2; return v; }
-function SPDEF(u){ let v = u.baseSpDef*statMul(u.rank.spdef); if(u.equip==="veil") v*=1.2; if(u.equip==="robe") v*=1.35; return v; }
+function SPDEF(u,att=null){ let v = u.baseSpDef*statMul(u.rank.spdef); if(u.equip==="veil") v*=1.2; if(u.equip==="robe") v*=1.35; if(inSandstorm()){if(hasType(u,"岩"))v*=1.5;if(hasVs(u,"hani",att))v*=1.5;} return v; }
 const moveAttack = (u,m) => m.category === "special" ? SPATK(u) : ATK(u);
-const moveDefense = (u,m) => m.category === "special" ? SPDEF(u) : DEF(u);
+const moveDefense = (u,m,att=null) => m.category === "special" ? SPDEF(u,att) : DEF(u,att);
 function SPD(u){ let v = u.baseSpd*statMul(u.rank.spd); if(u.equip==="wing") v*=1.2; if(u.status==="麻痺") v*=.5; return v; }
 
 /* 場を離れた個体の処理。
@@ -4394,7 +4407,7 @@ function leaveField(u){
   u.rank = {atk:0, def:0, spatk:0, spdef:0, acc:0, spd:0, eva:0};
   u.seedTurns = 0;        // 寄生はランク変化と同じく場を離れると消える
   u.guarding = false;
-  u.wildAwakened=false;u.attackAwakened=false;u.showerInterruptedBy=null;
+  u.wildAwakened=false;u.attackAwakened=false;u.showerInterruptedBy=null;u.windMantle=false;u.windInterruptedBy=null;
   u.focusExposed = false;
   u.flinch = false;
   u.guardStreak = 0;
@@ -4420,6 +4433,7 @@ function tags(u){
   if(u.disabled) h += `<span class="st-tag st-幻">封技${u.disabled.turns}</span>`;
   if(u.tauntTurns > 0) h += `<span class="st-tag st-挑発">挑発${u.tauntTurns}</span>`;
   if(u.sub > 0)    h += `<span class="st-tag st-身代">身代${u.sub}</span>`;
+  if(u.windMantle)h+='<span class="st-tag">風纏</span>';
   if(u.perish > 0) h += `<span class="st-tag st-滅び">滅び${u.perish}</span>`;
   const lbl = {atk:"物攻", def:"物防", spatk:"特攻", spdef:"特防", acc:"命", spd:"速", eva:"回"};
   for(const k in lbl){
@@ -4550,8 +4564,8 @@ function paint(enter){
     });
   }
   const fieldState=$("#fieldState");
-  if(fieldState){const states=[];if(B.reverseTurns>0)states.push(`アベコベルーム：相性反転中（残り${B.reverseTurns}ターン）`);if(B.weather?.kind==="shower")states.push(`夕立（残り${B.weather.turns}ターン）`);fieldState.hidden=!states.length;fieldState.textContent=states.join(" ／ ");}
-  const rain=$("#weatherOverlay");if(rain)rain.hidden=B.weather?.kind!=="shower";
+  if(fieldState){const states=[];if(B.reverseTurns>0)states.push(`アベコベルーム：相性反転中（残り${B.reverseTurns}ターン）`);if(B.weather?.kind==="sandstorm")states.push(`砂嵐（残り${B.weather.turns}ターン）`);if(B.weather?.kind==="shower")states.push(`夕立（残り${B.weather.turns}ターン）`);fieldState.hidden=!states.length;fieldState.textContent=states.join(" ／ ");}
+  const rain=$("#weatherOverlay");if(rain){rain.hidden=!B.weather;rain.classList.remove("sandstorm-overlay");if(B.weather?.kind==="sandstorm")rain.classList.add("sandstorm-overlay");}
   $("#youName").innerHTML = `${y.name} ${chip(y.type)}${y.sub>0?'<span class="sub-marker">身代わり</span>':""}`;
   $("#foeName").innerHTML = `<span class="pfx">相手の</span>${f.name} ${chip(f.type)}${f.sub>0?'<span class="sub-marker">身代わり</span>':""}`;
   $("#youTags").innerHTML = tags(y);
@@ -4690,14 +4704,14 @@ function lockCmd(){ B.busy=true; renderCmd(); }
 
 /* 属性を選ぶ技は、相性が同じ場合は元の流水属性を使う。特性は選択理由にしない。 */
 function effectiveMove(m,att,def){
-  if(m.key!=="steamchoice")return m;
+  if(m.fixedType||m.key!=="steamchoice")return m;
   return {...m,t:attackEff("炎",def,att)>attackEff("水",def,att)?"炎":"水"};
 }
 /* ---- damage ---- */
 function damage(att, def, m){
   m=effectiveMove(m,att,def);
   const power=m.p*(m.rush&&has(att,"rockhead")?1.5:1)*(m.t==="野"&&(att.wildAwakened||att.attackAwakened)?1.5:1);
-  let base = Math.floor(Math.floor(22 * power * moveAttack(att,m) / moveDefense(def,m)) / 55) + 2;
+  let base = Math.floor(Math.floor(22 * power * moveAttack(att,m) / moveDefense(def,m,att)) / 55) + 2;
   let e = attackEff(m.t, def, att);
   if(e > 0 && e < 1 && def.equip === "ward") e = 0.75;   // 無効(0)は緩和しない
   const crit = rng() < 0.0625;
@@ -4806,6 +4820,8 @@ const MOVE_MOTION_PROFILES = {
   focus:{shape:"aura",actor:"brace",scale:19,count:6,self:true},
   sand:{shape:"dust",actor:"cast",scale:14,count:18,tilt:1},
   ambush:{shape:"slash",actor:"lunge",scale:32,count:2,tilt:-1},
+  sandbreak:{shape:"sandburst",actor:"brace",scale:36,count:16,tilt:1},
+  windmantle:{shape:"wind",actor:"rise",scale:35,count:8,self:true},
   steamchoice:{shape:"steam",actor:"cast",scale:34,count:14,tilt:1},
   unwantedshower:{shape:"shower",actor:"rise",scale:38,count:14,self:true},
   wildrock:{shape:"crack",actor:"lunge",scale:44,count:12,tilt:1},
@@ -4896,6 +4912,13 @@ function drawMoveMotion(ctx,key,progress,from,to,kind="attack",attackType=null){
   const pos=f=>({x:from.x+(aim.x-from.x)*f,y:from.y+(aim.y-from.y)*f});
   const moving=pos(travel),cx=center.x,cy=center.y;
   switch(p.shape){
+    case "sandburst":{
+      const q=pos(travel);
+      for(let j=0;j<16;j++){const a=j*Math.PI/8+t*2,r=size*fade*(.4+impact);px(q.x+Math.cos(a)*r,q.y+Math.sin(a)*r*.65,3,3,j%3);}
+      if(hit){burst(cx,cy,10,size*fade);ring(cx,cy,size*fade,size*.45,1,t);}
+      break;
+    }
+
     case "steam":{
       for(let j=0;j<12;j++){
         const q=pos(Math.max(0,travel-j*.035)),sway=Math.sin(j*2+t*12)*size*.3;
@@ -5103,6 +5126,8 @@ function aiChoose(){
   // 相手の今ターンの入力や、まだ見ていない技は参照しない。
   if(f.showerInterruptedBy===battleUnitKey(y)&&usable.some(k=>MOVES[k].p>0))
     usable=usable.filter(k=>MOVES[k].fx!=="shower");
+  if(f.windInterruptedBy===battleUnitKey(y)&&usable.some(k=>MOVES[k].p>0))
+    usable=usable.filter(k=>MOVES[k].fx!=="windmantle");
   if(!usable.length) return {kind:"move", key:null};
   // 撃ちたい大技が気力不足で撃てないなら、溜めて次に備えることがある
   const wanted = f.moves.filter(k => MOVES[k].p >= 80 && enCost(f,k) > f.en);
@@ -5114,7 +5139,8 @@ function aiChoose(){
     const m = effectiveMove(MOVES[k],f,y);
     let v;
     if(m.p > 0){
-      v = m.p * expectedHits(m) * moveAttack(f,m) / moveDefense(y,m) * attackEff(m.t, y,f) * (m.acc||100)/100;
+      v = m.p * expectedHits(m) * moveAttack(f,m) / moveDefense(y,m,f) * attackEff(m.t, y,f) * (m.acc||100)/100;
+      if(m.weatherOnUse==="sandstorm"&&!inSandstorm())v+=220;
       if(m.fx === "ambush") v *= .75;
       if(m.fx === "startle") v *= .35;
       if(m.fx === "pivot") v *= 1.1;
@@ -5124,6 +5150,9 @@ function aiChoose(){
       if(m.t==="野"&&f.wildAwakened)v*=1.5;
       if(hasType(f,m.t)) v *= 1.5;               // タイプ一致補正
       if(m.en > f.en * 0.7) v *= 0.8;            // 気力を使い切るのは渋る
+    } else if(m.fx === "windmantle"){
+      const seen=y.lastMove&&MOVES[y.lastMove];
+      v=f.windMantle?0:seen?.category==="special"&&seen.p>0?170:25;
     } else if(m.fx === "shower"){
       v=B.weather?.kind==="shower"?0:showerFraction(f)<0?450:30;
     } else if(m.fx === "wildreturn"){
@@ -5151,7 +5180,7 @@ function aiChoose(){
       else {
         const bestAgainst=(att,def,reverse)=>Math.max(0,...att.moves.filter(k=>MOVES[k].p>0).map(k=>{
           const move=MOVES[k],mult=reverse?inverseEff(eff(move.t,def.type)):eff(move.t,def.type);
-          return move.p*expectedHits(move)*moveAttack(att,move)/moveDefense(def,move)*mult*(move.t===att.type?1.5:1);
+          return move.p*expectedHits(move)*moveAttack(att,move)/moveDefense(def,move,att)*mult*(move.t===att.type?1.5:1);
         }));
         const swing=bestAgainst(f,y,true)-bestAgainst(f,y,false)+bestAgainst(y,f,false)-bestAgainst(y,f,true);
         v=swing>0?Math.min(130,35+swing*.45):3;
@@ -5342,7 +5371,8 @@ function lowerRank(target, key, n, source){
 function rollFx(u, target, m){
   let pr = m.pr;
   if(has(u,"tempo") && SPD(u) > SPD(target)) pr *= 2;
-  return rng() < pr;
+  if(inSandstorm()&&has(u,"hani"))pr*=2;
+  return rng() < Math.min(1,pr);
 }
 
 /* 場に出たときの特性 */
@@ -5414,7 +5444,7 @@ function fxNullified(m, target){
 }
 
 function statusEffectSnapshot(u,target){
-  const fields=["hp","en","status","pendingStatus","rank","sub","restTurns","guarding","guardStreak","bond","perish","equip","encore","disabled","tauntTurns","bindTurns","seedTurns","wildAwakened"];
+  const fields=["hp","en","status","pendingStatus","rank","sub","restTurns","guarding","guardStreak","bond","perish","equip","encore","disabled","tauntTurns","bindTurns","seedTurns","wildAwakened","windMantle"];
   return JSON.stringify([[u,target].map(x=>fields.map(k=>x[k])),B.hazard,B.reverseTurns,B.weather]);
 }
 
@@ -5498,16 +5528,24 @@ async function doMove(u, target, key, canFlinch=true){
     u.attackAwakened=!!u.wildAwakened;u.wildAwakened=false;
   }
   say(`${nm(u)} の ${m.n}！`);
+  if(m.weatherOnUse==="sandstorm"){B.weather={kind:"sandstorm",turns:5};say("砂嵐が吹き荒れ始めた！");paint();}
   if(key==="steamchoice"&&m.t==="炎")say("スチームチョイスが火炎属性に変わった！");
   await sleep(360);
   if(B!==battle || battle.over)return;
 
+  const tPlan=target.plannedMove;
+  const conditionalFails=m.fx==="startle"&&(target.restTurns>0||!tPlan||!isStatusMove(MOVES[tPlan])||MOVES[tPlan].fx==="guard");
+  const wind=target.windMantle&&m.category==="special"&&m.p>0&&!target.guarding&&!conditionalFails;
+  if(wind){target.windMantle=false;say(m.acc?`${nm(target)} の纏った風が特殊攻撃の命中を乱す！`:`${nm(target)} の風纏では必中技をそらせない！`);}
   if(m.acc){
     // 命中ランク - 相手の回避ランク。回避を上げる技はまだ無いが、足せば自動で効く
     const stage = Math.max(-6, Math.min(6, u.rank.acc - target.rank.eva));
     const blur = hasVs(target,"blur",u) ? 0.9 : 1;               // 見切り
-    if(rng()*100 > m.acc * accMul(stage) * blur){
-      say("しかし外れた。"); await sleep(450);
+    const accuracy=Math.max(0,m.acc*accMul(stage)*blur-(wind?100:0));
+    if(accuracy<=0||rng()*100 > accuracy){
+      say("しかし外れた。");
+      if(wind)await reflectWind(target,u,m);
+      await sleep(450);
   if(B!==battle || battle.over)return; return;
     }
   }
@@ -5530,6 +5568,7 @@ async function doMove(u, target, key, canFlinch=true){
     }
     target.actionCancelled = true;
     if(MOVES[t].fx==="shower")target.showerInterruptedBy=battleUnitKey(u);
+    if(MOVES[t].fx==="windmantle")target.windInterruptedBy=battleUnitKey(u);
     say(`${nm(target)} は ${MOVES[t].n} をくじかれた！`);
   }
 
@@ -5671,6 +5710,7 @@ async function doMove(u, target, key, canFlinch=true){
       else { hurt(u, cost); u.sub = cost; popDmg(u.side,"-"+cost,"#a8b0cc");
         say(`${nm(u)} は身代わりを立てた！（耐久 ${cost}）`); }
     }
+    if(m.fx === "windmantle"){if(u.windMantle)say("すでに風を纏っている。");else{u.windMantle=true;say(`${nm(u)} は風を纏った！`);}}
     if(m.fx === "shower"){
       B.weather={kind:"shower",turns:5};say("熱い雨が降り始めた！ 天気が夕立になった。");
     }
@@ -5967,6 +6007,33 @@ function siphon(victim, host){
   return msg;
 }
 
+function applySandstorm(u){
+  if(u.dead||u.hp<=0||hasType(u,"岩")||hasType(u,"地"))return;
+  const amount=Math.max(1,Math.floor(u.maxhp/16));
+  if(indirect(u,amount,"砂嵐のダメージ")){popDmg(u.side,"-"+amount,"#e6c18a");say(`${nm(u)} は砂嵐のダメージを受けた (-${amount})`);}
+}
+// A reflected shot is damage only, calculated as a half-power attack by its original caster on itself.
+async function reflectWind(holder,caster,m){
+  const reflected={...m,p:m.p*.5,fixedType:true,fx:null,contact:false,rush:false};
+  const result=damage(caster,caster,reflected);
+  say(`${nm(holder)} の風が ${m.n} を跳ね返した！`);
+  if(result.e===0){say(`${nm(caster)} には効果がないようだ…`);paint();return;}
+  playFx(holder,caster,reflected,"attack");
+  if(m.t==="水"&&hasVs(caster,"steamtank",caster)){
+    const heal=Math.min(result.dmg,caster.maxhp-caster.hp);caster.hp+=heal;
+    popDmg(caster.side,"+"+heal,"#63c07d");say(`${nm(caster)} はスチームタンクで反射された流水を取り込んだ (+${heal})`);
+  }else if(caster.sub>0){
+    const lost=Math.min(caster.sub,result.dmg);caster.sub-=lost;
+    popDmg(caster.side,"-"+lost,"#a8b0cc");say(`${nm(caster)} の身代わりが反射された攻撃を肩代わりした (-${lost})`);
+    if(caster.sub===0)say(`${nm(caster)} の身代わりは壊れた！`);
+  }else{
+    const before=caster.hp;hurt(caster,result.dmg);tryCharm(caster);
+    const lost=before-Math.max(0,caster.hp);caster.dmgTaken+=lost;
+    flash(caster.side);popDmg(caster.side,"-"+lost,"#d4ecf0");say(`${nm(caster)} は反射された攻撃を受けた (-${lost})`);
+    if(lost>0&&caster.hp>0&&m.t==="炎"&&hasVs(caster,"steamtank",caster)&&caster.rank.spatk<6){caster.rank.spatk++;say(`${nm(caster)} のスチームタンクで特攻が上がった！`);}
+  }
+  paint();
+}
 function showerFraction(u){
   return unitTypes(u).reduce((sum,type)=>{
     if(type==="水")return sum-1/8;
@@ -6047,9 +6114,10 @@ async function endTurn(){
       shown = true;
     }
   }
-  if(B.weather?.kind==="shower"){
-    for(const u of [YOU(),FOE()])applyShower(u);
-    if(--B.weather.turns===0){B.weather=null;say("夕立がやみ、空が晴れた。");}
+  if(B.weather){
+    const kind=B.weather.kind;
+    for(const u of [YOU(),FOE()]){if(kind==="shower")applyShower(u);else if(kind==="sandstorm")applySandstorm(u);}
+    if(--B.weather.turns===0){B.weather=null;say(kind==="shower"?"夕立がやみ、空が晴れた。":"砂嵐がおさまった。");}
     shown=true;
   }
   // Delayed ailments arrive after ALL ordinary end-of-turn damage/healing.
@@ -6165,7 +6233,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "boss-endurance-v14";
+const BATTLE_RULES_VERSION = "sarandi-sandstorm-v15";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});

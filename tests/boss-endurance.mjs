@@ -53,9 +53,9 @@ const {run}=world();
 
 
 await run(`(async()=>{
- for(const id of ['kefarock','yudachou']){
+ for(const id of ['kefarock','yudachou','sarandi']){
   party=randBuild().map(u=>({...u,equip:"none"}));startChallenge(id);let boss=FOE(),player=YOU();
-  const max=id==='kefarock'?500:450,loss=Math.floor(max/3);
+  const max={kefarock:500,yudachou:450,sarandi:480}[id],loss=Math.floor(max/3);
   assert.equal(statPct('hp',max),100,'boss stat bars stay inside their track');assert.equal(boss.maxhp,max);assert.equal(boss.boss,true);assert.equal(player.boss,false);
   player.bond=true;player.hp=0;await markFaints();
   assert.equal(player.dead,true);assert.equal(boss.hp,max-loss);assert.equal(boss.dead,false);assert.equal(B.over,false);
