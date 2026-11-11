@@ -120,6 +120,30 @@ await run(`(async()=>{
  rng=()=>.5;assert.equal(aiChoose().key,'unwantedshower','boss establishes the weather combo');
  B.weather={kind:'shower',turns:3};assert.notEqual(aiChoose().key,'unwantedshower','boss attacks while rain is active');
  startChallenge(challengeMode);assert.equal(FOE().id,'yudachou');assert.equal(B.weather,null,'rematch starts with clean field');
+
+ // Reproduce an actual interrupted opening, then spam startle across real turns.
+ party=randBuild();startChallenge('yudachou');rng=()=>.5;
+ let player=YOU(),bird=FOE();player.maxhp=player.hp=100000;bird.maxhp=bird.hp=100000;
+ player.type='無';player.baseSpDef=1000;player.equip='none';player.ability='focus2';
+ player.moves=['startle','tackle','guard','focus'];
+ assert.equal(aiChoose().key,'unwantedshower');
+ await takeTurn(move('startle'),aiChoose());
+ assert.equal(B.weather,null,'first startle really prevents the weather');
+ assert.equal(bird.showerInterruptedBy,battleUnitKey(player));
+ for(let turn=0;turn<4;turn++){
+  player.en=bird.en=100;
+  const action=aiChoose();assert.ok(MOVES[action.key].p>0,'boss attacks instead of retrying the interrupted weather');
+  const hp=player.hp;await takeTurn(move('startle'),action);
+  assert.ok(player.hp<hp,'repeating startle now fails and the boss attacks');
+ }
+ const newPlayer=B.you[1];B.yi=1;newPlayer.maxhp=newPlayer.hp=100000;newPlayer.type='無';newPlayer.baseSpDef=1000;bird.en=100;
+ assert.equal(aiChoose().key,'unwantedshower','an untested opponent allows the weather plan again');
+ B.yi=0;bird.en=100;bird.encore={key:'unwantedshower',turns:3};
+ assert.equal(aiChoose().key,'unwantedshower','encore remains a legitimate way to force weather attempts');bird.encore=null;
+ bird.en=0;assert.equal(aiChoose().key,null,'no usable attacks still allows normal energy recovery');
+ bird.en=100;bird.disabled={key:'steamchoice',turns:3};assert.equal(aiChoose().key,'flame','respect disabled moves');bird.disabled=null;
+ leaveField(bird);assert.equal(bird.showerInterruptedBy,null);
+ startChallenge(challengeMode);assert.equal(FOE().showerInterruptedBy,null,'rematch forgets previous battle');
  startChallenge('kefarock');assert.equal(FOE().id,'kefarock');
 })()`);
 console.log('PASS steam choice actual types, hit/burn/guard/sub/stoic; net rain fractions and five turns; absorption, fire boost, mask/breaker and both boss/rematch paths');

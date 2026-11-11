@@ -3880,7 +3880,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
@@ -4356,6 +4356,7 @@ function makeUnit(b, side){
     disabled:null,        // {key,turns} その技だけ出せない
     tauntTurns:0,         // 変化技を出せない残りターン
     plannedMove:null,     // このターンに選んだ技。不意打ち・おどかすが参照する
+    showerInterruptedBy:null, // 夕立をおどかすで阻止した相手（既知の行動だけを記録）
     actionCancelled:false,// おどかすで潰されたか
     dmgTaken:0,           // このターンに攻撃で受けたダメージ。仕返しが参照する
     lastMove:null,        // 直前に使った技。連続使用を禁じる装備が参照する
@@ -4392,7 +4393,7 @@ function leaveField(u){
   u.rank = {atk:0, def:0, spatk:0, spdef:0, acc:0, spd:0, eva:0};
   u.seedTurns = 0;        // 寄生はランク変化と同じく場を離れると消える
   u.guarding = false;
-  u.wildAwakened=false;u.attackAwakened=false;
+  u.wildAwakened=false;u.attackAwakened=false;u.showerInterruptedBy=null;
   u.focusExposed = false;
   u.flinch = false;
   u.guardStreak = 0;
@@ -5084,10 +5085,11 @@ function flash(side){
 }
 
 /* ---- AI ---- */
+const battleUnitKey=u=>u.side+":"+B[u.side].indexOf(u);
 function aiChoose(){
   const f = FOE(), y = YOU();
   if(f.restTurns>0)return {kind:"move",key:null};
-  const usable = f.moves.filter(k => f.en >= enCost(f, k) && !moveBlocked(f, k));
+  let usable = f.moves.filter(k => f.en >= enCost(f, k) && !moveBlocked(f, k));
   // 交代判断: 今の相手に2倍を取られていて、控えに有利な子がいる
   if(!isBound(f) && rng() < .35 && attackEff(y.type, f.type) > 1){
     const cand = B.foe.map((u,i)=>({u,i}))
@@ -5095,7 +5097,11 @@ function aiChoose(){
                    && o.u.moves.some(k => MOVES[k].p>0 && attackEff(MOVES[k].t, y.type) > 1));
     if(cand.length) return {kind:"switch", to:pick(cand).i};
   }
-  if(f.encore) return {kind:"move", key:f.encore.key};   // 強制。出せなければ不発
+  if(f.encore) return {kind:"move", key:f.encore.key};   // 強制行動はAIの学習で上書きしない
+  // 同じ相手に夕立を阻止されたら、撃てる攻撃技がある間は夕立を繰り返さない。
+  // 相手の今ターンの入力や、まだ見ていない技は参照しない。
+  if(f.showerInterruptedBy===battleUnitKey(y)&&usable.some(k=>MOVES[k].p>0))
+    usable=usable.filter(k=>MOVES[k].fx!=="shower");
   if(!usable.length) return {kind:"move", key:null};
   // 撃ちたい大技が気力不足で撃てないなら、溜めて次に備えることがある
   const wanted = f.moves.filter(k => MOVES[k].p >= 80 && enCost(f,k) > f.en);
@@ -5522,6 +5528,7 @@ async function doMove(u, target, key, canFlinch=true){
   if(B!==battle || battle.over)return; return;
     }
     target.actionCancelled = true;
+    if(MOVES[t].fx==="shower")target.showerInterruptedBy=battleUnitKey(u);
     say(`${nm(target)} は ${MOVES[t].n} をくじかれた！`);
   }
 
