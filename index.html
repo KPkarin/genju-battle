@@ -825,7 +825,7 @@ const MOVES = {
   mirage:{contact:false,category:"physical",n:"虚像斬", t:"幻",p:80, acc:95, en:35,d:"虚像に斬りつけさせる非接触の攻撃"},
   lunacy:{contact:false,category:"special",n:"幻月",   t:"幻",p:110,acc:80, en:45},
   swap  :{contact:false,category:"status",n:"奇術",   t:"無",p:0,  acc:100,en:25,fx:"swapitem",
-          d:"自分と相手の持ち物を入れ替える。両者とも持っていなければ失敗"},
+          d:"双方が持ち物を持ち、どちらも交換可能な場合だけ入れ替える。持ち物なし・持ち主から離れない場合は失敗"},
   perish:{contact:false,category:"status",n:"滅びの唄",t:"幻",p:0, acc:null,en:35,fx:"perish",
           d:"使用ターン終了時にカウント3。その後のターン終了ごとに2→1→0となり、0で倒れる。交代すれば逃れられる"},
   encore:{contact:false,category:"status",n:"反響",   t:"幻",p:0,  acc:100,en:30,fx:"encore",
@@ -890,6 +890,14 @@ const EQUIPS = {
   mask  :{n:"無垢の仮面", d:"持ち主の特性が発動しなくなる", mask:true}
 };
 
+/* 交換可否は実行・コマンド表示・AIで共通。現在の装備と固定状態を実行時に判定する。 */
+function itemSwapFailure(a,b){
+  if(!a.equip||!b.equip||a.equip==="none"||b.equip==="none"||!EQUIPS[a.equip]||!EQUIPS[b.equip])
+    return "どちらかが持ち物を持っていないため、奇術は失敗した。";
+  if(EQUIPS[a.equip].unremovable||EQUIPS[b.equip].unremovable||a.itemBound||b.itemBound)
+    return "持ち物が持ち主から離れないため、奇術は失敗した。";
+  return null;
+}
 /* ================= abilities =================
    持ち物が「常時の数値補正」なのに対し、特性は
    状況・登場・交代・状態異常・確率 といったルール側に干渉する。 */
@@ -3891,7 +3899,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
@@ -4348,7 +4356,7 @@ function makeUnit(b, side){
   const s = spec(b.id);
   const eq = b.equip;
   return {
-    side, sp:s, id:b.id, name:s.n, type:s.t, boss:!!b.boss&&!!CHALLENGES[b.id], wildAwakened:false, attackAwakened:false, windMantle:false, equip:eq,
+    side, sp:s, id:b.id, name:s.n, type:s.t, boss:!!b.boss&&!!CHALLENGES[b.id], wildAwakened:false, attackAwakened:false, windMantle:false, itemBound:false, equip:eq,
     ability: b.ability || ABIL_OF[b.id][0],
     maxhp:s.hp, hp:s.hp, en:100, maxen:100,
     baseAtk:s.atk, baseDef:s.def, baseSpAtk:s.spatk, baseSpDef:s.spdef, baseSpd:s.spd,
@@ -4667,7 +4675,7 @@ function renderCmd(){
                 : pr < 0 ? `<span class="eff late">後攻${pr}</span>` : "";
     const stab = m.p>0 && hasType(y,m.t) && e>0 ? '<span class="eff st">一致</span>' : "";
     const tag = prTag + stab + (
-                isStatusMove(m) && fxNullified(m, f) ? '<span class="eff no">効果なし</span>'
+                isStatusMove(m) && fxNullified(m, f, y) ? '<span class="eff no">効果なし</span>'
               : m.p>0 && e===0 ? '<span class="eff no">効果なし</span>'
               : m.p>0 && e>1   ? `<span class="eff up">ばつぐん ×${e}</span>`
               : m.p>0 && e<1   ? `<span class="eff dn">いまひとつ ×${e}</span>` : "");
@@ -5206,9 +5214,8 @@ function aiChoose(){
     } else if(m.fx === "perish"){
       v = f.perish ? 3 : 70;
     } else if(m.fx === "swapitem"){
-      if(abilOff(f)) v = 140;                                   // 仮面を押し付けたい
-      else if(f.equip === "none" && y.equip !== "none") v = 75;
-      else if(y.equip === "none" && f.equip !== "none") v = 5;
+      if(itemSwapFailure(f,y))v=0;
+      else if(abilOff(f)) v = 140;
       else v = 40;
     } else if(m.fx === "encore"){
       v = (!y.lastMove || y.encore) ? 3 : (isStatusMove(MOVES[y.lastMove]) ? 130 : 55);
@@ -5436,7 +5443,8 @@ function inflict(u, st, source=null){
 }
 
 /* 変化技の効果が相手に通らないか（コマンドの「効果なし」表示にも使う） */
-function fxNullified(m, target){
+function fxNullified(m, target, source=null){
+  if(m.fx==="swapitem"&&source)return !!itemSwapFailure(source,target);
   if(m.fx === "burnsure") return target.sub > 0 || hasType(target,"炎") || !!target.status || !!target.pendingStatus;
   if(m.fx === "seedfx")   return target.sub > 0 || hasType(target,"草") || target.seedTurns > 0;
   if(m.fx === "accdown")  return target.sub > 0;
@@ -5745,7 +5753,8 @@ async function doMove(u, target, key, canFlinch=true){
       say(any ? "滅びの唄が響いた！ このターン終了時から3のカウントが始まる。" : "しかし すでに唄は響いている。");
     }
     if(m.fx === "swapitem"){
-      if(u.equip === "none" && target.equip === "none") say("しかし 交換するものがなかった。");
+      const failure=itemSwapFailure(u,target);
+      if(failure)say("しかし "+failure);
       else {
         const mine = u.equip, theirs = target.equip;
         u.equip = theirs; target.equip = mine;
@@ -6233,7 +6242,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "sarandi-sandstorm-v15";
+const BATTLE_RULES_VERSION = "item-swap-v16";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});

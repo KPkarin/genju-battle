@@ -115,7 +115,7 @@ await run(`(async()=>{
   await doMove(a,d,mode==='miss'?'inferno':'flame');
   assert.equal(d.rank.spatk,mode==='cap'?6:mode==='normal'?1:0,mode+' fire special boost');
  }
- [a,d]=setup();a.equip='mask';d.ability='steamtank';d.type=['炎','水'];await doMove(a,d,'swap');assert.equal(d.equip,'mask');assert.equal(showerFraction(d),1/8);
+ [a,d]=setup();a.equip='mask';d.equip='belt';d.ability='steamtank';d.type=['炎','水'];await doMove(a,d,'swap');assert.equal(d.equip,'mask');assert.equal(showerFraction(d),1/8);
  party=randBuild();startChallenge('yudachou');assert.equal(B.foe.length,1);assert.equal(FOE().id,'yudachou');assert.equal(B.weather,null);assert.equal(challengeMode,'yudachou');assert.equal(SPECIES.length,20);
  rng=()=>.5;assert.equal(aiChoose().key,'unwantedshower','boss establishes the weather combo');
  B.weather={kind:'shower',turns:3};assert.notEqual(aiChoose().key,'unwantedshower','boss attacks while rain is active');

@@ -20,6 +20,7 @@
 
 ## ドキュメント
 
+- [奇術の交換条件](docs/item-swap.md)
 - [サランディ・砂嵐・風纏・爆発](docs/sarandi.md)
 - [ボスのHPと道連れ・滅びの唄](docs/boss-endurance.md)
 - [ユダチョウ・スチームタンク・夕立](docs/yudachou.md)
