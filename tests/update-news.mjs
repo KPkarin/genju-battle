@@ -125,7 +125,7 @@ const second=world(store);assert.equal(second.run('GameUI.kind'),null,'seen late
 second.click('btnOpenNews');assert.equal(second.run('GameUI.kind'),'news','manual history always available');
 second.click('btnNewsDone');second.run('setSeed(12345)');const seed=second.run('_seed'),party=second.run('JSON.stringify(party)');
 second.click('btnOpenNews');second.click('btnNewsDone');assert.equal(second.run('_seed'),seed);assert.equal(second.run('JSON.stringify(party)'),party);
-const nextSource=source.replaceAll('news-20261110-03','test-next-release');
+const nextSource=source.replaceAll(latest,'test-next-release');
 const next=world(store,{gameSource:nextSource});assert.equal(next.run('GameUI.kind'),'news','new version opens once');
 assert.equal(world(store,{gameSource:nextSource}).run('GameUI.kind'),null,'new version then stays closed');
 for(const value of ['not-json','{}','null','[1,null]']){

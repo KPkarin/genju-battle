@@ -560,6 +560,7 @@ canvas.substitute-actor[hidden]{display:none!important}
 .contact-badge{display:inline-block;font:9px/1.4 var(--gothic);border:1px solid #506c75;border-radius:3px;padding:0 3px;color:#bbd0d3;white-space:nowrap}.contact-badge.touch{color:#eac699;border-color:#80634c}.battle-active .cmd .contact-badge{font-size:8px}
 
 .news-entry{border:1px solid #3f5962;border-radius:7px;background:#132a34;margin:0 0 12px;overflow:hidden}.news-heading{display:flex;align-items:center;flex-wrap:wrap;gap:7px 12px;padding:14px;color:#eddfbf;line-height:1.6}.news-heading time{font:11px var(--mono);color:#a5bec6}.news-heading strong{font-size:15px}.news-latest{font-size:10px;color:#edd19b;border:1px solid #88744e;border-radius:3px;padding:1px 5px}.news-items{padding:0 20px 14px 33px;margin:0;color:#c9d8d8;font-size:13px;line-height:1.9}.news-items li+li{margin-top:7px}.news-entry summary{cursor:pointer;list-style:revert}.news-entry summary::before{content:"▸";color:#b8a77b}.news-entry[open] summary::before{content:"▾"}.news-storage-note{font-size:10px;margin:14px 0 0}.news-footer{display:flex;justify-content:flex-end;gap:8px}.news-footer button{min-height:44px}.news-footer .primary{min-width:96px}
+.rain-overlay{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(#46698130,#16394b18),repeating-linear-gradient(110deg,transparent 0 25px,#b8e7ef50 26px 27px,transparent 28px 51px);background-size:100% 100%,83px 67px;animation:shower-fall .65s linear infinite}.rain-overlay[hidden]{display:none}@keyframes shower-fall{to{background-position:0 0,-24px 67px}}@media(prefers-reduced-motion:reduce){.rain-overlay{animation:none}}
 </style>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -597,6 +598,7 @@ canvas.substitute-actor[hidden]{display:none!important}
   <div class="battle-topbar"><div><span class="section-kicker">MOONLIT ARENA</span><h2>月下の闘技場 <small id="battleMode">コンピューター対戦</small></h2></div><div class="turn-badge"><span>TURN</span><b id="battleTurn">01</b></div></div>
   <div class="battle-layout"><section class="battle-arena" aria-label="戦場">  <div class="stage" id="stage">
     <canvas id="fieldCanvas" width="384" height="216" aria-hidden="true"></canvas>
+    <div id="weatherOverlay" class="rain-overlay" aria-hidden="true" hidden></div>
     <canvas class="actor foe" id="spFoe" width="32" height="32"></canvas>
     <canvas class="actor you" id="spYou" width="32" height="32"></canvas>
     <canvas class="actor foe substitute-actor" id="decoyFoe" width="32" height="32" hidden></canvas>
@@ -854,6 +856,8 @@ function forcedAction(u, action){
   return action;
 }
 Object.defineProperties(MOVES,{
+ steamchoice:{value:{key:"steamchoice",contact:false,rush:false,category:"special",n:"スチームチョイス",t:"水",p:100,acc:85,en:45,fx:"burn",pr:.5,d:"相性が有利なら火炎属性に変化。50%でやけど"}},
+ unwantedshower:{value:{key:"unwantedshower",contact:false,rush:false,category:"status",n:"望まぬ夕立",t:"水",p:0,acc:null,en:35,fx:"shower",d:"5ターン夕立。流水の相性に応じて毎ターンHPが変動"}},
  wildrock:{value:{key:"wildrock",contact:true,rush:true,category:"physical",n:"ワイルドロック",t:"岩",p:130,acc:90,en:50,fx:"recoil",recoil:.5,d:"与ダメージの半分の反動を受ける"}},
  wildreturn:{value:{key:"wildreturn",contact:false,rush:false,category:"status",n:"野生回帰",t:"野",p:0,acc:null,en:35,fx:"wildreturn",d:"次の攻撃まで野生の相性を激化。次の野生技の威力1.5倍"}}
 });
@@ -886,6 +890,7 @@ const EQUIPS = {
    持ち物が「常時の数値補正」なのに対し、特性は
    状況・登場・交代・状態異常・確率 といったルール側に干渉する。 */
 const ABILITIES = {
+  steamtank:{n:"スチームタンク",d:"流水の攻撃ダメージを回復に変える。火炎攻撃を本体に受けると特攻+1。夕立の流水ダメージ成分も回復に変える"},
   rockhead:{n:"いしあたま",d:"突進技の威力が1.5倍になり、その技の反動ダメージを受けない"},
   pressure:{n:"威圧", d:"場に出たとき、相手の物理攻撃-1"},
   grit    :{n:"不屈", d:"HPが1/3以下のあいだ 物理攻撃1.5倍"},
@@ -2834,6 +2839,8 @@ Object.assign(BACK_SPRITES,{"gako": {"pal": {"o": "#262b35", "s": "#734735", "b"
 /* ================= monsters ================= */
 SPRITES.kefarock={"pal":{"o":"#181a29","b":"#4c435b","s":"#302b40","l":"#8a7994","r":"#b84458","h":"#e7d9ae","d":"#a99b7e","w":"#fff0cf","e":"#ffcf69","g":"#687e72"},"px":["................................",".................ro.ro..........","...............roro.ro..........","...............rorohro..........",".............rorooohoohdd.......",".............rooowwwwhhhddo.....",".............rowwwwwwwhhhldo....","............roowwwwwwwwhhlddo...","............rohwwwwwwwhhhlddo...","............rohhwwwwwhhhhdddd...","...........ooohhhhwhhhhhhdddoo..","............odddddhhhhhoeoddo...","............ooddhhhhhhhoooddoo..","............oooddddhdddodddddo..",".............ooodddddddodddddo..",".............ooooooodoooowwwoo..","...........ohsssoooooooooh......","..........hoosssodddodddooho....",".........obbbossoodddddoobbo....",".........obbborrlooodooobbboo...","........oobbborrlgggoggobbbo....",".........obbborrlggggggooohhh...",".....ggggobbborrlggggggggohhh...","..ggggggggddddrrlggggggggso.....","..ooooooooddddrrlggggggggso.....","...........ossrrlgggggggso......","...........oosrrlsgggggsoo......","............oossssssgssooo......","...........oddoooosoooohhhho....","...........oddddddo.ohhhhhho....","...........oooooooo.oooooooo....","................................"]};
 BACK_SPRITES.kefarock={"pal":{"o":"#181a29","b":"#4c435b","s":"#302b40","l":"#8a7994","r":"#b84458","h":"#e7d9ae","d":"#a99b7e","w":"#fff0cf","e":"#ffcf69","g":"#687e72"},"px":["................................",".................ro.ro..........","...............roro.ro..........","...............rorohro..........",".............rorooohoohdd.......",".............rooowwwwhhhddo.....",".............rowwwwwwwhhhldo....","............roowwwwwwwwhhlddo...","............rohwwwwwwwhhhlddo...","............rohhwwwwwhhhhdddd...","...........ooohhhhwhhhhhhdddoo..","............odddddhddhhhddddo...","............ooddhhhddhhddddoo...","............ooodddgddgddddooo...",".............oooddggggdddooo....",".............oooooggggooooo.....","...........ohsssooggggoooh......","..........hoosssodddodddooho....",".........obbbossoodddddoobbo....",".........obbborrlooodooobbboo...","........oobbborrlgggoggobbbo....",".........obbborrlggggggooohhh...",".....ggggobbborrlggggggggohhh...","..ggggggggddddrrlggggggggso.....","..ooooooooddddrrlggggggggso.....","...........ossrrlgggggggso......","...........oosrrlsgggggsoo......","............oossssssgssooo......","...........oddoooosoooohhhho....","...........oddddddo.ohhhhhho....","...........oooooooo.oooooooo....","................................"]};
+SPRITES.yudachou={"pal":{"o":"#172433","b":"#305c61","s":"#24434e","l":"#55848a","v":"#829e99","w":"#f5e8c8","c":"#b6d7cf","d":"#779fac","n":"#c46657","p":"#eea17b","f":"#e67e3c","h":"#ffd28a","e":"#ffc756"},"px":["................................",".............w..w...............","...........wwwwwwww.............","...........dcwdcwdd.............","..........opdddddd..............",".........oonodnndo..............",".......offfneonnno..............",".......oooonnnnnoo..............","..........oonnnoo...............","...........ooooo................","..........opnno.www..www........","..........opnnwwwwwwwwwwww......","........wwwpnnddcwwddcwwdwww....","......wwwwwwwnoddddddddwwwwwww..","......ddcwwddnobdddbbddddcwwdd..",".......dddddnnoblwwwblbbddddd...","........dddpnnswwwwwwwsbsdddo...",".......oblopnswwwwwwwwwslbbbbo..",".....d.obbopnsswwwwcwcssbbblbo..",".....c.obsbbssssfffffssssbbsbo..",".......obblbbbsssssssssbblbbbo..",".......obblbbbblbssslbbbblbbbo..","........oshnhfnsnnsnnsnfhnnso...",".........ofnffnnnnfnnnnffnnd....","..........oonnnnfnnnnfnnnooc....","........d...ooosssssssoooo......","........c.....oooooooo.ovo......","..............ovo......ovo......","..............lll......lll......",".............oooowo...oooowo....","................................","................................"]};
+BACK_SPRITES.yudachou={"pal":{"o":"#172433","b":"#305c61","s":"#24434e","l":"#55848a","v":"#829e99","w":"#f5e8c8","c":"#b6d7cf","d":"#779fac","n":"#c46657","p":"#eea17b","f":"#e67e3c","h":"#ffd28a","e":"#ffc756"},"px":["................................",".......................w..w.....",".....................wwwwwwww...",".....................dcwdcwdd...","....................opdddddd....","...................ooppdnndo....","...................onpppnoffo...","...................oonnnnoooo...","....................oonnnoo.....",".....................ooooo......","................www.owwwo.......","..............wwwwwwwwwwww......","........www...ddcwwddcwwdwww....","......wwwwwwwooddddddddwwwwwww..","......ddcwwdcbbcddcbocdddcwwdd..",".......ddddcwccwccwccwcpddddd...","........ddccccccccccccccodddo...",".......oblbccccccccccccpobbbbo..",".....d.obbbbcbbcblcbocnpobblbo..",".....c.obsbbsbbsblsbbslbsbbsbo..",".......obblbbbblbbbblbbbblbbbo..",".......obblbbbblbbbblbbbblbbbo..","........osnnsfhsnnhnnsnhsnnso...",".........onnnffnnnfnnnnfnnnd....","..........oonnnnfnnnnfnnnooc....","........d...ooosssssssoooo......","........c.....oooooooo.ovo......","..............ovo......ovo......","..............lll......lll......",".............oooowo...oooowo....","................................","................................"]};
 const SPECIES = [
   {"id":"homura","n":"ワホームラ","t":"炎","hp":120,"atk":105,"spatk":85,"def":70,"spdef":70,"spd":95,"aff":"岩","role":"物理アタッカー","roleDesc":"炎牙と岩技で攻める。不屈と気合いで物理火力を伸ばす。"},
   {"id":"shiogame","n":"ミズカガメ","t":"水","hp":160,"atk":65,"spatk":75,"def":115,"spdef":95,"spd":45,"aff":"岩","role":"物理受け","roleDesc":"高いHPと物理防御で受け、白霧や渦潮で相手の攻めを抑える。"},
@@ -2871,7 +2878,14 @@ const ABIL_OF = {
 };
 const KEFAROCK = {id:"kefarock",n:"ケファロック",t:["岩","野"],hp:230,atk:140,def:135,spatk:50,spdef:85,spd:50,aff:"野",role:"チャレンジボス"};
 ABIL_OF.kefarock=["rockhead"];
-const spec = id => id==="kefarock"?KEFAROCK:SPECIES.find(s => s.id === id);
+const YUDACHOU={id:"yudachou",n:"ユダチョウ",t:["炎","水"],hp:210,atk:45,def:80,spatk:145,spdef:145,spd:65,aff:"水",role:"チャレンジボス"};
+ABIL_OF.yudachou=["steamtank"];
+const CHALLENGES={
+ kefarock:{species:KEFAROCK,title:"轟頭のケファロック",moves:["wildrock","wildreturn","wildfang","tackle"],ability:"rockhead",description:"分厚い石の頭蓋を打ち鳴らす、荒野のヘッドバンガー。",hint:"弱点は天空。野生回帰中は、野生側の弱点と耐性も強まります。"},
+ yudachou:{species:YUDACHOU,title:"湯雲のユダチョウ",moves:["steamchoice","unwantedshower","flame","guard"],ability:"steamtank",description:"湯気の羽毛から熱い雨を降らせる、気難しい大鳥。",hint:"弱点は雷電。夕立と特性がそろうと、毎ターン最大HPの3/8を回復します。"}
+};
+let selectedChallenge="kefarock";
+const spec = id => CHALLENGES[id]?.species||SPECIES.find(s => s.id === id);
 
 /* ステータスバーの正規化。実際の最小〜最大を 18%〜100% に伸ばして差を見せる */
 const STAT_RANGE = ["hp","atk","def","spatk","spdef","spd"].reduce((o,k)=>{
@@ -2920,6 +2934,7 @@ const IDLE_PROFILES = {
   "oborogi":{"period":2400,"front":{"bodyY":18,"footY":27,"appendages":[{"part":"spirit-tail-plume","rect":[2,12,9,24],"delta":[1,0]}]},"back":{"bodyY":17,"footY":27,"appendages":[{"part":"spirit-tail-plume","rect":[2,13,10,26],"delta":[1,0]}]}},
 };
 IDLE_PROFILES.kefarock={period:1900,front:{bodyY:15,footY:28,appendages:[]},back:{bodyY:15,footY:28,appendages:[]}};
+IDLE_PROFILES.yudachou={period:2300,front:{bodyY:16,footY:27,appendages:[{rect:[24,11,29,15],delta:[1,0]}]},back:{bodyY:16,footY:27,appendages:[{rect:[24,11,29,15],delta:[1,0]}]}};
 const idleFrameCache = new Map();
 function getIdleFrame(id, view="front", phase=0){
   const base = (view === "back" ? BACK_SPRITES : SPRITES)[id];
@@ -3865,7 +3880,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
@@ -3896,7 +3911,7 @@ const GameUI = {
   ready:false,kind:null,index:0,tab:"moves",speciesId:null,opener:null,resource:null,oldOverflow:"",
   resources:{sound:"resourceSound",guide:"resourceGuide",saves:"resourceSaves",lobby:"resourceLobby",team:"teamPanel"},
   newsLatestOnly:false,
-  titles:{challenge:"チャレンジ：轟頭のケファロック",news:"お知らせ",sound:"音の設定",guide:"幻獣闘記の手引き",saves:"編成の保存",lobby:"友だちと対戦",team:"戦況の詳細",monsters:"幻獣",unit:"幻獣の状態",battleMenu:"戦闘メニュー",battleLog:"バトルログ",editor:"幻獣の設定",inspect:"幻獣図鑑",leave:"対戦を終了しますか？"},
+  titles:{challenge:"チャレンジ",news:"お知らせ",sound:"音の設定",guide:"幻獣闘記の手引き",saves:"編成の保存",lobby:"友だちと対戦",team:"戦況の詳細",monsters:"幻獣",unit:"幻獣の状態",battleMenu:"戦闘メニュー",battleLog:"バトルログ",editor:"幻獣の設定",inspect:"幻獣図鑑",leave:"対戦を終了しますか？"},
   init(){
     this.ready=true;
     for(const [id,kind] of [["btnOpenNews","news"],["btnOpenSound","sound"],["btnOpenGuide","guide"],["btnOpenSaves","saves"],["btnOpenLobby","lobby"],["btnBattleTeam","team"],["btnBattleGuide","guide"],["btnLeaveBattle","leave"],["btnBattleMonsters","monsters"],["battleQuickMenu","battleMenu"],["btnBattleLog","battleLog"]]){
@@ -4014,14 +4029,23 @@ const GameUI = {
   },
   renderChallenge(){
     const body=document.getElementById("modalBody");body.innerHTML="";
-    body.appendChild(el("div","unit-detail-hero",'<canvas id="bossPreview" width="32" height="32" style="width:160px;height:160px;image-rendering:pixelated"></canvas><div><h2>ケファロック</h2>'+chip(KEFAROCK.t)+'<p>分厚い石の頭蓋を打ち鳴らす、荒野のヘッドバンガー。</p></div>'));
-    drawSprite(document.getElementById("bossPreview"),"kefarock");
-    body.appendChild(el("p","hint","3体で挑むボス戦。弱点は天空。勝利報酬はありません。"));
-    body.appendChild(el("div","statbox",this.stats(KEFAROCK)));
-    body.appendChild(el("p","hint","特性：いしあたま — 突進技の威力1.5倍・突進技の反動なし。"));
-    for(const key of ["wildrock","wildreturn","wildfang","tackle"]){const m=MOVES[key];body.appendChild(el("div","card",`<b>${chip(m.t)} ${m.n}</b><p>${m.p?"威力 "+m.p+"　":""}命中 ${m.acc||"—"}　気力 ${m.en}</p><p>${m.d||""}</p>`));}
-    body.appendChild(el("p","hint","野生回帰：野生の攻撃相性と、受ける際の野生側の相性を2倍→4倍・半減→¼倍にします。次の攻撃を試みると解除され、野生技なら威力も1.5倍になります。"));
-    const go=el("button","primary","挑戦する");go.disabled=party.length!==3||party.some(u=>u.moves.length!==4);go.onclick=()=>{void BattleMusic.unlock();startChallenge();};body.appendChild(go);
+    const tabs=el("div","row");
+    for(const [id,data] of Object.entries(CHALLENGES)){
+      const tab=el("button",id===selectedChallenge?"primary":"ghost",data.species.n);
+      tab.id="btnChallenge_"+id;
+      tab.setAttribute?.("aria-pressed",String(id===selectedChallenge));
+      tab.onclick=()=>{selectedChallenge=id;this.renderChallenge();};tabs.appendChild(tab);
+    }body.appendChild(tabs);
+    const data=CHALLENGES[selectedChallenge],boss=data.species;
+    body.appendChild(el("div","unit-detail-hero",'<canvas id="bossPreview" width="32" height="32" style="width:160px;height:160px;image-rendering:pixelated"></canvas><div><h2>'+boss.n+'</h2>'+chip(boss.t)+'<p>'+data.description+'</p></div>'));
+    drawSprite(document.getElementById("bossPreview"),boss.id);
+    body.appendChild(el("p","hint","幻獣3体で挑戦。"+data.hint));
+    body.appendChild(el("div","statbox",this.stats(boss)));
+    const ability=ABILITIES[data.ability];body.appendChild(el("p","hint","特性："+ability.n+" — "+ability.d));
+    for(const key of data.moves){const m=MOVES[key];body.appendChild(el("div","card",`<b>${chip(m.t)} ${m.n} ${moveBadge(m)}</b><p>${m.p?"威力 "+m.p+"　":""}命中 ${m.acc||"—"}　気力 ${m.en}</p><p>${m.d||""}</p>`));}
+    if(boss.id==="yudachou")body.appendChild(el("p","hint","夕立は属性ごとの影響を合算します。流水は1/8回復、それ以外は流水相性×1/8のダメージ。スチームタンクはダメージ成分も回復に変えます。"));
+    else body.appendChild(el("p","hint","野生回帰は、次の攻撃まで野生の攻守の相性を激化。次の攻撃が野生技なら威力も1.5倍になります。"));
+    const go=el("button","primary","挑戦する");go.disabled=party.length!==3||party.some(u=>u.moves.length!==4);go.onclick=()=>{void BattleMusic.unlock();startChallenge(selectedChallenge);};body.appendChild(go);
     if(go.disabled)body.appendChild(el("p","hint","幻獣3体に、それぞれ技を4つ設定してください。"));
   },
   renderNews(){
@@ -4427,7 +4451,7 @@ function beginBattle(youTeam, foeTeam, seed, meSide){
     you: youTeam.map(b=>makeUnit(b,"you")),
     foe: foeTeam.map(b=>makeUnit(b,"foe")),
     hazard: {you:{rock:false, sand:false}, foe:{rock:false, sand:false}},
-    reverseTurns:0,
+    reverseTurns:0, weather:null,
     yi:0, fi:0, turn:1, over:false, busy:false, pickSeq:0
   };
   StatusEffects.clear();
@@ -4442,12 +4466,13 @@ function beginBattle(youTeam, foeTeam, seed, meSide){
 }
 
 let challengeMode=false;
-function startChallenge(){
-  if(party.length!==3||party.some(u=>u.moves.length!==4))return;
-  GameUI.close();NET.on=false;challengeMode=true;
-  foeParty=[{id:"kefarock",moves:["wildrock","wildreturn","wildfang","tackle"],equip:"none",ability:"rockhead"}];
+function startChallenge(id="kefarock"){
+  if(party.length!==3||party.some(u=>u.moves.length!==4)||!CHALLENGES[id])return;
+  const data=CHALLENGES[id];selectedChallenge=id;
+  GameUI.close();NET.on=false;challengeMode=id;
+  foeParty=[{id,moves:data.moves.slice(),equip:"none",ability:data.ability}];
   beginBattle(party,foeParty,(Date.now()^0x9e3779b9)>>>0,"you");
-  say('<span class="sys">── チャレンジ：轟頭のケファロック ──</span>');
+  say(`<span class="sys">── チャレンジ：${data.title} ──</span>`);
 }
 function startBattle(){
   challengeMode=false;
@@ -4523,7 +4548,8 @@ function paint(enter){
     });
   }
   const fieldState=$("#fieldState");
-  if(fieldState){fieldState.hidden=!(B.reverseTurns>0);fieldState.textContent=B.reverseTurns>0?`アベコベルーム：相性反転中（残り${B.reverseTurns}ターン）`:"";}
+  if(fieldState){const states=[];if(B.reverseTurns>0)states.push(`アベコベルーム：相性反転中（残り${B.reverseTurns}ターン）`);if(B.weather?.kind==="shower")states.push(`夕立（残り${B.weather.turns}ターン）`);fieldState.hidden=!states.length;fieldState.textContent=states.join(" ／ ");}
+  const rain=$("#weatherOverlay");if(rain)rain.hidden=B.weather?.kind!=="shower";
   $("#youName").innerHTML = `${y.name} ${chip(y.type)}${y.sub>0?'<span class="sub-marker">身代わり</span>':""}`;
   $("#foeName").innerHTML = `<span class="pfx">相手の</span>${f.name} ${chip(f.type)}${f.sub>0?'<span class="sub-marker">身代わり</span>':""}`;
   $("#youTags").innerHTML = tags(y);
@@ -4618,7 +4644,7 @@ function renderCmd(){
   }
   let anyMove = false;
   y.moves.forEach(k=>{
-    const m = MOVES[k];
+    const m = effectiveMove(MOVES[k],y,f);
     const e = m.p>0 ? attackEff(m.t, f,y) : 1;
     const pr = m.pri || 0;
     const prTag = pr > 0 ? `<span class="eff pri">先制+${pr}</span>`
@@ -4660,8 +4686,14 @@ function renderCmd(){
 }
 function lockCmd(){ B.busy=true; renderCmd(); }
 
+/* 属性を選ぶ技は、相性が同じ場合は元の流水属性を使う。特性は選択理由にしない。 */
+function effectiveMove(m,att,def){
+  if(m.key!=="steamchoice")return m;
+  return {...m,t:attackEff("炎",def,att)>attackEff("水",def,att)?"炎":"水"};
+}
 /* ---- damage ---- */
 function damage(att, def, m){
+  m=effectiveMove(m,att,def);
   const power=m.p*(m.rush&&has(att,"rockhead")?1.5:1)*(m.t==="野"&&(att.wildAwakened||att.attackAwakened)?1.5:1);
   let base = Math.floor(Math.floor(22 * power * moveAttack(att,m) / moveDefense(def,m)) / 55) + 2;
   let e = attackEff(m.t, def, att);
@@ -4772,6 +4804,8 @@ const MOVE_MOTION_PROFILES = {
   focus:{shape:"aura",actor:"brace",scale:19,count:6,self:true},
   sand:{shape:"dust",actor:"cast",scale:14,count:18,tilt:1},
   ambush:{shape:"slash",actor:"lunge",scale:32,count:2,tilt:-1},
+  steamchoice:{shape:"steam",actor:"cast",scale:34,count:14,tilt:1},
+  unwantedshower:{shape:"shower",actor:"rise",scale:38,count:14,self:true},
   wildrock:{shape:"crack",actor:"lunge",scale:44,count:12,tilt:1},
   wildreturn:{shape:"aura",actor:"rise",scale:32,count:10,self:true},
   startle:{shape:"voice",actor:"recoil",scale:27,count:3,tilt:1},
@@ -4830,12 +4864,12 @@ const MOVE_MOTION_COLORS = {
   空:["#9ddce9","#f0fbff","#5c9cc2"],幻:["#e99ddd","#ffe1f6","#9967c8"],影:["#b28aea","#e5d5ff","#654298"],無:["#e9e5d8","#ffffff","#9ba8c9"]
 };
 /* Pure renderer: progress 0..1, from/to {x,y} on a 384x216 pixel canvas. */
-function drawMoveMotion(ctx,key,progress,from,to,kind="attack"){
+function drawMoveMotion(ctx,key,progress,from,to,kind="attack",attackType=null){
   const p=MOVE_MOTION_PROFILES[key],m=MOVES[key];
   if(!p || !m || !Number.isFinite(progress)) return;
   const t=Math.max(0,Math.min(1,progress));
   if(t>=1) return;
-  const colors=MOVE_MOTION_COLORS[m.t] || MOVE_MOTION_COLORS.無;
+  const colors=MOVE_MOTION_COLORS[attackType||m.t] || MOVE_MOTION_COLORS.無;
   const dir=to.x>=from.x?1:-1,side=p.tilt||1;
   const aim=kind==="miss"?{x:to.x+dir*43,y:to.y-37}:to;
   const center=p.self?from:aim;
@@ -4860,6 +4894,22 @@ function drawMoveMotion(ctx,key,progress,from,to,kind="attack"){
   const pos=f=>({x:from.x+(aim.x-from.x)*f,y:from.y+(aim.y-from.y)*f});
   const moving=pos(travel),cx=center.x,cy=center.y;
   switch(p.shape){
+    case "steam":{
+      for(let j=0;j<12;j++){
+        const q=pos(Math.max(0,travel-j*.035)),sway=Math.sin(j*2+t*12)*size*.3;
+        px(q.x, q.y+sway,5,4,j%3);
+        ring(q.x-dir*7,q.y+sway-6,4+fade*5,3,1,t*3);
+      }
+      if(hit)burst(cx,cy,9,size*fade);break;
+    }
+    case "shower":{
+      for(let j=0;j<22;j++){
+        const x=22+(j*47)%340,y=22+((t*170+j*29)%160);
+        line(x,y,x-4,y+9,2,j%2);
+      }
+      ring(from.x,from.y,size*fade,size*.35,1,t);break;
+    }
+
     case "impact":
       for(let j=0;j<5;j++){const q=pos(Math.max(0,travel-j*.06));line(q.x-dir*12,q.y+9+j*3,q.x-dir*4,q.y+5+j*3,2,j%3);}
       if(hit)burst(cx,cy,p.count,size*fade);break;
@@ -5008,7 +5058,7 @@ const MoveMotion = {
     const reduced=!!idleMotionPreference?.matches;
     if(!reduced)sprite(u.side).classList.add("move-"+profile.actor);
     const active={key,from,to,kind,started:visualNow(),duration:620};this.active=active;
-    const paint=progress=>{ctx.clearRect(0,0,384,216);drawMoveMotion(ctx,key,progress,from,to,kind);};
+    const paint=progress=>{ctx.clearRect(0,0,384,216);drawMoveMotion(ctx,key,progress,from,to,kind,m.t);};
     if(reduced || typeof requestAnimationFrame!=="function"){
       paint(.48);this.timer=setTimeout(()=>this.stop(),350);return;
     }
@@ -5054,7 +5104,7 @@ function aiChoose(){
   const lowHp = f.hp / f.maxhp;
   let best = null, bestV = -1;
   usable.forEach(k=>{
-    const m = MOVES[k];
+    const m = effectiveMove(MOVES[k],f,y);
     let v;
     if(m.p > 0){
       v = m.p * expectedHits(m) * moveAttack(f,m) / moveDefense(y,m) * attackEff(m.t, y,f) * (m.acc||100)/100;
@@ -5067,6 +5117,8 @@ function aiChoose(){
       if(m.t==="野"&&f.wildAwakened)v*=1.5;
       if(hasType(f,m.t)) v *= 1.5;               // タイプ一致補正
       if(m.en > f.en * 0.7) v *= 0.8;            // 気力を使い切るのは渋る
+    } else if(m.fx === "shower"){
+      v=B.weather?.kind==="shower"?0:showerFraction(f)<0?450:30;
     } else if(m.fx === "wildreturn"){
       v=f.wildAwakened?0:105;
     } else if(m.fx === "heal"){
@@ -5356,7 +5408,7 @@ function fxNullified(m, target){
 
 function statusEffectSnapshot(u,target){
   const fields=["hp","en","status","pendingStatus","rank","sub","restTurns","guarding","guardStreak","bond","perish","equip","encore","disabled","tauntTurns","bindTurns","seedTurns","wildAwakened"];
-  return JSON.stringify([[u,target].map(x=>fields.map(k=>x[k])),B.hazard,B.reverseTurns]);
+  return JSON.stringify([[u,target].map(x=>fields.map(k=>x[k])),B.hazard,B.reverseTurns,B.weather]);
 }
 
 async function doMove(u, target, key, canFlinch=true){
@@ -5403,7 +5455,7 @@ async function doMove(u, target, key, canFlinch=true){
     say(`${nm(u)} は反響に引きずられた！`);
     key = u.encore.key;
   }
-  const m = MOVES[key];
+  const m = effectiveMove(MOVES[key],u,target);
 
   if(u.tauntTurns > 0 && isStatusMove(m)){
     say(`${nm(u)} は挑発に気を取られ ${m.n} を出せなかった！`);
@@ -5439,6 +5491,7 @@ async function doMove(u, target, key, canFlinch=true){
     u.attackAwakened=!!u.wildAwakened;u.wildAwakened=false;
   }
   say(`${nm(u)} の ${m.n}！`);
+  if(key==="steamchoice"&&m.t==="炎")say("スチームチョイスが火炎属性に変わった！");
   await sleep(360);
   if(B!==battle || battle.over)return;
 
@@ -5510,6 +5563,12 @@ async function doMove(u, target, key, canFlinch=true){
       const r=damage(u,target,m);
       if(r.e===0){say(`${nm(target)} には 効果がないようだ…`);paint();await sleep(560);
   if(B!==battle || battle.over)return;return;}
+      if(m.t==="水"&&hasVs(target,"steamtank",u)){
+        const healed=Math.min(r.dmg,target.maxhp-target.hp);target.hp+=healed;
+        popDmg(target.side,"+"+healed,"#63c07d");
+        say(`${nm(target)} はスチームタンクで流水を取り込み、回復した (+${healed})`);
+        paint();await sleep(560);return;
+      }
       landed++;
       const shielded=target.sub>0;
       let dealt;
@@ -5547,6 +5606,9 @@ async function doMove(u, target, key, canFlinch=true){
         if(indirect(u,recoil,"反動")){flash(u.side);popDmg(u.side,"-"+recoil,"#ff9450");say(`${nm(u)} は反動を受けた (-${recoil})`);}
       }
       if(!shielded)applyContactThorns(u,target,m);
+      if(!shielded&&dealt>0&&target.hp>0&&m.t==="炎"&&hasVs(target,"steamtank",u)){
+        if(target.rank.spatk<6){target.rank.spatk++;say(`${nm(target)} のスチームタンクが熱を蓄えた！ 特攻が上がった！`);}
+      }
       // Only status ailments, rank drops, and new parasitic seeds are stopped by a shield.
       // A shield broken by this hit still blocks this hit's status/rank additions.
       if(!shielded){
@@ -5600,6 +5662,9 @@ async function doMove(u, target, key, canFlinch=true){
       else if(u.hp <= cost) say("しかし 体力が足りなかった。");
       else { hurt(u, cost); u.sub = cost; popDmg(u.side,"-"+cost,"#a8b0cc");
         say(`${nm(u)} は身代わりを立てた！（耐久 ${cost}）`); }
+    }
+    if(m.fx === "shower"){
+      B.weather={kind:"shower",turns:5};say("熱い雨が降り始めた！ 天気が夕立になった。");
     }
     if(m.fx === "wildreturn"){
       u.wildAwakened=true;
@@ -5884,6 +5949,26 @@ function siphon(victim, host){
   return msg;
 }
 
+function showerFraction(u){
+  return unitTypes(u).reduce((sum,type)=>{
+    if(type==="水")return sum-1/8;
+    let multiplier=CHART["水"][type];
+    if(type==="野"&&u.wildAwakened)multiplier*=multiplier;
+    return sum+(has(u,"steamtank")?-1:1)*multiplier/8;
+  },0);
+}
+function applyShower(u){
+  if(u.dead||u.hp<=0)return;
+  const fraction=showerFraction(u);
+  if(fraction===0)return;
+  const amount=Math.max(1,Math.floor(u.maxhp*Math.abs(fraction)));
+  if(fraction<0){
+    const healed=Math.min(amount,u.maxhp-u.hp);u.hp+=healed;
+    popDmg(u.side,"+"+healed,"#63c07d");say(`${nm(u)} は${has(u,"steamtank")?"スチームタンクで":""}夕立を取り込み、回復した (+${healed})`);
+  }else if(indirect(u,amount,"夕立のダメージ")){
+    popDmg(u.side,"-"+amount,"#66b6ee");say(`${nm(u)} は夕立のダメージを受けた (-${amount})`);
+  }
+}
 async function endTurn(){
   const battle=B;
   if(!battle || battle.over)return;
@@ -5940,6 +6025,11 @@ async function endTurn(){
       if(--u.seedTurns === 0) say(`<span class="sys">${u.name} に植えられた種は枯れ落ちた。</span>`);
       shown = true;
     }
+  }
+  if(B.weather?.kind==="shower"){
+    for(const u of [YOU(),FOE()])applyShower(u);
+    if(--B.weather.turns===0){B.weather=null;say("夕立がやみ、空が晴れた。");}
+    shown=true;
   }
   // Delayed ailments arrive after ALL ordinary end-of-turn damage/healing.
   // Their burn chip and action penalties therefore begin on the following turn.
@@ -6054,7 +6144,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "kefarock-v12";
+const BATTLE_RULES_VERSION = "yudachou-weather-v13";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});
@@ -6167,7 +6257,7 @@ $("#btnClearDraft").onclick = ()=>{
   try{ localStorage.removeItem(DRAFT_KEY); }catch(e){}
   renderAll();
 };
-$("#btnAgain").onclick = ()=>{ void BattleMusic.unlock(); if(challengeMode)startChallenge();else startBattle(); };
+$("#btnAgain").onclick = ()=>{ void BattleMusic.unlock(); if(challengeMode)startChallenge(challengeMode);else startBattle(); };
 $("#btnBack").onclick  = ()=>{ NET.reset(); ME = "you"; show("scBuild"); renderAll(); };
 
 drawField(document.getElementById("fieldCanvas"));
