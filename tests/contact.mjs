@@ -75,10 +75,10 @@ await run(`(async()=>{
   const [a,d]=setup();a.hp=500;d.equip='thorn';fixedRandom(mode==='miss'?.999:.1);fixedDamage(10);
   if(mode==='shield')d.sub=100;if(mode==='guard')d.guarding=true;
   if(mode==='miss')d.rank.eva=6;if(mode==='ghost')a.ability='ghost';
-  await doMove(a,d,'tackle');assert.equal(a.hp,500,mode+': no thorn loss');restoreRandom();
+  await doMove(a,d,'tackle');assert.equal(a.hp,mode==='ghost'?450:500,mode+': thorn protection depends on the reason');restoreRandom();
  }
  {
-  const [a,d]=setup();a.hp=500;a.dmgTaken=10;a.ability='ghost';d.equip='thorn';fixedRandom(.1);await doMove(a,d,'revenge');assert.equal(a.hp,500,'fixed contact retaliation respects indirect immunity');restoreRandom();
+  const [a,d]=setup();a.hp=500;a.dmgTaken=10;a.ability='ghost';d.equip='thorn';fixedRandom(.1);await doMove(a,d,'revenge');assert.equal(a.hp,450,'ghost no longer prevents contact thorns');restoreRandom();
  }
  for(const hp of [1000,999,500]){
   const [a,d]=setup();d.equip='charm';d.hp=hp;fixedRandom(.1);fixedDamage(2000);

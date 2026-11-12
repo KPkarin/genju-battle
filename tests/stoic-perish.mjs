@@ -49,7 +49,7 @@ function world(){
     function restoreRandom(){rng=normalRng;}
     const priorAbilities={
       homura:['grit','tempo'],youcho:['hide','ballast'],shiogame:['ballast','mirror'],soukou:['glutton','tempo'],
-      kokejyu:['regen','quick'],tsutazaru:['glutton','tempo'],raitachi:['tempo','blur'],rainen:['ballast','quick'],
+      kokejyu:['regen','quick'],tsutazaru:['glutton','spite'],raitachi:['tempo','blur'],rainen:['ballast','quick'],
       iwaushi:['hide','mirror'],saikaku:['grit','spite'],fukurou:['tempo','glutton'],yoigumo:['blur','ghost'],
       doryu:['hide','focus2'],sarou:['grit','breaker'],fuen:['blur','regen'],ungei:['pressure','heavy'],
       mubaku:['mirror','glutton'],oborogi:['blur','tempo']

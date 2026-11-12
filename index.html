@@ -562,6 +562,7 @@ canvas.substitute-actor[hidden]{display:none!important}
 .news-entry{border:1px solid #3f5962;border-radius:7px;background:#132a34;margin:0 0 12px;overflow:hidden}.news-heading{display:flex;align-items:center;flex-wrap:wrap;gap:7px 12px;padding:14px;color:#eddfbf;line-height:1.6}.news-heading time{font:11px var(--mono);color:#a5bec6}.news-heading strong{font-size:15px}.news-latest{font-size:10px;color:#edd19b;border:1px solid #88744e;border-radius:3px;padding:1px 5px}.news-items{padding:0 20px 14px 33px;margin:0;color:#c9d8d8;font-size:13px;line-height:1.9}.news-items li+li{margin-top:7px}.news-entry summary{cursor:pointer;list-style:revert}.news-entry summary::before{content:"▸";color:#b8a77b}.news-entry[open] summary::before{content:"▾"}.news-storage-note{font-size:10px;margin:14px 0 0}.news-footer{display:flex;justify-content:flex-end;gap:8px}.news-footer button{min-height:44px}.news-footer .primary{min-width:96px}
 .rain-overlay{position:absolute;inset:0;z-index:2;pointer-events:none;background:linear-gradient(#46698130,#16394b18),repeating-linear-gradient(110deg,transparent 0 25px,#b8e7ef50 26px 27px,transparent 28px 51px);background-size:100% 100%,83px 67px;animation:shower-fall .65s linear infinite}.rain-overlay[hidden]{display:none}@keyframes shower-fall{to{background-position:0 0,-24px 67px}}@media(prefers-reduced-motion:reduce){.rain-overlay{animation:none}}
 .sandstorm-overlay{background:linear-gradient(#ad875c45,#6b4b3020),repeating-linear-gradient(15deg,transparent 0 17px,#edce8e66 18px 19px,transparent 20px 41px);background-size:100% 100%,79px 53px;animation:sandstorm-drift .9s linear infinite}@keyframes sandstorm-drift{to{background-position:0 0,79px 0}}@media(prefers-reduced-motion:reduce){.sandstorm-overlay{animation:none}}
+.news-details{display:inline-block;padding:10px 0;color:#f0d79c;text-decoration:underline;text-underline-offset:3px;min-height:44px}
 </style>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -742,13 +743,13 @@ const expectedHits = m => m.fx === "multi" ? 3.1 : 1;
 /* ================= moves ================= */
 /* ── 技の優先度 ──────────────────────────────
    数値が大きいほど先に発動する。同じ優先度なら素早さ順。
-     +5 おどかす … 変化技への割り込み。守るには無効
+      0 おどかす … 通常優先度の物攻低下攻撃
      +4 守る     … 攻撃より前に構える
      +2 不意打ち … 相手の攻撃技に先んじる
       0 通常技
      -3 仕返し   … 殴られてから返す
    マイナス側は今後も追加予定。pri を省略した技は 0 として扱う。 */
-const PRI = {startle:5, guard:4, ambush:2, normal:0, counter:-3};
+const PRI = {startle:0, guard:4, ambush:2, normal:0, counter:-3};
 
 const MOVES = {
   wildfang:{contact:true,category:"physical",n:"かみつく",t:"野",p:60,acc:100,en:20,d:"牙で噛みつく野生の攻撃"},
@@ -841,6 +842,29 @@ const MOVES = {
   devour:{contact:true,category:"physical",n:"闇喰らい",t:"影",p:80, acc:100,en:35,fx:"drain",dr:.50,d:"闇をまとった牙で噛みつき、与ダメの50%を吸収"},
   night :{contact:false,category:"special",n:"悪夢",   t:"幻",p:110,acc:80, en:45}
 };
+// 通常戦の第1回全体調整。基準は威力80・命中100・気力35。
+Object.assign(MOVES.startle,{pri:0,fx:"atkdownfx",pr:.5,d:"50%で相手の物理攻撃-1。行動を阻止する効果はない"});
+Object.assign(MOVES.revenge,{en:35,d:"後攻で受けた攻撃ダメージの1.5倍を返す。上限は自分の最大HPの1/2。身代わり・無効相性を受ける"});
+Object.assign(MOVES.phantom,{en:35,drainEn:10,d:"相手の気力を最大10奪い、自分の気力を回復"});
+Object.assign(MOVES.devour,{en:40,dr:.3,d:"与ダメージの30%を吸収。貪食と合わせて45%"});
+for(const key of ["focus","meditate","barrier"])Object.assign(MOVES[key],{en:35,stages:2,d:MOVES[key].d.replace("+1","+2")});
+Object.assign(MOVES.root,{en:30,stages:2,d:"自分の物理防御+2、素早さ-1"});
+Object.assign(MOVES.guard,{en:30,d:"攻撃ダメージと追加効果を防ぐ。変化技は防げない。連続使用で気力30→60→120"});
+Object.assign(MOVES.sub,{en:35});Object.assign(MOVES.sand,{en:30});Object.assign(MOVES.ambush,{en:35});
+Object.assign(MOVES.soar,{en:35});Object.assign(MOVES.photo,{en:40});
+Object.assign(MOVES.encore,{en:40,d:"使用ターンを含む3ターン、直前の技を強制する。交代は可能"});
+Object.assign(MOVES.disable,{en:35,d:"使用ターンを含む3ターン、相手の直前の技を封じる"});
+Object.assign(MOVES.taunt,{en:30});Object.assign(MOVES.bond,{en:40});
+Object.assign(MOVES.whirl,{en:30,d:"相手の素早さ-1。使用ターンを含む4ターン交代を封じる"});
+Object.assign(MOVES.parasite,{d:"5ターン、相手の最大HPの1/12を吸収。回復上限は自分の最大HPの1/8。交代されると消える"});
+Object.assign(MOVES.inferno,{p:125,acc:90,recoil:.25,d:"与ダメージの1/4の反動を受ける"});
+Object.assign(MOVES.edge,{acc:90});Object.assign(MOVES.lunacy,{acc:85});
+Object.assign(MOVES.night,{t:"影",acc:85,d:"暗闇を送り込み、悪夢で攻撃する"});
+Object.assign(MOVES.firefang,{fx:"burn",pr:.1,d:"10%でやけど"});
+Object.assign(MOVES.waterfang,{fx:"spddown",pr:.1,d:"10%で相手の素早さ-1"});
+Object.assign(MOVES.thunderclaw,{fx:"para",pr:.1,d:"10%で麻痺"});
+for(const key of ["gravel","touch"])Object.assign(MOVES[key],{pr:.5,d:"50%で相手の物理防御-1"});
+MOVES.sprout={n:"若葉弾",t:"草",p:65,acc:100,en:25,category:"special",contact:false,d:"若葉を気の弾にして放つ"};
 const MOVE_CATEGORY_LABEL = {physical:"物理", special:"特殊", status:"変化"};
 const isStatusMove = m => m.category === "status";
 const isContactMove = m => m.category==="physical"&&m.contact===true;
@@ -850,6 +874,7 @@ const moveBadge = m => `<span class="category ${m.category}">${MOVE_CATEGORY_LAB
 Object.defineProperty(MOVES,"desperate",{value:{n:"やけくそ",category:"physical",contact:false,p:0,en:0,pri:0}});
 function forcedAction(u, action){
   if(u.restTurns>0)return {kind:"move",key:null};
+  if(action.kind!=="move")return action;
   if(u.encore){
     const key=u.encore.key;
     return {kind:"move",key:moveBlocked(u,key)||u.en<enCost(u,key)?"desperate":key};
@@ -866,7 +891,7 @@ Object.defineProperties(MOVES,{
 });
 for(const [key,m] of Object.entries(MOVES))m.rush=["tackle","pivot","dive"].includes(key);
 for(const key of Object.getOwnPropertyNames(MOVES))MOVES[key].explosion=["seed","sandbreak"].includes(key);
-const COMMON_MOVES = ["meditate","barrier","tackle","guard","focus","sand","ambush","startle","sub","repose","revenge"];
+const COMMON_MOVES = ["tackle","guard","focus","meditate","barrier"];
 const MOVE_ORIGINS = {"barrier": "無", "sand": "無", "ambush": "無", "startle": "無", "gravel": "地", "root": "地", "pivot": "空", "swap": "幻", "taunt": "影", "bond": "影", "night": "影"};
 const BY_TYPE = {};
 for(const k in MOVES){const t=MOVES[k].t;(BY_TYPE[t]||(BY_TYPE[t]=[])).push(k);}
@@ -880,11 +905,11 @@ const EQUIPS = {
   orb   :{n:"霊力の珠",  d:"特殊攻撃 ×1.2 / 同じ技を連続で使えない", lock:true},
   veil  :{n:"霊紗の幕",  d:"特殊防御 ×1.2 / 同じ技を連続で使えない", lock:true},
   robe  :{n:"結界衣",    d:"特殊防御 ×1.35 だが変化技を使えない", noStatus:true},
-  belt  :{n:"気力帯",    d:"気力回復 +10/ターン"},
+  belt  :{n:"気力帯",    d:"気力回復 +8/ターン"},
   charm :{n:"護りの札",  d:"HP満タンから倒されるとき、1回だけHP1で耐える"},
   thorn :{n:"毒棘",      d:"接触技で本体が攻撃されたとき、相手に自分の最大HPの5%のダメージ"},
   berry :{n:"命の実",    d:"毎ターン 最大HPの5%回復"},
-  ward  :{n:"破魔石",    d:"いまひとつ(0.5倍)を0.75倍に緩和"},
+  ward  :{n:"破魔石",    d:"自分の攻撃が半減・1/4相性のとき、0.75倍まで通りやすくする"},
   bell  :{n:"癒しの鈴",  d:"場に出たとき、状態異常を1回だけ治す"},
   armor :{n:"戦装束",    d:"物理防御 ×1.35 だが変化技を使えない", noStatus:true},
   mask  :{n:"無垢の仮面", d:"持ち主の特性が発動しなくなる", mask:true}
@@ -907,19 +932,19 @@ const ABILITIES = {
   rockhead:{n:"いしあたま",d:"突進技の威力が1.5倍になり、その技の反動ダメージを受けない"},
   pressure:{n:"威圧", d:"場に出たとき、相手の物理攻撃-1"},
   grit    :{n:"不屈", d:"HPが1/3以下のあいだ 物理攻撃1.5倍"},
-  ballast :{n:"重心", d:"自分より速い相手からの被ダメ0.8倍"},
+  ballast :{n:"重心", d:"自分より速い相手からの被ダメ0.9倍"},
   tempo   :{n:"好機", d:"自分の方が速いとき 技の追加効果の発動率2倍"},
   glutton :{n:"貪食", d:"攻撃で与えたダメージの15%を回復"},
-  spite   :{n:"反骨", d:"相手に能力を下げられるたび 物理攻撃+1"},
+  spite   :{n:"反骨", d:"相手に能力を下げられるたび 物理攻撃+2"},
   mirror  :{n:"鏡膜", d:"相手による能力ダウンを受けない"},
   regen   :{n:"再生", d:"自分から交代で引っ込むと 最大HPの25%回復"},
-  quick   :{n:"早熟", d:"状態異常が3ターンで自然に治る"},
-  blur    :{n:"見切り", d:"相手の技の命中率0.9倍"},
+  quick   :{n:"早熟", d:"状態異常が2ターンで自然に治る"},
+  blur    :{n:"見切り", d:"相手の技の確率付き追加効果を受ける確率が半分になる"},
   focus2  :{n:"集中", d:"「気を溜める」の回復量が2倍"},
-  hide    :{n:"岩肌", d:"効果ばつぐんの被ダメ0.85倍"},
+  hide    :{n:"岩肌", d:"効果ばつぐんの被ダメ0.75倍"},
   breaker :{n:"型破り", d:"相手の特性を無視して技を出す"},
-  ghost   :{n:"霊体", d:"やけど・寄生・設置・反動・毒棘など、直接攻撃以外のダメージを受けない"},
-  heavy   :{n:"重圧", d:"相手の技の消費気力+8"},
+  ghost   :{n:"霊体", d:"やけど・岩棘・天気によるダメージを受けない。寄生・毒棘・反動は受ける"},
+  heavy   :{n:"重圧", d:"相手の技の消費気力+5。型破りには無効"},
   stoic   :{n:"やせ我慢", d:"状態異常を受けても、次のターン終了時まで発症を遅らせる。それまでに交代・翻しで退くと発症予約が消える"}
 };
 /* 特性の判定はすべてここを通る。無垢の仮面を持っている間は全特性が沈黙する */
@@ -2859,22 +2884,22 @@ BACK_SPRITES.sarandi={"pal":{"o":"#252b36","b":"#bd8b52","s":"#8e643f","l":"#dec
 const SPECIES = [
   {"id":"homura","n":"ワホームラ","t":"炎","hp":120,"atk":105,"spatk":85,"def":70,"spdef":70,"spd":95,"aff":"岩","role":"物理アタッカー","roleDesc":"炎牙と岩技で攻める。不屈と気合いで物理火力を伸ばす。"},
   {"id":"shiogame","n":"ミズカガメ","t":"水","hp":160,"atk":65,"spatk":75,"def":115,"spdef":95,"spd":45,"aff":"岩","role":"物理受け","roleDesc":"高いHPと物理防御で受け、白霧や渦潮で相手の攻めを抑える。"},
-  {"id":"kokejyu","n":"カモスカ","t":"草","hp":140,"atk":85,"spatk":70,"def":95,"spdef":100,"spd":65,"aff":"水","role":"回復サポート","roleDesc":"両防御と光合成・寄生種で粘る。再生で交代を支える。"},
+  {"id":"kokejyu","n":"カモスカ","t":"草","hp":140,"atk":75,"spatk":80,"def":95,"spdef":100,"spd":65,"aff":"水","role":"回復サポート","roleDesc":"両防御と光合成・寄生種で粘る。再生で交代を支える。"},
   {"id":"raitachi","n":"ジンライタチ","t":"雷","hp":95,"atk":100,"spatk":95,"def":60,"spdef":60,"spd":135,"aff":"影","role":"高速両刀","roleDesc":"最速級の素早さから物理の雷爪と特殊の雷撃を使い分ける。"},
   {"id":"iwaushi","n":"モーロック","t":"岩","hp":150,"atk":95,"spatk":50,"def":130,"spdef":75,"spd":40,"aff":"草","role":"物理の壁","roleDesc":"最も高い物理防御で攻撃を受け、岩棘を置く。特殊技には注意。"},
-  {"id":"fukurou","n":"メイホー","t":"影","hp":100,"atk":90,"spatk":125,"def":60,"spdef":70,"spd":110,"aff":"雷","role":"特殊アタッカー","roleDesc":"悪夢と雷撃の高い特殊火力で攻め、貪食で回復する。"},
+  {"id":"fukurou","n":"メイホー","t":"影","hp":100,"atk":80,"spatk":125,"def":60,"spdef":80,"spd":110,"aff":"雷","role":"特殊アタッカー","roleDesc":"悪夢と雷撃の高い特殊火力で攻め、貪食で回復する。"},
   {"id":"doryu","n":"モグラウンド","t":"地","hp":145,"atk":100,"spatk":60,"def":110,"spdef":70,"spd":55,"aff":"影","role":"物理攻防型","roleDesc":"物理防御で受けつつ地響き・大地割で押し返す。"},
   {"id":"fuen","n":"スワローラ","t":"空","hp":105,"atk":95,"spatk":80,"def":70,"spdef":70,"spd":125,"aff":"雷","role":"高速交代役","roleDesc":"翔撃で攻め、翻しと再生で味方へつなぐ。雷の特殊技も補助に使える。"},
-  {"id":"youcho","n":"シラヌイノ","t":"炎","hp":155,"atk":90,"spatk":95,"def":110,"spdef":85,"spd":45,"aff":"地","role":"耐久両刀","roleDesc":"物理耐久を活かし、地技と火炎放射を相手の守りに合わせる。"},
+  {"id":"youcho","n":"シラヌイノ","t":"炎","hp":155,"atk":90,"spatk":85,"def":110,"spdef":85,"spd":45,"aff":"地","role":"耐久両刀","roleDesc":"物理耐久を活かし、地技と火炎放射を相手の守りに合わせる。"},
   {"id":"soukou","n":"カプケード","t":"水","hp":105,"atk":120,"spatk":70,"def":65,"spdef":65,"spd":110,"aff":"影","role":"高速物理アタッカー","roleDesc":"潮噛みと闇喰らいで一気に攻める。貪食で攻撃を回復につなげる。"},
   {"id":"tsutazaru","n":"ワカクサル","t":"草","hp":115,"atk":105,"spatk":65,"def":70,"spdef":70,"spd":110,"aff":"影","role":"吸収物理アタッカー","roleDesc":"蔦打ち・闇喰らいと貪食で削りながら回復する。"},
   {"id":"rainen","n":"イナマヅ","t":"雷","hp":150,"atk":60,"spatk":105,"def":90,"spdef":115,"spd":50,"aff":"水","role":"特殊受け兼アタッカー","roleDesc":"特殊技を受け、雷撃や濁流で反撃する。痺れ砂でも支援できる。"},
-  {"id":"saikaku","n":"ペトライノ","t":"岩","hp":115,"atk":130,"spatk":55,"def":85,"spdef":60,"spd":70,"aff":"地","role":"物理突破役","roleDesc":"最高の物理攻撃で岩・地技を通す。不屈や反骨でさらに強化。"},
-  {"id":"yoigumo","n":"コモリクモ","t":"影","hp":140,"atk":65,"spatk":85,"def":105,"spdef":95,"spd":70,"aff":"草","role":"妨害サポート","roleDesc":"耐久を活かして挑発・道連れで妨害する。草技で攻撃範囲を補い、霊体で間接ダメージにも強い。"},
+  {"id":"saikaku","n":"ペトライノ","t":"岩","hp":125,"atk":130,"spatk":55,"def":85,"spdef":70,"spd":70,"aff":"地","role":"物理突破役","roleDesc":"最高の物理攻撃で岩・地技を通す。不屈や反骨でさらに強化。"},
+  {"id":"yoigumo","n":"コモリクモ","t":"影","hp":140,"atk":65,"spatk":85,"def":105,"spdef":95,"spd":70,"aff":"草","role":"妨害サポート","roleDesc":"耐久を活かして挑発・道連れで妨害する。草技で攻撃範囲を補い、霊体で設置や天候を受け流す。"},
   {"id":"sarou","n":"ジョウルフ","t":"地","hp":110,"atk":115,"spatk":70,"def":75,"spdef":65,"spd":100,"aff":"炎","role":"物理突破役","roleDesc":"大地割と炎牙で攻め、型破りで相手の防御特性を無視する。"},
   {"id":"ungei","n":"ホゲール","t":"空","hp":160,"atk":60,"spatk":90,"def":80,"spdef":115,"spd":55,"aff":"水","role":"特殊の壁","roleDesc":"特殊技を受け、突風・水技で反撃する。威圧で物理側も補える。"},
   {"id":"mubaku","n":"バクネス","t":"幻","hp":145,"atk":60,"spatk":85,"def":95,"spdef":115,"spd":65,"aff":"影","role":"特殊受け・行動妨害","roleDesc":"特殊耐久と封技・反響で相手を止め、幻痛で気力を削る。"},
-  {"id":"oborogi","n":"フォクシャドウ","t":"幻","hp":105,"atk":65,"spatk":115,"def":60,"spdef":80,"spd":110,"aff":"雷","role":"高速特殊アタッカー","roleDesc":"幻月・迅雷で攻め、見切りや好機を活かして先手を取る。"},
+  {"id":"oborogi","n":"フォクシャドウ","t":"幻","hp":105,"atk":65,"spatk":115,"def":60,"spdef":80,"spd":110,"aff":"雷","role":"高速特殊アタッカー","roleDesc":"幻月・迅雷で攻め、好機で追加効果を狙い、見切りで相手の追加効果に備える。"},
 {"id": "gako", "n": "ワイルドラ", "t": "野", "hp": 110, "atk": 115, "spatk": 55, "def": 75, "spdef": 70, "spd": 115, "aff": "影", "role": "高速物理アタッカー", "roleDesc": "高い素早さと物理攻撃を持つ。牙・爪と暗闇の技が得意。"},
 {"id": "arakuma", "n": "ジャングマ", "t": "野", "hp": 155, "atk": 100, "spatk": 50, "def": 110, "spdef": 80, "spd": 45, "aff": "地", "role": "物理受け兼アタッカー", "roleDesc": "HPと物理防御が高い。威圧や重心で攻撃を受け、大地の技で反撃する。"}
 ];
@@ -2883,7 +2908,7 @@ const ABIL_OF = {
   gako:["grit","blur"],arakuma:["pressure","ballast"],
   homura:["grit","tempo","stoic"],      youcho:["hide","ballast"],
   shiogame:["ballast","mirror","stoic"], soukou:["glutton","tempo"],
-  kokejyu:["regen","quick"],     tsutazaru:["glutton","tempo"],
+  kokejyu:["regen","quick"],     tsutazaru:["glutton","spite"],
   raitachi:["tempo","blur"],     rainen:["ballast","quick"],
   iwaushi:["hide","mirror"],     saikaku:["grit","spite","stoic"],
   fukurou:["tempo","glutton"],   yoigumo:["blur","ghost"],
@@ -2920,11 +2945,31 @@ function statPct(key, v){
    （適性で持ち込むと壊れる技を、そのタイプの専売にするための仕組み）。
    例: 寄生種は草タイプ専用 → 適性が草のモーロックは覚えられない。 */
 const WILD_LEARNERS = {wildfang:["homura","youcho","soukou","sarou"],wildclaw:["raitachi","tsutazaru","sarou","oborogi"]};
-const learnable = s => [...new Set(COMMON_MOVES.concat(
-  BY_TYPE[s.t]||[], BY_TYPE[s.aff]||[],
-  Object.keys(MOVE_ORIGINS).filter(k=>MOVE_ORIGINS[k]===s.t||MOVE_ORIGINS[k]===s.aff),
-  Object.keys(WILD_LEARNERS).filter(k=>WILD_LEARNERS[k].includes(s.id))
-))].filter(k=>!MOVES[k].own||MOVES[k].t===s.t);
+// 生き物の役割に沿った習得。全員共通の先制・妨害・回復技は廃止。
+const INDIVIDUAL_MOVES={
+ homura:["firefang","ember","flame","inferno","coal","rock","slide","gravel","wildfang","sub"],
+ shiogame:["waterfang","squirt","aqua","tsunami","haze","whirl","rock","spikes","repose","revenge"],
+ kokejyu:["sprout","vine","seed","photo","parasite","root","squirt","haze","sub","repose"],
+ raitachi:["thunderclaw","spark","bolt","thunder","touch","wildclaw","ambush","taunt","sub"],
+ iwaushi:["rock","slide","edge","crushrock","gravel","spikes","seed","root","repose","revenge"],
+ fukurou:["night","devour","touch","spark","bolt","thunder","taunt","swap","startle","sub"],
+ doryu:["quake","rift","gravel","sand","touch","devour","root","repose","revenge"],
+ fuen:["gust","blast","dive","pivot","spark","bolt","sweep","soar","sub"],
+ youcho:["firefang","ember","flame","inferno","coal","quake","rift","wildfang","root","repose","revenge"],
+ soukou:["waterfang","squirt","aqua","tsunami","devour","touch","wildfang","ambush","sub","taunt"],
+ tsutazaru:["vine","seed","leaf","photo","parasite","root","devour","touch","wildclaw","sub"],
+ rainen:["thunderclaw","spark","bolt","thunder","sand2","squirt","aqua","haze","repose","revenge"],
+ saikaku:["rock","slide","edge","crushrock","gravel","spikes","quake","rift","sand","root","sub"],
+ yoigumo:["night","touch","devour","sprout","vine","photo","root","taunt","bond","sub","repose"],
+ sarou:["quake","rift","gravel","firefang","flame","coal","wildfang","wildclaw","ambush","startle","root","sub"],
+ ungei:["gust","blast","dive","sweep","squirt","aqua","tsunami","haze","whirl","repose","revenge"],
+ mubaku:["phantom","mirage","lunacy","perish","encore","disable","swap","taunt","sub","repose","reverseRoom"],
+ oborogi:["phantom","mirage","lunacy","perish","encore","disable","swap","spark","bolt","thunder","sand","sub","startle","reverseRoom"],
+ gako:["wildfang","wildclaw","pivot","touch","devour","ambush","startle","sand","taunt","sub"],
+ arakuma:["wildfang","wildclaw","pivot","quake","rift","gravel","root","repose","revenge"]
+};
+const learnable=s=>[...new Set(COMMON_MOVES.concat(INDIVIDUAL_MOVES[s.id]||[]))];
+
 
 
 /* ================= idle pixel animation ================= */
@@ -3626,6 +3671,26 @@ let foeParty = [];
    編成画面を閉じてもタブを閉じても、次に開いたときに続きから始められる。 */
 const DRAFT_KEY = "genju_battle_draft_v1";
 const TEAM_LIBRARY_KEY = "genju_battle_teams_v1";
+const BALANCE_BACKUP_KEY="genju_battle_before_balance_v17";
+function backupBalanceSaves(){
+  try{
+    if(localStorage.getItem(BALANCE_BACKUP_KEY)!==null)return;
+    const draft=localStorage.getItem(DRAFT_KEY),teams=localStorage.getItem(TEAM_LIBRARY_KEY);
+    if(draft!==null||teams!==null)localStorage.setItem(BALANCE_BACKUP_KEY,JSON.stringify({draft,teams}));
+  }catch(error){draftReadFailed=true;}
+}
+function migrateAbility(id,key){return id==="tsutazaru"&&key==="tempo"?"spite":key;}
+function repairSavedMoves(entry,pool){
+  const raw=Array.isArray(entry.moves)?[...new Set(entry.moves)].slice(0,4):[];
+  const moves=raw.filter(key=>pool.includes(key));
+  if(raw.length===4&&raw.every(key=>Object.hasOwn(MOVES,key))&&moves.length<4){
+    const physical=spec(entry.id).atk>=spec(entry.id).spatk;
+    const prefer=pool.filter(key=>MOVES[key].p>0&&MOVES[key].category===(physical?"physical":"special"))
+      .sort((a,b)=>(MOVES[b].t===spec(entry.id).t)-(MOVES[a].t===spec(entry.id).t)||MOVES[b].p-MOVES[a].p);
+    for(const key of prefer.concat(pool))if(moves.length<4&&!moves.includes(key))moves.push(key);
+  }
+  return moves;
+}
 let draftReadFailed=false;
 function saveMessage(message,error=false){
   const node=document.getElementById("saveStatus");
@@ -3638,11 +3703,12 @@ function normalizeDraft(data){
   const out=[],seen=new Set();
   for(const entry of data){
     if(!entry || typeof entry.id!=="string" || seen.has(entry.id)) continue;
-    const species=spec(entry.id);if(!species) continue;
+    const species=SPECIES.find(s=>s.id===entry.id);if(!species) continue;
     const pool=learnable(species);
-    const moves=Array.isArray(entry.moves)?[...new Set(entry.moves.filter(key=>pool.includes(key)))].slice(0,4):[];
+    const moves=repairSavedMoves(entry,pool);
     const equip=Object.hasOwn(EQUIPS,entry.equip)?entry.equip:"none";
-    const ability=ABIL_OF[entry.id].includes(entry.ability)?entry.ability:ABIL_OF[entry.id][0];
+    const migratedAbility=migrateAbility(entry.id,entry.ability);
+    const ability=ABIL_OF[entry.id].includes(migratedAbility)?migratedAbility:ABIL_OF[entry.id][0];
     out.push({id:entry.id,moves,equip,ability});seen.add(entry.id);
     if(out.length===3)break;
   }
@@ -3716,7 +3782,7 @@ function shuffleBuildChoices(values){
   for(let i=out.length-1;i>0;i--){const j=ri(i+1);[out[i],out[j]]=[out[j],out[i]];}
   return out;
 }
-const ROLLED_SECONDARY_FX = ["para","burn","accdownfx","spddown","flinch"];
+const ROLLED_SECONDARY_FX = ["para","burn","accdownfx","spddown","flinch","defdown","atkdownfx"];
 function usefulBuildAbility(key,moves,equip){
   const attacks=moves.map(k=>MOVES[k]).filter(m=>m.p>0);
   if(EQUIPS[equip].mask&&!moves.some(k=>MOVES[k].fx==="swapitem"))return false;
@@ -3899,7 +3965,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id":"news-20261113-01","date":"2026-11-13","detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/rebalance-v17.md","title":"通常20体と技・特性を全体調整","items":["おどかすの行動阻止と先制を撤廃。通常攻撃に50%の物攻低下を付けました。","気合い・精神統一・結界を2段階上昇へ変更し、気力消費も見直しました。","仕返しの上限・身代わり・無効相性、幻痛の気力吸収、闇喰らいの回復量を調整しました。","通常20体の習得技を個別化し、見切り・重心・岩肌・反骨などの特性を調整しました。","若葉弾を追加し、悪夢を暗闇属性に変更。メイホーなどの役割を整えました。","反響中でも交代できるよう修正。破魔石は持ち主の攻撃に作用するよう修正しました。","旧編成は新しい習得範囲に合わせて補完し、変更前の保存データもブラウザ内にバックアップします。"]},{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
@@ -4078,7 +4144,9 @@ const GameUI = {
       if(!this.newsLatestOnly)card.open=index===0;
       const heading=el(this.newsLatestOnly?"div":"summary","news-heading",`<time datetime="${entry.date}">${entry.date.replaceAll("-",".")}</time><strong>${entry.title}</strong>${index===0?'<span class="news-latest">最新</span>':""}`);
       card.appendChild(heading);
-      const list=el("ul","news-items");for(const text of entry.items)list.appendChild(el("li",null,text));card.appendChild(list);body.appendChild(card);
+      const list=el("ul","news-items");for(const text of entry.items)list.appendChild(el("li",null,text));card.appendChild(list);
+      if(entry.detailsUrl){const link=el("a","news-details","調整内容の詳細を見る");link.href=entry.detailsUrl;link.target="_blank";link.rel="noopener noreferrer";card.appendChild(link);}
+      body.appendChild(card);
     }
     const footer=el("div","modal-footer news-footer");
     if(this.newsLatestOnly){const history=el("button","ghost","更新履歴を見る");history.setAttribute?.("id","btnNewsHistory");history.onclick=()=>this.open("news");footer.appendChild(history);}
@@ -4318,7 +4386,7 @@ const GameUI = {
 /* ================= battle ================= */
 const LV = 50;
 const PARA_FAIL  = 1/8; // 麻痺で行動できない確率
-const BIND_TURNS = 5;   // 渦潮の拘束ターン数
+const BIND_TURNS = 4;   // 渦潮の拘束ターン数
 const SEED_TURNS = 5;   // 寄生の持続。場に出ている間だけ減る
 const EN_REGEN   = 22;  // ターン終了時の気力回復（気力帯で +10）
 const EN_FOCUS   = 25;  // 「気を溜める」で追加回復する量
@@ -4341,14 +4409,14 @@ function moveLock(u, key){
 }
 const moveBlocked = (u, key) => !!moveLock(u, key);
 
-/* 実際の消費気力。守るだけは連続使用で倍増する（20→40→80…）。
+/* 実際の消費気力。守るだけは連続使用で倍増する（30→60→120…）。
    最大気力が100なので、3回目以降は自然に撃てなくなる。 */
 function enCost(u, key){
   const m = MOVES[key];
   let c = m.fx === "guard" ? m.en * Math.pow(2, u.guardStreak) : m.en;
   if(B){                                        // 相手の重圧で余計に消耗する
     const foe = u.side === "you" ? FOE() : YOU();
-    if(foe && foe !== u && !foe.dead && has(foe, "heavy")) c += 8;
+    if(foe && foe !== u && !foe.dead && hasVs(foe, "heavy",u)) c += 5;
   }
   return c;
 }
@@ -4454,7 +4522,7 @@ function tags(u){
 /* ダメージ適用。被弾直前のHPを控えておく（護りの札の発動条件に使う） */
 /* 直接攻撃以外のダメージ。霊体を持っていれば通らない */
 function indirect(u, amount, label){
-  if(has(u, "ghost")){ say(`${nm(u)} は霊体で${label}を受けない。`); return 0; }
+  if(has(u, "ghost")&&["やけどのダメージ","岩棘","夕立のダメージ","砂嵐のダメージ"].includes(label)){ say(`${nm(u)} は霊体で${label}を受けない。`); return 0; }
   hurt(u, amount); return amount;
 }
 
@@ -4684,7 +4752,7 @@ function renderCmd(){
     const blocked = !!lockMsg;
     const costTxt = blocked
       ? lockMsg
-      : (cost > m.en ? `気力 ${cost}（連続${y.guardStreak+1}回目）` : `気力 ${cost}`);
+      : (m.fx==="guard"&&y.guardStreak>0 ? `気力 ${cost}（連続${y.guardStreak+1}回目）` : `気力 ${cost}`);
     const info = blocked ? `<span class="lockmsg">${costTxt}</span>`
       : `<span class="mvd">${m.p>0 ? `威力 ${m.p}${m.fx==="multi"?" ×2〜5回":""}　${costTxt}${m.acc&&m.acc<100?`　命中 ${m.acc}`:""}`
                                   : `${costTxt}${m.acc&&m.acc<100?`　命中 ${m.acc}`:""}`}</span>`
@@ -4721,13 +4789,13 @@ function damage(att, def, m){
   const power=m.p*(m.rush&&has(att,"rockhead")?1.5:1)*(m.t==="野"&&(att.wildAwakened||att.attackAwakened)?1.5:1);
   let base = Math.floor(Math.floor(22 * power * moveAttack(att,m) / moveDefense(def,m,att)) / 55) + 2;
   let e = attackEff(m.t, def, att);
-  if(e > 0 && e < 1 && def.equip === "ward") e = 0.75;   // 無効(0)は緩和しない
+  if(e > 0 && e < 1 && att.equip === "ward") e = 0.75;   // 無効(0)は緩和しない
   const crit = rng() < 0.0625;
   if(e === 0) return {dmg:0, e:0, crit:false, stab:false};
   const stab = hasType(att,m.t);                 // 自分のタイプの技は1.5倍
   let d = base * e * (stab?1.5:1) * (crit?1.5:1) * (0.85 + rng()*0.15);
-  if(hasVs(def,"ballast",att) && SPD(att) > SPD(def)) d *= 0.8;   // 重心
-  if(hasVs(def,"hide",att) && e > 1) d *= 0.85;                    // 岩肌
+  if(hasVs(def,"ballast",att) && SPD(att) > SPD(def)) d *= 0.9;   // 重心
+  if(hasVs(def,"hide",att) && e > 1) d *= 0.75;                    // 岩肌
   if(def.guarding) return {dmg:0,e,crit:false,stab};
   if(def.focusExposed) d *= 1.2;
   return {dmg:Math.max(1,Math.floor(d)), e, crit, stab};
@@ -4830,6 +4898,7 @@ const MOVE_MOTION_PROFILES = {
   ambush:{shape:"slash",actor:"lunge",scale:32,count:2,tilt:-1},
   sandbreak:{shape:"sandburst",actor:"brace",scale:36,count:16,tilt:1},
   windmantle:{shape:"wind",actor:"rise",scale:35,count:8,self:true},
+  sprout:{shape:"leaf",actor:"cast",scale:24,count:7,tilt:1},
   steamchoice:{shape:"steam",actor:"cast",scale:34,count:14,tilt:1},
   unwantedshower:{shape:"shower",actor:"rise",scale:38,count:14,self:true},
   wildrock:{shape:"crack",actor:"lunge",scale:44,count:12,tilt:1},
@@ -5150,10 +5219,10 @@ function aiChoose(){
       v = m.p * expectedHits(m) * moveAttack(f,m) / moveDefense(y,m,f) * attackEff(m.t, y,f) * (m.acc||100)/100;
       if(m.weatherOnUse==="sandstorm"&&!inSandstorm())v+=220;
       if(m.fx === "ambush") v *= .75;
-      if(m.fx === "startle") v *= .35;
+
       if(m.fx === "pivot") v *= 1.1;
-      if(hasVs(y,"ballast",f) && SPD(f)>SPD(y)) v *= .8;
-      if(hasVs(y,"hide",f) && attackEff(m.t,y,f)>1) v *= .85;
+      if(hasVs(y,"ballast",f) && SPD(f)>SPD(y)) v *= .9;
+      if(hasVs(y,"hide",f) && attackEff(m.t,y,f)>1) v *= .75;
       if(m.rush&&has(f,"rockhead"))v*=1.5;
       if(m.t==="野"&&f.wildAwakened)v*=1.5;
       if(hasType(f,m.t)) v *= 1.5;               // タイプ一致補正
@@ -5172,15 +5241,15 @@ function aiChoose(){
     } else if(m.fx === "atkup" || m.fx === "spatkup"){
       const stat = m.fx === "atkup" ? "atk" : "spatk";
       const category = m.fx === "atkup" ? "physical" : "special";
-      v = f.rank[stat] >= 6 || !f.moves.some(key=>MOVES[key].p>0 && MOVES[key].category===category) ? 3 : lowHp > .7 ? 85 : 20;
+      v = f.rank[stat] >= 6 || !f.moves.some(key=>MOVES[key].p>0 && MOVES[key].category===category) ? 3 : (lowHp>.7?135:lowHp>.45?65:10)/(1+Math.max(0,f.rank[stat])*.4);
     } else if(m.fx === "spdefup"){
-      v = f.rank.spdef >= 3 ? 3 : lowHp > .5 ? 55 : 15;
+      v = f.rank.spdef >= 4 ? 3 : lowHp>.6&&y.lastMove&&MOVES[y.lastMove].category==="special"?115:25;
     } else if(m.fx === "seedfx"){
       v = (y.seedTurns > 0 || hasType(y,"草")) ? 3 : 100;
     } else if(m.fx === "burnsure"){
       v = (y.status || y.pendingStatus || hasType(y,"炎") || y.sub>0) ? 3 : hasVs(y,"stoic",f)?45:90;
     } else if(m.fx === "rootup"){
-      v = lowHp > .5 ? 55 : 15;
+      v = f.rank.def>=4?3:lowHp>.6&&y.lastMove&&MOVES[y.lastMove].category==="physical"?115:25;
     } else if(m.fx === "soar"){
       v = f.rank.eva >= 2 ? 10 : 45;
     } else if(m.fx === "reverseRoom"){
@@ -5368,8 +5437,8 @@ function lowerRank(target, key, n, source){
   target.rank[key] = Math.max(-6, target.rank[key] - n);
   say(`${nm(target)} の${RANK_LABEL[key]}が${n>1?"がくんと":""}下がった。`);
   if(byFoe && hasVs(target,"spite",source) && target.rank.atk < 6){
-    target.rank.atk++;
-    say(`${nm(target)} は反骨で物理攻撃が上がった！`);
+    target.rank.atk=Math.min(6,target.rank.atk+2);
+    say(`${nm(target)} は反骨で物理攻撃がぐーんと上がった！`);
   }
   return true;
 }
@@ -5379,6 +5448,7 @@ function rollFx(u, target, m){
   let pr = m.pr;
   if(has(u,"tempo") && SPD(u) > SPD(target)) pr *= 2;
   if(inSandstorm()&&has(u,"hani"))pr*=2;
+  if(hasVs(target,"blur",u))pr*=.5;
   return rng() < Math.min(1,pr);
 }
 
@@ -5541,14 +5611,12 @@ async function doMove(u, target, key, canFlinch=true){
   await sleep(360);
   if(B!==battle || battle.over)return;
 
-  const tPlan=target.plannedMove;
-  const conditionalFails=m.fx==="startle"&&(target.restTurns>0||!tPlan||!isStatusMove(MOVES[tPlan])||MOVES[tPlan].fx==="guard");
-  const wind=target.windMantle&&m.category==="special"&&m.p>0&&!target.guarding&&!conditionalFails;
+  const wind=target.windMantle&&m.category==="special"&&m.p>0&&!target.guarding;
   if(wind){target.windMantle=false;say(m.acc?`${nm(target)} の纏った風が特殊攻撃の命中を乱す！`:`${nm(target)} の風纏では必中技をそらせない！`);}
   if(m.acc){
     // 命中ランク - 相手の回避ランク。回避を上げる技はまだ無いが、足せば自動で効く
     const stage = Math.max(-6, Math.min(6, u.rank.acc - target.rank.eva));
-    const blur = hasVs(target,"blur",u) ? 0.9 : 1;               // 見切り
+    const blur = 1;               // 見切りは命中ではなく追加効果を軽減
     const accuracy=Math.max(0,m.acc*accMul(stage)*blur-(wind?100:0));
     if(accuracy<=0||rng()*100 > accuracy){
       say("しかし外れた。");
@@ -5560,26 +5628,12 @@ async function doMove(u, target, key, canFlinch=true){
 
   if(m.fx === "ambush"){
     const t = target.plannedMove;
-    if(target.restTurns>0 || !t || isStatusMove(MOVES[t])){
+    if(!canFlinch || target.restTurns>0 || !t || isStatusMove(MOVES[t])){
       say(`しかし ${nm(target)} は攻撃してこなかった。不意打ちは失敗した。`);
       await sleep(500);
   if(B!==battle || battle.over)return; return;
     }
   }
-  if(m.fx === "startle"){
-    const t = target.plannedMove;
-    if(t && MOVES[t].fx==="guard"){say("守るには おどかすが効かない！");await sleep(500);return;}
-    if(target.restTurns>0 || !t || !isStatusMove(MOVES[t])){
-      say(`しかし ${nm(target)} は変化技を使わなかった。おどかすは失敗した。`);
-      await sleep(500);
-  if(B!==battle || battle.over)return; return;
-    }
-    target.actionCancelled = true;
-    if(MOVES[t].fx==="shower")target.showerInterruptedBy=battleUnitKey(u);
-    if(MOVES[t].fx==="windmantle")target.windInterruptedBy=battleUnitKey(u);
-    say(`${nm(target)} は ${MOVES[t].n} をくじかれた！`);
-  }
-
   if(m.fx === "counter"){
     if(u.dmgTaken <= 0){
       say("しかし 何も返せなかった。");
@@ -5587,20 +5641,21 @@ async function doMove(u, target, key, canFlinch=true){
   if(B!==battle || battle.over)return; return;
     }
     const taken = u.dmgTaken;
-    let d = Math.max(1, Math.floor(taken * 1.5));
+    let d = Math.min(Math.max(1,Math.floor(u.maxhp/2)),Math.max(1,Math.floor(taken*1.5)));
     if(target.guarding){say(`${nm(target)} は攻撃を防いだ！`);paint();await sleep(560);return;}
-    if(target.focusExposed)d=Math.floor(d*1.2);
+    if(attackEff(m.t,target,u)===0){say(`${nm(target)} には効果がないようだ…`);paint();await sleep(450);return;}
+    if(target.focusExposed)d=Math.min(Math.max(1,Math.floor(u.maxhp/2)),Math.floor(d*1.2));
     playFx(u, target, m, "attack");
     await sleep(180);
   if(B!==battle || battle.over)return;
-    const beforeC=Math.max(0,target.hp);
-    hurt(target,d);tryCharm(target);
-    const dealtC=beforeC-Math.max(0,target.hp);
-    target.dmgTaken += dealtC;
-    flash(target.side); popDmg(target.side, "-"+d, "#e9e5d8");
-    say(`${nm(u)} は受けた ${taken} を ${d} にして返した！`);
-    if(target.guarding) say(`${nm(target)} は守りに徹していた。`);
-    applyContactThorns(u,target,m);
+    const shielded=target.sub>0;
+    if(shielded){const lost=Math.min(target.sub,d);target.sub-=lost;popDmg(target.side,"-"+lost,"#a8b0cc");say(`${nm(target)} の身代わりが仕返しを肩代わりした。`);if(target.sub===0)say("身代わりは壊れた！");}
+    else {
+      const beforeC=Math.max(0,target.hp);hurt(target,d);tryCharm(target);
+      target.dmgTaken+=beforeC-Math.max(0,target.hp);flash(target.side);popDmg(target.side,"-"+d,"#e9e5d8");
+      applyContactThorns(u,target,m);
+    }
+    say(`${nm(u)} は仕返しした！`);
     paint(); await sleep(560);
   if(B!==battle || battle.over)return; return;
   }
@@ -5653,11 +5708,11 @@ async function doMove(u, target, key, canFlinch=true){
         popDmg(u.side,"+"+heal,"#63c07d");say(`${nm(u)} は体力を吸い取った (+${heal})`);
       }
       if(m.fx==="endrain" && target.hp>0){
-        const gain=Math.min(15,target.en);target.en-=gain;u.en=Math.min(u.maxen,u.en+gain);
+        const gain=Math.min(m.drainEn||10,target.en);target.en-=gain;u.en=Math.min(u.maxen,u.en+gain);
         say(`${nm(target)} は気力を ${gain} 奪われた。`);
       }
       if(m.fx==="recoil" && dealt>0 && !(m.rush&&has(u,"rockhead"))){
-        const recoil=Math.max(1,Math.floor(dealt*(m.recoil||1/3)));
+        const recoil=Math.max(1,Math.floor(dealt*(m.recoil||.25)));
         if(indirect(u,recoil,"反動")){flash(u.side);popDmg(u.side,"-"+recoil,"#ff9450");say(`${nm(u)} は反動を受けた (-${recoil})`);}
       }
       if(!shielded)applyContactThorns(u,target,m);
@@ -5671,8 +5726,8 @@ async function doMove(u, target, key, canFlinch=true){
         if(m.fx==="burn" && rollFx(u,target,m) && inflict(target,"やけど",u) && target.status==="やけど") say(`${nm(target)} はやけどを負った！`);
         if(m.fx==="accdownfx" && rollFx(u,target,m) && target.hp>0) lowerRank(target,"acc",1,u);
         if(m.fx==="spddown" && rollFx(u,target,m) && target.hp>0) lowerRank(target,"spd",1,u);
-        if(m.fx==="defdown" && target.hp>0) lowerRank(target,"def",1,u);
-        if(m.fx==="startle" && target.hp>0) lowerRank(target,"atk",1,u);
+        if(m.fx==="defdown" && target.hp>0 && rollFx(u,target,m)) lowerRank(target,"def",1,u);
+        if(m.fx==="atkdownfx" && rollFx(u,target,m) && target.hp>0) lowerRank(target,"atk",1,u);
       }
       if(m.fx==="flinch" && rollFx(u,target,m) && target.hp>0 && canFlinch) target.flinch=true;
       if(total>1){
@@ -5703,9 +5758,10 @@ async function doMove(u, target, key, canFlinch=true){
       else say(`<span class="sys">これ以上は続けて守れない。</span>`);
     }
     if(m.fx === "rootup"){
-      if(u.rank.def < 6) u.rank.def++;
-      if(u.rank.spd > -6) u.rank.spd--;     // 自分で下げる分は鏡膜・反骨の対象外
-      say(`${nm(u)} は地面に根を張った。物理防御が上がり、素早さが下がった。`);
+      const before=u.rank.def;u.rank.def=Math.min(6,u.rank.def+(m.stages||2));
+      if(u.rank.def>before)say(`${nm(u)} は根を張り、物理防御が${u.rank.def-before>=2?"ぐーんと":""}上がった！`);
+      else say("物理防御はこれ以上上がらない。");
+      if(u.rank.spd > -6){u.rank.spd--;say(`${nm(u)} の素早さが下がった。`);}
     }
     if(m.fx === "soar"){
       if(u.rank.eva < 6){u.rank.eva++;say(`${nm(u)} は高く舞い上がった。回避が上がった！`);}
@@ -5829,7 +5885,7 @@ async function doMove(u, target, key, canFlinch=true){
     }
     if(["atkup","spatkup","spdefup"].includes(m.fx)){
       const key = {atkup:"atk",spatkup:"spatk",spdefup:"spdef"}[m.fx];
-      if(u.rank[key] < 6){ u.rank[key]++; say(`${nm(u)} の${RANK_LABEL[key]}が上がった！`); }
+      if(u.rank[key] < 6){const before=u.rank[key];u.rank[key]=Math.min(6,before+(m.stages||2));say(`${nm(u)} の${RANK_LABEL[key]}が${u.rank[key]-before>=2?"ぐーんと":""}上がった！`);}
       else say("これ以上は上がらない。");
     }
     if(m.fx === "accdown") lowerRank(target, "acc", 1, u);
@@ -6002,13 +6058,13 @@ async function sendOnce(){
 /* 寄生の吸い取り1回分。植え付け時とターン終了時の両方から呼ぶ */
 function siphon(victim, host){
   if(victim.dead || victim.hp<=0) return "";
-  const d = Math.max(1, Math.floor(victim.maxhp/10));
+  const d = Math.max(1, Math.floor(victim.maxhp/12));
   const drained = Math.min(d, Math.max(0, victim.hp));   // 実際に吸えた分
   if(!indirect(victim, d, "寄生")) return "";
   popDmg(victim.side, "-"+d, "#7ed08a");
   let msg = `${nm(victim)} は種に体力を吸い取られた (-${d})`;
   if(host && !host.dead && host.hp>0 && host.hp < host.maxhp && drained > 0){
-    const h = Math.min(drained, host.maxhp - host.hp);
+    const h = Math.min(drained,Math.max(1,Math.floor(host.maxhp/8)),host.maxhp-host.hp);
     host.hp += h;
     popDmg(host.side, "+"+h, "#63c07d");
     msg += ` → ${nm(host)} が回復 (+${h})`;
@@ -6072,7 +6128,7 @@ async function endTurn(){
   for(const u of [YOU(), FOE()]){
     if(u.dead || u.hp<=0) continue;
     u.guarding = false;                                  // 守るはそのターン限り
-    u.en = Math.min(u.maxen, u.en + EN_REGEN + (u.equip==="belt" ? 10 : 0));
+    u.en = Math.min(u.maxen, u.en + EN_REGEN + (u.equip==="belt" ? 8 : 0));
 
     if(u.equip === "berry" && u.hp < u.maxhp){
       const h = Math.max(1, Math.floor(u.maxhp*.05));
@@ -6105,7 +6161,7 @@ async function endTurn(){
       }
     }
     if(u.status && has(u,"quick")){
-      if(++u.statusTurns >= 3){
+      if(++u.statusTurns >= 2){
         say(`${nm(u)} の${u.status}は自然に治った。`);
         u.status = null; u.statusTurns = 0; shown = true;
       }
@@ -6242,7 +6298,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "item-swap-v16";
+const BATTLE_RULES_VERSION = "rebalance-v17";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});
@@ -6361,6 +6417,7 @@ $("#btnBack").onclick  = ()=>{ NET.reset(); ME = "you"; show("scBuild"); renderA
 drawField(document.getElementById("fieldCanvas"));
 renderChart();
 GameUI.init();
+backupBalanceSaves();
 party = loadDraft() ?? randBuild();
 initTeamStorage();
 renderAll();

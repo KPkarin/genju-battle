@@ -131,7 +131,7 @@ await run(`(async()=>{
   assert.equal(d.rank.atk,-1,'pressure lowers physical attack');assert.equal(d.rank.spatk,0,'pressure leaves special attack unchanged');
   d.ability='spite';lowerRank(d,'spdef',1,a);
   assert.equal(d.rank.spdef,-1,'special defense lowering is supported');
-  assert.equal(d.rank.atk,0,'spite raises physical attack');assert.equal(d.rank.spatk,0,'spite leaves special attack unchanged');
+  assert.equal(d.rank.atk,1,'spite raises physical attack by two');assert.equal(d.rank.spatk,0,'spite leaves special attack unchanged');
   d.ability='mirror';const before=JSON.stringify(d.rank);lowerRank(d,'spatk',1,a);
   assert.equal(JSON.stringify(d.rank),before,'mirror protects the newly added ranks');
   a.ability='quick';d.ability='quick';
@@ -140,13 +140,13 @@ await run(`(async()=>{
   for(const key of ['atk','def','spatk','spdef','spd','acc','eva'])assert.equal(a.rank[key],0,key+': switching clears every rank');
   assert.equal(a.status,'やけど','switching preserves status');assert.ok(messages.length>0,'rank reset is reported');
   a.status=null;a.en=100;await doMove(a,d,'focus');
-  assert.equal(a.rank.atk,1,'focus boosts physical attack');assert.equal(a.rank.spatk,0,'focus does not boost special attack');
+  assert.equal(a.rank.atk,2,'focus boosts physical attack');assert.equal(a.rank.spatk,0,'focus does not boost special attack');
   a.en=100;await doMove(a,d,'root');
-  assert.equal(a.rank.def,1,'root boosts physical defense');assert.equal(a.rank.spdef,0,'root does not boost special defense');
+  assert.equal(a.rank.def,2,'root boosts physical defense');assert.equal(a.rank.spdef,0,'root does not boost special defense');
   a.en=100;await doMove(a,d,'meditate');
-  assert.equal(a.rank.spatk,1,'meditation boosts special attack');assert.equal(a.rank.atk,1,'meditation leaves physical attack unchanged');
+  assert.equal(a.rank.spatk,2,'meditation boosts special attack');assert.equal(a.rank.atk,2,'meditation leaves physical attack unchanged');
   a.en=100;await doMove(a,d,'barrier');
-  assert.equal(a.rank.spdef,1,'barrier boosts special defense');assert.equal(a.rank.def,1,'barrier leaves physical defense unchanged');
+  assert.equal(a.rank.spdef,2,'barrier boosts special defense');assert.equal(a.rank.def,2,'barrier leaves physical defense unchanged');
   a.rank.spatk=6;a.en=100;await doMove(a,d,'meditate');assert.equal(a.rank.spatk,6,'special attack rank is capped');
   a.rank.spdef=6;a.en=100;await doMove(a,d,'barrier');assert.equal(a.rank.spdef,6,'special defense rank is capped');
   for(const u of [a,d])for(const key of Object.keys(u.rank))u.rank[key]=2;
@@ -163,7 +163,7 @@ await run(`(async()=>{
   a.tauntTurns=0;a.equip='none';a.status=null;a.en=100;d.hp=500;d.plannedMove='revenge';
   await doMove(a,d,'ambush');assert.ok(d.hp<500,'ambush recognizes zero-power retaliation as an attack');
   a.en=100;d.hp=500;d.plannedMove='revenge';d.actionCancelled=false;
-  await doMove(a,d,'startle');assert.equal(d.hp,500,'startle does not treat retaliation as a status move');
+  await doMove(a,d,'startle');assert.ok(d.hp<500,'startle attacks ordinary attack users too');
   assert.equal(d.actionCancelled,false,'failed startle does not cancel retaliation');
 })()`);
 console.log('PASS physical abilities, special rank protection/reset, setup moves, haze, fixed retaliation, and attack/status restrictions');

@@ -103,7 +103,7 @@ await run(`(async()=>{
  for(const reason of ['guard','energy','para','failed-startle']){
   [a,d]=setup();d.windMantle=true;rng=()=>.5;
   if(reason==='guard')d.guarding=true;if(reason==='energy')a.en=0;if(reason==='para'){a.status='麻痺';rng=()=>0;}
-  d.plannedMove='tackle';await doMove(a,d,reason==='failed-startle'?'startle':'flame');assert.equal(d.windMantle,true,reason);
+  d.plannedMove='tackle';await doMove(a,d,reason==='failed-startle'?'startle':'flame');assert.equal(d.windMantle,reason==='failed-startle'?false:true,reason);
  }
  [a,d]=setup();d.windMantle=true;a.rank.acc=1;rng=()=>.2;
  await doMove(a,d,'flame');assert.ok(d.hp<1000,'boosted accuracy can still hit after minus 100 points');assert.equal(a.hp,1000);assert.equal(d.windMantle,false);

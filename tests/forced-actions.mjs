@@ -61,11 +61,11 @@ await run(`(async()=>{
  await Promise.resolve();assert.equal(skipped,1);resolve=originalResolve;
  [a,d]=setup();d.restTurns=1;
  await takeTurn(move('startle'),move('repose'));
- assert.equal(d.restTurns,0);assert.equal(d.actionCancelled,false);assert.equal(d.hp,1000);
+ assert.equal(d.restTurns,0);assert.equal(d.actionCancelled,false);assert.ok(d.hp<1000,'startle damages normally without stopping rest');
  [a,d]=setup();a.restTurns=1;
  assert.equal(forcedAction(a,{kind:'switch',to:1}).kind,'move');
  await takeTurn({kind:'switch',to:1},move('startle'));
- assert.equal(B.yi,0);assert.equal(a.restTurns,0);assert.equal(a.hp,1000);
+ assert.equal(B.yi,0);assert.equal(a.restTurns,0);assert.ok(a.hp<1000,'ordinary startle damages a resting unit');
  for(const key of ['repose','tackle'])for(const mode of ['energy','item','disabled','taunt']){
    [a,d]=setup();a.encore={key,turns:3};a.moves=['repose','guard'];
    if(mode==='energy')a.en=0;
@@ -75,7 +75,7 @@ await run(`(async()=>{
    assert.equal(forcedAction(a,move(key)).key,'desperate');
    const energy=a.en;
    await takeTurn(move(key),move('startle'));
-   assert.equal(a.hp,800,mode+key);assert.equal(a.en,Math.min(100,energy+EN_REGEN));
+   assert.equal(a.hp,800-a.dmgTaken,mode+key+': 20% self loss plus ordinary incoming damage');assert.equal(a.en,Math.min(100,energy+EN_REGEN));
    assert.equal(a.actionCancelled,false);
    [a,d]=setup();a.encore={key,turns:3};a.en=0;
    await takeTurn(move(key),move('ambush'));

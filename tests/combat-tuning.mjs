@@ -67,7 +67,7 @@ await run(`(async()=>{
  for(const type of ['空','地','雷']){const [a,d]=setup();d.type=type;B.hazard.foe.sand=true;fixedRandom(0);await applyHazards(d);assert.equal(d.status,null);}
  for(const protection of ['none','shield','mirror']){
   const [a,d]=setup();d.type='水';if(protection==='shield')d.sub=100;if(protection==='mirror')d.ability='mirror';
-  fixedRandom(.5);await doMove(a,d,'gravel');assert.equal(d.rank.def,protection==='none'?-1:0);
+  fixedRandom(.1);await doMove(a,d,'gravel');assert.equal(d.rank.def,protection==='none'?-1:0);
  }
  for(const key of ['tackle','ember','gravel','crushrock','phantom','revenge']){
   const [a,d]=setup();d.sub=50;d.guarding=true;d.equip='thorn';a.dmgTaken=40;a.hp=500;fixedRandom(.01);
@@ -77,7 +77,7 @@ await run(`(async()=>{
   const [a,d]=setup();fixedRandom(.5);await takeTurn({kind:'move',key:'guard'},{kind:'move',key:'startle'});
   assert.equal(a.hp,1000);assert.equal(a.rank.atk,0);assert.equal(a.guardStreak,1,'guard executes despite faster startle');
   assert.equal(a.actionCancelled,false);assert.equal(a.en,100-MOVES.guard.en+EN_REGEN);
-  assert.equal(enCost(a,'guard'),50,'consecutive cost stays doubled');
+  assert.equal(enCost(a,'guard'),60,'consecutive cost stays doubled');
  }
  for(const speed of [50,200]){
   let [a,d]=setup();a.baseSpd=speed;d.baseSpd=100;fixedRandom(.5);

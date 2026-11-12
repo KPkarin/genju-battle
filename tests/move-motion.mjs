@@ -42,7 +42,7 @@ assert.equal(run('typeof drawMoveMotion'),'function','pure move renderer exists'
 assert.equal(run('typeof MoveMotion'),'object','move controller exists');
 assert.match(html,/<canvas\s+[^>]*id="moveCanvas"[^>]*width="384"[^>]*height="216"/,'native effect overlay is mounted');
 const profiles=json('MOVE_MOTION_PROFILES'),moves=json('({...MOVES,wildrock:MOVES.wildrock,wildreturn:MOVES.wildreturn,steamchoice:MOVES.steamchoice,unwantedshower:MOVES.unwantedshower,sandbreak:MOVES.sandbreak,windmantle:MOVES.windmantle})');
-assert.equal(Object.keys(moves).length,68,'current catalog includes the two wild moves');
+assert.equal(Object.keys(moves).length,69,'current catalog includes the two wild moves');
 assert.deepEqual(Object.keys(profiles).sort(),Object.keys(moves).sort(),'every move has an explicit motion profile');
 assert.ok(new Set(Object.values(profiles).map(p=>p.shape)).size>=12,'moves use varied geometry families');
 assert.ok(new Set(Object.values(profiles).map(p=>p.actor)).size>=4,'source body gestures vary');

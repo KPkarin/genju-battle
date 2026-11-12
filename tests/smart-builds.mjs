@@ -64,7 +64,7 @@ function checkBuild(b){
  if(statuses.some(m=>m.fx==='atkup'))assert.ok(physical);
  if(statuses.some(m=>m.fx==='spatkup'))assert.ok(special);
  if(['grit','spite'].includes(b.ability))assert.ok(physical);
- if(b.ability==='tempo')assert.ok(attacks.some(m=>['para','burn','accdownfx','spddown','flinch'].includes(m.fx)&&m.pr>0&&m.pr<1));
+ if(b.ability==='tempo')assert.ok(attacks.some(m=>['para','burn','accdownfx','spddown','flinch','defdown','atkdownfx'].includes(m.fx)&&m.pr>0&&m.pr<1));
  if(item.mask)assert.ok(statuses.some(m=>m.fx==='swapitem'),'mask must be transferable');
  if(b.ability==='glutton')assert.ok(attacks.some(m=>m.p>0));
 }

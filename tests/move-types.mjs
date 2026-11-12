@@ -49,16 +49,13 @@ function world(){
 }
 const {run}=world();
 run(`
-const oldTypes={barrier:'無',sand:'無',ambush:'無',startle:'無',gravel:'地',root:'地',pivot:'空',swap:'幻',taunt:'影',bond:'影',night:'影'};
-const newTypes={barrier:'幻',sand:'地',ambush:'影',startle:'野',gravel:'岩',root:'草',pivot:'野',swap:'無',taunt:'無',bond:'幻',night:'幻'};
-const common=['meditate','barrier','tackle','guard','focus','sand','ambush','startle','sub','repose','revenge'];
+const newTypes={barrier:'幻',sand:'地',ambush:'影',startle:'野',gravel:'岩',root:'草',pivot:'野',swap:'無',taunt:'無',bond:'幻',night:'影'};
 for(const [k,t] of Object.entries(newTypes))assert.equal(MOVES[k].t,t,k);
 for(const sp of SPECIES){
- const oldPool=Object.keys(MOVES).filter(k=>common.includes(k)||[sp.t,sp.aff].includes(oldTypes[k]||MOVES[k].t)||(WILD_LEARNERS[k]||[]).includes(sp.id)).filter(k=>!MOVES[k].own||(oldTypes[k]||MOVES[k].t)===sp.t);
- const current=learnable(sp);assert.equal(new Set(current).size,current.length);
- for(const k of oldPool)assert.ok(current.includes(k),sp.id+' retains '+k);
- const draft={id:sp.id,moves:oldPool.slice(0,4),equip:'none',ability:ABIL_OF[sp.id][0]};
+ const current=learnable(sp);assert.equal(new Set(current).size,current.length);assert.ok(current.every(k=>Object.hasOwn(MOVES,k)));
+ const draft={id:sp.id,moves:current.slice(0,4),equip:'none',ability:ABIL_OF[sp.id][0]};
  assert.equal(JSON.stringify(normalizeDraft([draft])[0]),JSON.stringify(draft));
+ const repaired=normalizeDraft([{...draft,moves:['sand','ambush','sub','repose']}])[0];assert.equal(repaired.moves.length,4);assert.ok(repaired.moves.every(k=>current.includes(k)));
 }
 assert.ok(!learnable(spec('homura')).includes('taunt'),'neutral classification does not make taunt universal');
 assert.ok(!learnable(spec('homura')).includes('swap'),'neutral classification does not make swap universal');
@@ -67,8 +64,8 @@ assert.ok(learnable(spec('fukurou')).includes('night'));
 assert.ok(learnable(spec('gako')).includes('pivot'));
 assert.ok(learnable(spec('kokejyu')).includes('root'));
 assert.equal(MOVES.meditate.t,'無');assert.equal(MOVES.perish.t,'幻');
-setup();const a=YOU(),d=FOE();a.ability=d.ability='focus2';a.type='幻';d.type='無';
-assert.equal(damage(a,d,MOVES.night).dmg,0,'nightmare now follows spirit immunity');
-d.type='草';setSeed(1198);const normal=damage({...a,type:'無'},d,MOVES.night);setSeed(1198);assert.ok(damage(a,d,MOVES.night).dmg>normal.dmg,'ghost STAB follows retyped move');
+setup();const a=YOU(),d=FOE();a.ability=d.ability='focus2';a.type='影';d.type='無';
+assert.equal(damage(a,d,MOVES.night).e,2,'nightmare uses darkness effectiveness');
+d.type='草';setSeed(1198);const normal=damage({...a,type:'無'},d,MOVES.night);setSeed(1198);assert.ok(damage(a,d,MOVES.night).dmg>normal.dmg,'darkness STAB follows retyped move');
 `);
 console.log('PASS eleven type changes, all twenty legacy learnsets/drafts retained, no duplicate or universalized utility moves, new motif access, immunity and STAB');

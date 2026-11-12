@@ -56,7 +56,7 @@ await run(`(async()=>{
  const reset=()=>{const pair=setup();fxCalls=[];return pair;};
  let [a,d]=reset();fixedRandom(.99);await doMove(a,d,'slide');assert.equal(fxCalls.length,0,'miss has no move animation');
  [a,d]=reset();d.type='幻';fixedRandom(.1);await doMove(a,d,'tackle');assert.equal(fxCalls.length,0,'immunity has no attack animation');
- for(const key of ['ambush','startle','revenge','encore','disable','swap','clear']){
+ for(const key of ['ambush','revenge','encore','disable','swap','clear']){
   if(!MOVES[key])continue;
   [a,d]=reset();fixedRandom(.1);await doMove(a,d,key);assert.equal(fxCalls.length,0,key+': failed prerequisite is silent');
  }

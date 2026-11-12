@@ -63,7 +63,7 @@ run(`
   assert.equal(MOVES.crushrock.n,'粉砕岩');assert.equal(MOVES.crushrock.t,'岩');
   assert.equal(MOVES.crushrock.category,'physical');assert.equal(MOVES.crushrock.p,20);
   assert.ok(learnable(spec('iwaushi')).includes('crushrock'),'rock species learn the multi-hit move');
-  assert.ok(learnable(spec('homura')).includes('crushrock'),'rock affinity also learns the multi-hit move');
+  assert.ok(!learnable(spec('homura')).includes('crushrock'),'individual learning no longer grants every affinity move');
   assert.equal(MOVES.reverseRoom.n,'アベコベルーム');assert.equal(MOVES.reverseRoom.t,'幻');
   assert.equal(MOVES.reverseRoom.category,'status');
   assert.ok(learnable(spec('oborogi')).includes('reverseRoom'),'phantom species learn the room');
@@ -194,8 +194,8 @@ await run(`(async()=>{
       assert.equal(d.status,null,key+': status addition is blocked even on shield-breaking hit');
       for(const rank of ['atk','def','acc','spd'])assert.equal(d.rank[rank],0,key+': shield-breaking hit stat drop stays blocked');
       if(key==='slide')assert.equal(d.flinch,true,'flinch is outside the narrowed substitute protection');
-      if(key==='phantom'){assert.equal(d.en,85,'phantom energy drain bypasses substitute');assert.equal(a.en,90);}
-      if(key==='startle')assert.equal(d.actionCancelled,true,'startle can cancel a status action through substitute');
+      if(key==='phantom'){assert.equal(d.en,90,'phantom energy drain bypasses substitute');assert.equal(a.en,75);}
+      if(key==='startle')assert.equal(d.actionCancelled,false,'startle never cancels an action');
     } finally {if(oldPr!==undefined)MOVES[key].pr=oldPr;restoreRandom();}
   }
   {
@@ -221,7 +221,7 @@ await run(`(async()=>{
     d.type='水';const fire={t:'炎',p:80,category:'special'};
     assert.equal(damage(a,d,fire).e,2,'normally resisted fire is strong during room');
     const electric={...fire,t:'雷'};assert.equal(damage(a,d,electric).e,.5,'normally strong electricity is resisted during room');
-    d.equip='ward';assert.equal(damage(a,d,electric).e,.75,'ward acts after reversed resistance');restoreRandom();
+    a.equip='ward';assert.equal(damage(a,d,electric).e,.75,'ward acts after reversed resistance');restoreRandom();
   }
   {
     const [a,d]=setup();d.sub=100;a.sub=100;await doMove(a,d,'reverseRoom');
