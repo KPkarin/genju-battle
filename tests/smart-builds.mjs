@@ -56,16 +56,16 @@ function checkBuild(b){
  assert.ok(b.moves.every(k=>pool.includes(k)));assert.ok(ABIL_OF[b.id].includes(b.ability));
  const attacks=moves.filter(m=>!isStatusMove(m)),statuses=moves.filter(isStatusMove);
  assert.ok(attacks.some(m=>m.p>0&&m.t===sp.t),sp.id+': actual STAB attack');
- if(item.noStatus||item.lock){assert.equal(attacks.length,4);assert.equal(statuses.length,0);}
+ if(item.noStatus||item.lock||item.choice){assert.equal(attacks.length,4);assert.equal(statuses.length,0);}
  else {assert.equal(attacks.length,2);assert.equal(statuses.length,2);}
  const physical=attacks.some(m=>m.category==='physical'&&m.p>0),special=attacks.some(m=>m.category==='special'&&m.p>0);
- if(b.equip==='fang')assert.ok(attacks.every(m=>m.category==='physical'&&m.p>0));
- if(b.equip==='orb')assert.ok(attacks.every(m=>m.category==='special'&&m.p>0));
+ if(['fang','fullKnuckle'].includes(b.equip))assert.ok(attacks.every(m=>m.category==='physical'&&m.p>0));
+ if(['orb','fullGlasses'].includes(b.equip))assert.ok(attacks.every(m=>m.category==='special'&&m.p>0));
  if(statuses.some(m=>m.fx==='atkup'))assert.ok(physical);
  if(statuses.some(m=>m.fx==='spatkup'))assert.ok(special);
  if(['grit','spite'].includes(b.ability))assert.ok(physical);
  if(b.ability==='tempo')assert.ok(attacks.some(m=>['para','burn','accdownfx','spddown','flinch','defdown','atkdownfx'].includes(m.fx)&&m.pr>0&&m.pr<1));
- if(item.mask)assert.ok(statuses.some(m=>m.fx==='swapitem'),'mask must be transferable');
+ if(item.mask||item.tradeDebuff)assert.ok(statuses.some(m=>m.fx==='swapitem'),'mask must be transferable');
  if(b.ability==='glutton')assert.ok(attacks.some(m=>m.p>0));
 }
 const seen=new Set();let count=0;

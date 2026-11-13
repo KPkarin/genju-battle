@@ -900,18 +900,24 @@ for(const k in MOVES){const t=MOVES[k].t;(BY_TYPE[t]||(BY_TYPE[t]=[])).push(k);}
 /* ================= equipment ================= */
 const EQUIPS = {
   none  :{n:"なし",      d:"効果なし"},
+  pajamas:{n:"ゆるゆるパジャマ",d:"技の消費気力+5",energyCost:5,tradeDebuff:true},
+  protein:{n:"プロテイン",d:"ターン終了時に物理防御+1。一度使うとなくなる",endRank:"def"},
+  cocktail:{n:"ほろ酔いカクテル",d:"ターン終了時に特殊防御+1。一度使うとなくなる",endRank:"spdef"},
+  fullShoes:{n:"全力シューズ",d:"素早さ×1.5。その場で最初に使った技に固定される。交代で解除",choice:true},
+  fullKnuckle:{n:"全力ナックル",d:"物理攻撃×1.5。その場で最初に使った技に固定される。交代で解除",choice:true},
+  fullGlasses:{n:"全力メガネ",d:"特殊攻撃×1.5。その場で最初に使った技に固定される。交代で解除",choice:true},
   wing  :{n:"疾風の羽",  d:"素早さ ×1.2 / 同じ技を連続で使えない", lock:true},
   plate :{n:"鋼の甲",    d:"物理防御 ×1.2 / 同じ技を連続で使えない", lock:true},
   fang  :{n:"猛火の牙",  d:"物理攻撃 ×1.2 / 同じ技を連続で使えない", lock:true},
   orb   :{n:"霊力の珠",  d:"特殊攻撃 ×1.2 / 同じ技を連続で使えない", lock:true},
   veil  :{n:"霊紗の幕",  d:"特殊防御 ×1.2 / 同じ技を連続で使えない", lock:true},
   robe  :{n:"結界衣",    d:"特殊防御 ×1.35 だが変化技を使えない", noStatus:true},
-  belt  :{n:"気力帯",    d:"気力回復 +8/ターン"},
+  belt  :{n:"気力帯",    d:"気力回復 +5/ターン"},
   charm :{n:"護りの札",  d:"HP満タンから倒されるとき、1回だけHP1で耐える"},
   thorn :{n:"毒棘",      d:"接触技で本体が攻撃されたとき、相手に自分の最大HPの5%のダメージ"},
   berry :{n:"命の実",    d:"毎ターン 最大HPの5%回復"},
   ward  :{n:"破魔石",    d:"自分の攻撃が半減・1/4相性のとき、0.75倍まで通りやすくする"},
-  bell  :{n:"癒しの鈴",  d:"場に出たとき、状態異常を1回だけ治す"},
+  bell  :{n:"癒しの鈴",  d:"交代で場に出たとき、状態異常を治す。1戦につき2回まで"},
   armor :{n:"戦装束",    d:"物理防御 ×1.35 だが変化技を使えない", noStatus:true},
   mask  :{n:"無垢の仮面", d:"持ち主の特性が発動しなくなる", mask:true}
 };
@@ -3795,15 +3801,15 @@ function usefulBuildAbility(key,moves,equip){
 function randomBuildRules(species,equip){
   const item=EQUIPS[equip];if(!item)return null;
   const pool=learnable(species);
-  const attackCount=item.noStatus||item.lock?4:2;
+  const attackCount=item.noStatus||item.lock||item.choice?4:2;
   const attacks=pool.filter(k=>!isStatusMove(MOVES[k]))
-    .filter(k=>equip!=="fang"||(MOVES[k].category==="physical"&&MOVES[k].p>0))
-    .filter(k=>equip!=="orb"||(MOVES[k].category==="special"&&MOVES[k].p>0));
+    .filter(k=>!["fang","fullKnuckle"].includes(equip)||(MOVES[k].category==="physical"&&MOVES[k].p>0))
+    .filter(k=>!["orb","fullGlasses"].includes(equip)||(MOVES[k].category==="special"&&MOVES[k].p>0));
   const stab=attacks.filter(k=>MOVES[k].p>0&&MOVES[k].t===species.t);
   const statuses=pool.filter(k=>isStatusMove(MOVES[k]));
   if(attacks.length<attackCount||!stab.length)return null;
   if(attackCount===2&&statuses.filter(k=>!["atkup","spatkup"].includes(MOVES[k].fx)).length<2)return null;
-  if(item.mask&&!statuses.some(k=>MOVES[k].fx==="swapitem"))return null;
+  if((item.mask||item.tradeDebuff)&&!statuses.some(k=>MOVES[k].fx==="swapitem"))return null;
   return {attacks,stab,statuses,attackCount};
 }
 function randomBuildForSpecies(species,chosenEquip=null){
@@ -3818,7 +3824,7 @@ function randomBuildForSpecies(species,chosenEquip=null){
   if(rules.attackCount===2){
     const statuses=rules.statuses.filter(k=>MOVES[k].fx!=="atkup"||physical)
       .filter(k=>MOVES[k].fx!=="spatkup"||special);
-    if(EQUIPS[equip].mask)moves.push(statuses.find(k=>MOVES[k].fx==="swapitem"));
+    if(EQUIPS[equip].mask||EQUIPS[equip].tradeDebuff)moves.push(statuses.find(k=>MOVES[k].fx==="swapitem"));
     moves.push(...shuffleBuildChoices(statuses.filter(k=>!moves.includes(k))).slice(0,4-moves.length));
   }
   // Ability last, after the actual attacks and support moves have been chosen.
@@ -3966,7 +3972,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id":"news-20261113-02","date":"2026-11-13","title":"気力と守る・行動制限を調整","items":["ターン終了時の気力回復を12に変更。守る以外は同じ技を連続使用するたび消費気力が5増えます。別の技・気力溜め・交代で加算がリセットされます。","集中は気力上限150で開始し、気力溜めの回復量2倍と被ダメ増加なしに。好機の追加効果倍率は1.5倍へ変更しました。","守るは反響・封技・挑発など、相手から直接受ける変化技も防ぎます。天気や既存の継続ダメージ、場全体の効果は防げません。","反響・封技・挑発は、後手でかけた場合に次のターンから持続を数え、先手・後手とも3回の行動に影響するようになりました。"]},{"id":"news-20261113-01","date":"2026-11-13","detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/rebalance-v17.md","title":"通常20体と技・特性を全体調整","items":["おどかすの行動阻止と先制を撤廃。通常攻撃に50%の物攻低下を付けました。","気合い・精神統一・結界を2段階上昇へ変更し、気力消費も見直しました。","仕返しの上限・身代わり・無効相性、幻痛の気力吸収、闇喰らいの回復量を調整しました。","通常20体の習得技を個別化し、見切り・重心・岩肌・反骨などの特性を調整しました。","若葉弾を追加し、悪夢を暗闇属性に変更。メイホーなどの役割を整えました。","反響中でも交代できるよう修正。破魔石は持ち主の攻撃に作用するよう修正しました。","旧編成は新しい習得範囲に合わせて補完し、変更前の保存データもブラウザ内にバックアップします。"]},{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id":"news-20261113-03","date":"2026-11-13","title":"新しい持ち物と癒しの鈴の調整","items":["気力帯の追加回復を毎ターン5に変更しました。","ゆるゆるパジャマを追加。持ち主の技の消費気力が5増えます。","癒しの鈴は交代で出たときに2回まで状態異常を治します。奇術でも使用回数を引き継ぎます。","プロテイン・ほろ酔いカクテルを追加。ターン終了時に物防・特防をそれぞれ1段階上げ、一度使うとなくなります。","全力シューズ・全力ナックル・全力メガネを追加。素早さ・物攻・特攻をそれぞれ1.5倍にしますが、最初に使った技に固定されます。交代すると固定が解除されます。"]},{"id":"news-20261113-02","date":"2026-11-13","title":"気力と守る・行動制限を調整","items":["ターン終了時の気力回復を12に変更。守る以外は同じ技を連続使用するたび消費気力が5増えます。別の技・気力溜め・交代で加算がリセットされます。","集中は気力上限150で開始し、気力溜めの回復量2倍と被ダメ増加なしに。好機の追加効果倍率は1.5倍へ変更しました。","守るは反響・封技・挑発など、相手から直接受ける変化技も防ぎます。天気や既存の継続ダメージ、場全体の効果は防げません。","反響・封技・挑発は、後手でかけた場合に次のターンから持続を数え、先手・後手とも3回の行動に影響するようになりました。"]},{"id":"news-20261113-01","date":"2026-11-13","detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/rebalance-v17.md","title":"通常20体と技・特性を全体調整","items":["おどかすの行動阻止と先制を撤廃。通常攻撃に50%の物攻低下を付けました。","気合い・精神統一・結界を2段階上昇へ変更し、気力消費も見直しました。","仕返しの上限・身代わり・無効相性、幻痛の気力吸収、闇喰らいの回復量を調整しました。","通常20体の習得技を個別化し、見切り・重心・岩肌・反骨などの特性を調整しました。","若葉弾を追加し、悪夢を暗闇属性に変更。メイホーなどの役割を整えました。","反響中でも交代できるよう修正。破魔石は持ち主の攻撃に作用するよう修正しました。","旧編成は新しい習得範囲に合わせて補完し、変更前の保存データもブラウザ内にバックアップします。"]},{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
@@ -4331,8 +4337,8 @@ const GameUI = {
     for(const [label,value,rank] of values)stats.appendChild(el("div","unit-stat",`<span>${label}</span><strong>${Math.round(value*10)/10}${label==="命中"||label==="回避"?"倍":""}</strong><small>ランク ${rank>0?"+":""}${rank}</small>`));body.appendChild(stats);
     const facts=el("div","unit-detail-facts");
     facts.appendChild(el("div",null,`<strong>特性：${ABILITIES[unit.ability].n}${abilOff(unit)?"（無効）":""}</strong><small>${ABILITIES[unit.ability].d}</small>`));
-    facts.appendChild(el("div",null,`<strong>持ち物：${EQUIPS[unit.equip].n}</strong><small>${EQUIPS[unit.equip].d}</small>`));
-    const conditions=[unit.dead?"戦闘不能":unit.status||"状態異常なし",unit.wildAwakened?"野生に目覚めている!!":"",unit.windMantle?"風纏：次の特殊攻撃を反射する風":"",unit.pendingStatus?`${unit.pendingStatus.status}の発症予約（次のターン終了時）`:"",unit.perish?`滅びの唄：あと${unit.perish}`:"",unit.seedTurns?`寄生：あと${unit.seedTurns}ターン`:"",isBound(unit)?`拘束：あと${unit.bindTurns}ターン`:"",unit.sub?`身代わり：耐久${unit.sub}`:"",unit.encore?`反響：${MOVES[unit.encore.key].n}／あと${unit.encore.turns}ターン`:"",unit.disabled?`封技：${MOVES[unit.disabled.key].n}／あと${unit.disabled.turns}ターン`:"",unit.tauntTurns?`挑発：あと${unit.tauntTurns}ターン`:""].filter(Boolean);
+    facts.appendChild(el("div",null,`<strong>持ち物：${EQUIPS[unit.equip].n}</strong><small>${EQUIPS[unit.equip].d}${unit.equip==="bell"?`／残り${Math.max(0,2-(unit.itemState.bellUses||0))}回`:""}</small>`));
+    const conditions=[unit.choiceMove&&EQUIPS[unit.equip].choice?`全力固定：${MOVES[unit.choiceMove].n}`:"",unit.dead?"戦闘不能":unit.status||"状態異常なし",unit.wildAwakened?"野生に目覚めている!!":"",unit.windMantle?"風纏：次の特殊攻撃を反射する風":"",unit.pendingStatus?`${unit.pendingStatus.status}の発症予約（次のターン終了時）`:"",unit.perish?`滅びの唄：あと${unit.perish}`:"",unit.seedTurns?`寄生：あと${unit.seedTurns}ターン`:"",isBound(unit)?`拘束：あと${unit.bindTurns}ターン`:"",unit.sub?`身代わり：耐久${unit.sub}`:"",unit.encore?`反響：${MOVES[unit.encore.key].n}／あと${unit.encore.turns}ターン`:"",unit.disabled?`封技：${MOVES[unit.disabled.key].n}／あと${unit.disabled.turns}ターン`:"",unit.tauntTurns?`挑発：あと${unit.tauntTurns}ターン`:""].filter(Boolean);
     facts.appendChild(el("div",null,`<strong>現在の状態</strong><small>${conditions.join("<br>")}</small>`));
     const hazards=B.hazard?.[unit.side]||{},names=Object.keys(hazards).filter(key=>hazards[key]).map(key=>HAZARD_NAME[key]);
     facts.appendChild(el("div",null,`<strong>この陣営の足元</strong><small>${names.length?names.join("・"):"設置なし"}</small>`));body.appendChild(facts);
@@ -4389,7 +4395,7 @@ const LV = 50;
 const PARA_FAIL  = 1/8; // 麻痺で行動できない確率
 const BIND_TURNS = 4;   // 渦潮の拘束ターン数
 const SEED_TURNS = 5;   // 寄生の持続。場に出ている間だけ減る
-const EN_REGEN   = 12;  // ターン終了時の気力回復（気力帯で +8）
+const EN_REGEN   = 12;  // ターン終了時の気力回復（気力帯で +5）
 const EN_FOCUS   = 25;  // 「気を溜める」で追加回復する量
 
 /* 一部の装備は、直前に使った技をそのまま繰り返すことを禁じる */
@@ -4404,6 +4410,8 @@ function moveLock(u, key){
     return `挑発で変化技が出せない（あと${u.tauntTurns}）`;
   if(EQUIPS[u.equip].noStatus && isStatusMove(m))
     return `${EQUIPS[u.equip].n}を着ていて変化技を使えない`;
+  if(EQUIPS[u.equip].choice && u.choiceMove && u.choiceMove!==key)
+    return `${EQUIPS[u.equip].n}で ${MOVES[u.choiceMove].n} に固定されている`;
   if(EQUIPS[u.equip].lock && u.lastMove === key)
     return `${EQUIPS[u.equip].n}のため連続で使えない`;
   return null;
@@ -4415,6 +4423,7 @@ const moveBlocked = (u, key) => !!moveLock(u, key);
 function enCost(u, key){
   const m = MOVES[key];
   let c = m.fx === "guard" ? m.en * Math.pow(2, u.guardStreak) : m.en + (u.repeatMove===key ? 5*(u.repeatCount||0) : 0);
+  c += EQUIPS[u.equip].energyCost||0;
   if(B){                                        // 相手の重圧で余計に消耗する
     const foe = u.side === "you" ? FOE() : YOU();
     if(foe && foe !== u && !foe.dead && hasVs(foe, "heavy",u)) c += 5;
@@ -4448,7 +4457,7 @@ function makeUnit(b, side){
     perishStartTurn:null,  // 使用ターン終了時は3のまま表示する
     bond:false,           // 道連れを宣言しているか
     restTurns:0,          // 静養の反動で動けない残りターン
-    bellUsed:false,       // 癒しの鈴を使ったか
+    itemState:{bellUses:0}, choiceMove:null, // 残り回数は持ち物に紐づき、技固定は場を離れると解除
     encore:null,          // {key,turns} 直前の技しか出せない
     disabled:null,        // {key,turns} その技だけ出せない
     tauntStartTurn:0, tauntTurns:0,         // 変化技を出せない残りターン
@@ -4468,15 +4477,15 @@ function makeUnit(b, side){
    命中・回避        … 3系（±1で ×1.333 / ×0.75）。確率に直接掛かるため緩やかにしてある。 */
 const statMul = n => n>=0 ? (2+n)/2 : 2/(2-n);
 const accMul  = n => n>=0 ? (3+n)/3 : 3/(3-n);
-function ATK(u){ let v = u.baseAtk*statMul(u.rank.atk); if(u.equip==="fang") v*=1.2;
+function ATK(u){ let v = u.baseAtk*statMul(u.rank.atk); if(u.equip==="fang") v*=1.2; if(u.equip==="fullKnuckle")v*=1.5;
   if(has(u,"grit") && u.hp <= u.maxhp/3) v*=1.5; if(u.status==="やけど") v*=.75; return v; }
 const inSandstorm=()=>B?.weather?.kind==="sandstorm";
 function DEF(u,att=null){ let v = u.baseDef*statMul(u.rank.def); if(u.equip==="plate") v*=1.2; if(u.equip==="armor") v*=1.35; if(inSandstorm()&&hasVs(u,"hani",att))v*=1.5; return v; }
-function SPATK(u){ let v = u.baseSpAtk*statMul(u.rank.spatk); if(u.equip==="orb") v*=1.2; return v; }
+function SPATK(u){ let v = u.baseSpAtk*statMul(u.rank.spatk); if(u.equip==="orb") v*=1.2; if(u.equip==="fullGlasses")v*=1.5; return v; }
 function SPDEF(u,att=null){ let v = u.baseSpDef*statMul(u.rank.spdef); if(u.equip==="veil") v*=1.2; if(u.equip==="robe") v*=1.35; if(inSandstorm()){if(hasType(u,"岩"))v*=1.5;if(hasVs(u,"hani",att))v*=1.5;} return v; }
 const moveAttack = (u,m) => m.category === "special" ? SPATK(u) : ATK(u);
 const moveDefense = (u,m,att=null) => m.category === "special" ? SPDEF(u,att) : DEF(u,att);
-function SPD(u){ let v = u.baseSpd*statMul(u.rank.spd); if(u.equip==="wing") v*=1.2; if(u.status==="麻痺") v*=.5; return v; }
+function SPD(u){ let v = u.baseSpd*statMul(u.rank.spd); if(u.equip==="wing") v*=1.2; if(u.equip==="fullShoes")v*=1.5; if(u.status==="麻痺") v*=.5; return v; }
 
 /* 場を離れた個体の処理。
    能力ランク・守り・ひるみは失う。麻痺などの状態異常は持ち越す。 */
@@ -4498,6 +4507,7 @@ function leaveField(u){
   u.guardStreak = 0;
   u.dmgTaken = 0;
   resetMoveRepeat(u);
+  u.choiceMove=null;
   u.tauntStartTurn=0;
   u.lastMove = null;   // 場に出し直せば連続扱いは切れる
   if(u.encore || u.disabled || u.tauntTurns) msgs.push("にかかっていた制限は解けた。");
@@ -5296,6 +5306,8 @@ function aiChoose(){
     } else if(m.fx === "swapitem"){
       if(itemSwapFailure(f,y))v=0;
       else if(abilOff(f)) v = 140;
+      else if(EQUIPS[f.equip].tradeDebuff&&!EQUIPS[y.equip].tradeDebuff)v=140;
+      else if(EQUIPS[y.equip].tradeDebuff&&!EQUIPS[f.equip].tradeDebuff)v=5;
       else v = 40;
     } else if(m.fx === "encore"){
       v = (!y.lastMove || y.encore) ? 3 : (isStatusMove(MOVES[y.lastMove]) ? 130 : 55);
@@ -5465,9 +5477,9 @@ function rollFx(u, target, m){
 
 /* 場に出たときの特性 */
 function onEnter(u){
-  if(u.equip === "bell" && !u.bellUsed && u.status){
-    u.bellUsed = true;
-    say(`${nm(u)} の癒しの鈴が鳴り、${u.status}が治った。`);
+  if(u.equip === "bell" && (u.itemState.bellUses||0)<2 && u.status){
+    u.itemState.bellUses=(u.itemState.bellUses||0)+1;
+    say(`${nm(u)} の癒しの鈴が鳴り、${u.status}が治った（残り${2-u.itemState.bellUses}回）。`);
     u.status = null; u.statusTurns = 0;
   }
   const foe = u.side === "you" ? FOE() : YOU();
@@ -5534,7 +5546,7 @@ function fxNullified(m, target, source=null){
 }
 
 function statusEffectSnapshot(u,target){
-  const fields=["hp","en","status","pendingStatus","rank","sub","restTurns","guarding","guardStreak","bond","perish","equip","encore","disabled","tauntTurns","bindTurns","seedTurns","wildAwakened","windMantle"];
+  const fields=["hp","en","status","pendingStatus","rank","sub","restTurns","guarding","guardStreak","bond","perish","equip","itemState","choiceMove","encore","disabled","tauntTurns","bindTurns","seedTurns","wildAwakened","windMantle"];
   return JSON.stringify([[u,target].map(x=>fields.map(k=>x[k])),B.hazard,B.reverseTurns,B.weather]);
 }
 
@@ -5600,6 +5612,10 @@ async function doMove(u, target, key, canFlinch=true){
     await sleep(500);
   if(B!==battle || battle.over)return; return;
   }
+  if(EQUIPS[u.equip].choice && u.choiceMove && u.choiceMove!==key){
+    say(`${nm(u)} は ${EQUIPS[u.equip].n} で ${MOVES[u.choiceMove].n} に固定されていて、${m.n}を出せなかった！`);
+    await sleep(500);return;
+  }
   if(EQUIPS[u.equip].lock && u.lastMove === key){
     // 反響で強制された技が連続禁止と噛み合わず、何もできない
     say(`${nm(u)} は ${EQUIPS[u.equip].n} のせいで ${m.n} を続けられず、何もできなかった！`);
@@ -5616,6 +5632,7 @@ async function doMove(u, target, key, canFlinch=true){
   u.en -= enCost(u, key);
   if(m.fx==="guard")resetMoveRepeat(u);
   else {u.repeatCount=u.repeatMove===key?(u.repeatCount||0)+1:1;u.repeatMove=key;}
+  if(EQUIPS[u.equip].choice&&!u.choiceMove)u.choiceMove=key;
   u.lastMove = key;                          // 外しても「使った」扱い
   if(m.fx !== "guard") u.guardStreak = 0;   // 守る以外を挟めば連続扱いは切れる
   if(!isStatusMove(m)){
@@ -5832,6 +5849,8 @@ async function doMove(u, target, key, canFlinch=true){
       else {
         const mine = u.equip, theirs = target.equip;
         u.equip = theirs; target.equip = mine;
+        [u.itemState,target.itemState]=[target.itemState,u.itemState];
+        u.choiceMove=null;target.choiceMove=null;
         syncEnergyCap(u);syncEnergyCap(target);
         const nameOf = k => k === "none" ? "何も持たない状態" : EQUIPS[k].n;
         say(`${nm(u)} は持ち物を入れ替えた！`);
@@ -6148,8 +6167,14 @@ async function endTurn(){
     if(u.dead || u.hp<=0) continue;
     u.guarding = false;                                  // 守るはそのターン限り
     syncEnergyCap(u);
-    u.en = Math.min(u.maxen, u.en + EN_REGEN + (u.equip==="belt" ? 8 : 0));
+    u.en = Math.min(u.maxen, u.en + EN_REGEN + (u.equip==="belt" ? 5 : 0));
 
+    const drink=EQUIPS[u.equip];
+    if(drink.endRank&&u.rank[drink.endRank]<6){
+      u.rank[drink.endRank]++;
+      say(`${nm(u)} は ${drink.n} を飲んだ！ ${RANK_LABEL[drink.endRank]}が上がった！`);
+      u.equip="none";u.itemState={bellUses:0};u.choiceMove=null;shown=true;
+    }
     if(u.equip === "berry" && u.hp < u.maxhp){
       const h = Math.max(1, Math.floor(u.maxhp*.05));
       u.hp = Math.min(u.maxhp, u.hp+h);
@@ -6318,7 +6343,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "energy-v18";
+const BATTLE_RULES_VERSION = "items-v19";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});

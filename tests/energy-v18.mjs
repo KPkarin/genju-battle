@@ -69,7 +69,7 @@ await run(`(async()=>{
  B.you[0]=a;a.en=0;await doMove(a,d,null);await endTurn();assert.equal(a.en,62);
  rng=()=>.5;d.focusExposed=false;const normal=damage(d,a,MOVES.tackle).dmg;a.focusExposed=true;assert.equal(damage(d,a,MOVES.tackle).dmg,normal);
  a.equip='mask';syncEnergyCap(a);assert.equal(a.maxen,100);a.en=150;syncEnergyCap(a);assert.equal(a.en,100);a.equip='none';syncEnergyCap(a);assert.equal(a.en,100);assert.equal(a.maxen,150,'unmasking does not refill');
- [a,d]=setup();a.en=0;a.equip='belt';await endTurn();assert.equal(a.en,20);
+ [a,d]=setup();a.en=0;a.equip='belt';await endTurn();assert.equal(a.en,17);
  [a,d]=setup();a.ability='tempo';a.baseSpd=200;rng=()=>.749;assert.equal(rollFx(a,d,{pr:.5}),true);rng=()=>.75;assert.equal(rollFx(a,d,{pr:.5}),false);d.ability='blur';rng=()=>.375;assert.equal(rollFx(a,d,{pr:.5}),false);
  // Every directed status move and attacks are blocked without applying an effect.
  for(const key of ['coal','sand','parasite','whirl','swap','encore','disable','taunt','tackle','revenge']){
