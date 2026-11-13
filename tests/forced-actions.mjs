@@ -32,7 +32,7 @@ function world(){
   run(`
     function unit(side){
       const u=makeUnit({id:'homura',moves:['slide','tackle','guard','repose'],equip:'none',ability:'focus2'},side);
-      u.type='無';u.maxhp=u.hp=1000;u.baseAtk=u.baseSpAtk=u.baseDef=u.baseSpDef=100;u.baseSpd=100;
+      u.en=100;u.type='無';u.maxhp=u.hp=1000;u.baseAtk=u.baseSpAtk=u.baseDef=u.baseSpDef=100;u.baseSpd=100;
       return u;
     }
     function setup(){
@@ -75,7 +75,7 @@ await run(`(async()=>{
    assert.equal(forcedAction(a,move(key)).key,'desperate');
    const energy=a.en;
    await takeTurn(move(key),move('startle'));
-   assert.equal(a.hp,800-a.dmgTaken,mode+key+': 20% self loss plus ordinary incoming damage');assert.equal(a.en,Math.min(100,energy+EN_REGEN));
+   assert.equal(a.hp,800-a.dmgTaken,mode+key+': 20% self loss plus ordinary incoming damage');assert.equal(a.en,Math.min(a.maxen,energy+EN_REGEN));
    assert.equal(a.actionCancelled,false);
    [a,d]=setup();a.encore={key,turns:3};a.en=0;
    await takeTurn(move(key),move('ambush'));
