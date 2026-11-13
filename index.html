@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>幻獣闘記 — 月下の闘技場</title>
-<meta name="theme-color" content="#0b1821">
+<meta name="theme-color" content="#0b192b">
 <meta name="description" content="20体の幻獣を編成して戦う、3対3のターン制バトルゲーム。コンピューター対戦と通信対戦に対応。">
 <style>
 :root{
@@ -575,6 +575,76 @@ canvas.substitute-actor[hidden]{display:none!important}
 .equipment-cards .card.on .item-art-frame{border-color:#d4b56e;background:radial-gradient(ellipse,#4b4936,#26332d)}
 .unit-detail-facts .item-fact{display:flex;align-items:center;gap:12px}.item-fact>div{min-width:0}
 @media(max-width:520px){.cards.equipment-cards{grid-template-columns:1fr}.equipment-cards .card{min-height:98px;padding:10px}.equipment-cards .card .cn{font-size:14px}}
+
+/* Glass UI: cool translucent surfaces, quiet edges, clear focus/selection. */
+:root{--bg:#080f1e;--panel:#14283ac9;--panel2:#21394b80;--line:rgba(158,208,231,.16);--gold:#a3e2e4;--bone:#e3edf4;--dim:#a1b7ca;--red:#ef9b9d;--green:#91d7c6;--blue:#9cc9ef;--serif:var(--gothic);--glass-edge:rgba(166,218,237,.17);--glass-hover:rgba(163,229,237,.36);--glass-selected:rgba(130,222,227,.5);--glass-fill:linear-gradient(135deg,rgba(77,115,145,.18),rgba(27,51,73,.34));--glass-shadow:0 14px 42px #02091638,inset 0 1px rgba(220,246,255,.045)}
+html{background:var(--bg)}
+body{background:radial-gradient(ellipse at 6% 4%,#285d7138,transparent 48%),radial-gradient(ellipse at 100% 40%,#414c8130,transparent 55%),linear-gradient(145deg,#0c1928,#0a1121 65%,#0c1b2a);color:var(--bone)}
+button{border-color:var(--glass-edge);border-radius:11px;background:var(--glass-fill);color:var(--bone);box-shadow:inset 0 1px #d9f4ff08;transition:background .18s,border-color .18s,box-shadow .18s,transform .18s}
+button:hover:not(:disabled){background:linear-gradient(135deg,#47778a50,#314a6b55);border-color:var(--glass-hover);box-shadow:0 4px 18px #75cbd510,inset 0 1px #e4faff12;transform:translateY(-1px)}
+button:active:not(:disabled){transform:translateY(1px);box-shadow:inset 0 1px 5px #08122240}
+button:disabled{opacity:.48;box-shadow:none}
+button:focus-visible,select:focus-visible,input:focus-visible,summary:focus-visible,a:focus-visible,.battle-unit-card:focus-visible{outline:2px solid #adeef2;outline-offset:3px}
+button.primary,.primary{color:#102e3a;background:linear-gradient(115deg,#9fdedc,#a8cde9);border-color:#d2f0ee80;box-shadow:0 4px 20px #7bd6dd18,inset 0 1px #f2ffff70}
+button.primary:hover:not(:disabled){background:linear-gradient(115deg,#b5eae4,#bddcf2);border-color:#e0fbff99;box-shadow:0 5px 26px #7bd6dd26}
+button.ghost,.header-actions button,.battle-info-actions button,.battle-menu button{color:#c9dfe9;background:#36546720;border-color:var(--glass-edge)}
+select,.pass{color:var(--bone);background:#172c40e8;border-color:var(--glass-edge);border-radius:10px;color-scheme:dark}
+.game-header,.game-footer,.editor-summary,.command-heading,.modal-header,.modal-footer{border-color:var(--glass-edge)}
+.brand h1,.hero-copy h2,.section-heading h2,.squad-heading h2,.moncard .nm,.editor-summary h3,.detail-hero h3,.launch-copy strong,.modal-header h2{color:#e8f2fa}
+.brand-mark{color:#bdecef;background:linear-gradient(145deg,#83c7d425,#7b99db12);border-color:#a0d7e63d;border-radius:12px;box-shadow:inset 0 1px #edffff12}
+.brand-kicker,.hero-eyebrow,.section-kicker,.hero-stamp{color:#96c3d4}
+.guild-hero{background:linear-gradient(120deg,#19354b99,#1a284459);border-color:var(--glass-edge);border-radius:20px;box-shadow:var(--glass-shadow)}
+.hero-copy p,.moncard .role-label,.hint,.loadout-meta,.editor-tab,.unit-card-state{color:var(--dim)}
+.section-count,.turn-badge,.field-state,.battle-active .stage #fieldState{color:#c4e5ee;background:#2c52654d;border-color:#99cede29;border-radius:8px}
+.moncard,.slot.loadout-card,.card,.mrow,.battle-unit-card,.unit-stat,.news-entry,.modal-body details,.result-scene{background:var(--glass-fill);border-color:var(--glass-edge);box-shadow:var(--glass-shadow)}
+.moncard,.slot.loadout-card,.result-scene{border-radius:16px}
+.moncard:hover:not(.dim){border-color:var(--glass-hover);box-shadow:0 8px 24px #04122040,inset 0 1px #d5faff17}
+.moncard.sel,.slot.loadout-card.lead,.mrow.on,.card.on,.battle-unit-card.is-selected,.battle-unit-card.selected{border-color:var(--glass-selected);background:linear-gradient(135deg,#4d92934d,#30466b4a);box-shadow:inset 0 1px #c2ffff20,0 5px 22px #041b2938}
+.moncard .pick{color:#102e3a;background:#a3d9dc}
+.tfbar .tf,.editor-tab,.mini-move,.selslot,.cell,.modal-body .bgm-controls{background:#3a596b22;border-color:var(--glass-edge);color:#c4d7e3}
+.tfbar .tf.on,.editor-tab.on,.editor-tab[aria-selected="true"],.status-preview-tabs button.on,.cell.act{background:#66bbc032;color:#def9f7;border-color:var(--glass-selected)}
+.loadout-actions .edit-loadout{color:#c8e9ec;background:#548c9b26;border-color:#b3e8ea29}
+.empty-state,.slot.empty-state{background:#27435a24;border-color:#a2cada29;color:#a9bdcf}
+.slot.empty-state::before{color:#a3d4de}
+.launchbar{background:#172b3fe8;border-color:#a5d8e12b;border-radius:16px;box-shadow:var(--glass-shadow)}
+.battle-command-panel{background:#1b34474d;border-color:var(--glass-edge);border-radius:16px;box-shadow:var(--glass-shadow)}
+.cmd button,.battle-active .battle-sidebar .cmd button{background:linear-gradient(130deg,#4a71833b,#263c574d);border-color:#a6d5e529;border-radius:12px;box-shadow:inset 0 1px #d8f4ff0a}
+.cmd button:hover:not(:disabled),.battle-active .battle-sidebar .cmd button:hover:not(:disabled){background:linear-gradient(130deg,#548b9959,#38557666);border-color:#b9f0f25c;box-shadow:0 4px 18px #76d4dc10}
+.cmd button.wide{background:#3d687b30;border-color:var(--glass-edge)}
+#btnFocusEnergy{color:#c6eadf;background:linear-gradient(130deg,#4b8c762e,#325c632e);border-color:#b7ecd12e}
+#btnBattleMonsters{color:#d5dff4;background:linear-gradient(130deg,#677eaa30,#4c628c26);border-color:#c7d8f52e}
+.focus-risk{color:#b3cbd6}
+.stage,.battle-active .stage{border-color:#a5d5e82e;box-shadow:0 12px 38px #020a1840}
+.hud,.battle-active .stage .hud{background:linear-gradient(120deg,#193448e6,#14253be0);border-color:#afd9ec33;box-shadow:0 4px 16px #020a1829,inset 0 1px #def8ff0c;border-radius:10px}
+.hud .nm,.unit-card-main strong,.unit-card-name{color:#e7f2fa}
+.bar,.cbar{background:#0d1b2b80;border-color:#aad4e315}
+.battle-narration::before{background:linear-gradient(120deg,#0e2438ed,#122139ed);border-top-color:#b3e1ee36;box-shadow:0 -5px 24px #030d1b33}
+.battle-narration .log,.battle-active .battle-narration .log{color:#dae8f2}
+.battle-narration .log p:last-child{color:#eefaff}
+.log .u-you,.battle-log-history .u-you{color:#b4e6df}.log .u-foe,.battle-log-history .u-foe{color:#e9bcd1}
+#battleQuickMenu{background:#1b3448dc;color:#d0e8f2;border-color:#b4deef30;border-radius:10px}
+.modal-backdrop{background:#030d20ad;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+.modal-backdrop:hover:not(:disabled){background:#030d20ad;box-shadow:none;transform:none}
+.modal-panel{background:linear-gradient(145deg,#1c354bf2,#101e35f5);border-color:#b8e4f130;border-radius:20px;box-shadow:0 30px 100px #01071388,inset 0 1px #ecffff14}
+.modal-header{background:#638ba011}.modal-footer{background:#0a1b2b33}
+.modal-header button{color:#d0e7f2;background:#6d9eaf14;border-color:#b3dce82e}
+.editor-tabs{background:#1a3046f5;border-bottom-color:var(--glass-edge);border-radius:10px;padding-inline:5px}
+.modal-body .team-save,.modal-body .lobby{background:#314e6529;border-color:var(--glass-edge)}
+.unit-switch-footer{background:#1a3046f5;border-color:var(--glass-edge)}
+.battle-unit-card.is-active,.battle-unit-card.active{border-color:#afd7e13d}
+.battle-unit-card [data-unit-detail],.unit-detail-button{color:#b7d2e3;background:#35587520;border-top-color:var(--glass-edge)}
+.unit-stat strong{color:#ccecf1}.unit-stat small,.news-heading time{color:#a1bdcf}
+.item-art-frame{background:radial-gradient(ellipse,#588ca32e,#20364e1c);border-color:#b1deec20;box-shadow:inset 0 1px #defaff0a;border-radius:12px}
+.equipment-cards .card.on .item-art-frame{background:radial-gradient(ellipse,#71b7ba38,#2e56702b);border-color:#b6f4ed45}
+.news-heading{color:#dfedf6}.news-items{color:#c2d5e3}.news-latest{color:#c8eeeb;background:#6eaead17;border-color:#b8e5e82b}.news-details{color:#b4e6eb}
+.log-history-button{color:#b6d2e0}
+.toast{color:#e5f6fa;background:#25465aee;border-color:#b5e7e548;box-shadow:0 8px 30px #04101e55;border-radius:12px}
+.chart td,.chart th{border-color:var(--glass-edge)}
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){.launchbar{background:#193348a6;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}.modal-panel{background:linear-gradient(145deg,#203e54dd,#14243ddf);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}}
+@media(max-width:999px){.battle-active .battle-command-panel{background:none;box-shadow:none;border:0}.battle-active .battle-sidebar{background:linear-gradient(160deg,#1d344627,#18243d24)}}
+@media(prefers-reduced-transparency:reduce){.modal-panel,.launchbar{background:#162b40;backdrop-filter:none;-webkit-backdrop-filter:none}.modal-backdrop{background:#030d20e8;backdrop-filter:none;-webkit-backdrop-filter:none}}
+@media(prefers-reduced-motion:reduce){button:hover:not(:disabled){transform:none}}
+
 </style>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -3990,7 +4060,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id":"news-20261113-04","date":"2026-11-13","title":"持ち物のドット絵を追加","items":["全20種の持ち物に48×48ドットのイラストを追加しました。","装備選択・編成・戦闘中の幻獣詳細に持ち物の絵を表示します。","装備選択はイラストと効果を並べ、スマホでも選びやすくしました。"]},{"id":"news-20261113-03","date":"2026-11-13","title":"新しい持ち物と癒しの鈴の調整","items":["気力帯の追加回復を毎ターン5に変更しました。","ゆるゆるパジャマを追加。持ち主の技の消費気力が5増えます。","癒しの鈴は交代で出たときに2回まで状態異常を治します。奇術でも使用回数を引き継ぎます。","プロテイン・ほろ酔いカクテルを追加。ターン終了時に物防・特防をそれぞれ1段階上げ、一度使うとなくなります。","全力シューズ・全力ナックル・全力メガネを追加。素早さ・物攻・特攻をそれぞれ1.5倍にしますが、最初に使った技に固定されます。交代すると固定が解除されます。"]},{"id":"news-20261113-02","date":"2026-11-13","title":"気力と守る・行動制限を調整","items":["ターン終了時の気力回復を12に変更。守る以外は同じ技を連続使用するたび消費気力が5増えます。別の技・気力溜め・交代で加算がリセットされます。","集中は気力上限150で開始し、気力溜めの回復量2倍と被ダメ増加なしに。好機の追加効果倍率は1.5倍へ変更しました。","守るは反響・封技・挑発など、相手から直接受ける変化技も防ぎます。天気や既存の継続ダメージ、場全体の効果は防げません。","反響・封技・挑発は、後手でかけた場合に次のターンから持続を数え、先手・後手とも3回の行動に影響するようになりました。"]},{"id":"news-20261113-01","date":"2026-11-13","detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/rebalance-v17.md","title":"通常20体と技・特性を全体調整","items":["おどかすの行動阻止と先制を撤廃。通常攻撃に50%の物攻低下を付けました。","気合い・精神統一・結界を2段階上昇へ変更し、気力消費も見直しました。","仕返しの上限・身代わり・無効相性、幻痛の気力吸収、闇喰らいの回復量を調整しました。","通常20体の習得技を個別化し、見切り・重心・岩肌・反骨などの特性を調整しました。","若葉弾を追加し、悪夢を暗闇属性に変更。メイホーなどの役割を整えました。","反響中でも交代できるよう修正。破魔石は持ち主の攻撃に作用するよう修正しました。","旧編成は新しい習得範囲に合わせて補完し、変更前の保存データもブラウザ内にバックアップします。"]},{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id":"news-20261113-05","date":"2026-11-13","title":"透明感のあるUIにリニューアル","items":["画面全体を青緑・青紫の光と半透明パネルで統一しました。","ボタンやカードの境界線を淡くし、選択中・フォーカス中の表示を整えました。","編成・装備選択・戦闘・各ウィンドウに新しいデザインを反映しました。"]},{"id":"news-20261113-04","date":"2026-11-13","title":"持ち物のドット絵を追加","items":["全20種の持ち物に48×48ドットのイラストを追加しました。","装備選択・編成・戦闘中の幻獣詳細に持ち物の絵を表示します。","装備選択はイラストと効果を並べ、スマホでも選びやすくしました。"]},{"id":"news-20261113-03","date":"2026-11-13","title":"新しい持ち物と癒しの鈴の調整","items":["気力帯の追加回復を毎ターン5に変更しました。","ゆるゆるパジャマを追加。持ち主の技の消費気力が5増えます。","癒しの鈴は交代で出たときに2回まで状態異常を治します。奇術でも使用回数を引き継ぎます。","プロテイン・ほろ酔いカクテルを追加。ターン終了時に物防・特防をそれぞれ1段階上げ、一度使うとなくなります。","全力シューズ・全力ナックル・全力メガネを追加。素早さ・物攻・特攻をそれぞれ1.5倍にしますが、最初に使った技に固定されます。交代すると固定が解除されます。"]},{"id":"news-20261113-02","date":"2026-11-13","title":"気力と守る・行動制限を調整","items":["ターン終了時の気力回復を12に変更。守る以外は同じ技を連続使用するたび消費気力が5増えます。別の技・気力溜め・交代で加算がリセットされます。","集中は気力上限150で開始し、気力溜めの回復量2倍と被ダメ増加なしに。好機の追加効果倍率は1.5倍へ変更しました。","守るは反響・封技・挑発など、相手から直接受ける変化技も防ぎます。天気や既存の継続ダメージ、場全体の効果は防げません。","反響・封技・挑発は、後手でかけた場合に次のターンから持続を数え、先手・後手とも3回の行動に影響するようになりました。"]},{"id":"news-20261113-01","date":"2026-11-13","detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/rebalance-v17.md","title":"通常20体と技・特性を全体調整","items":["おどかすの行動阻止と先制を撤廃。通常攻撃に50%の物攻低下を付けました。","気合い・精神統一・結界を2段階上昇へ変更し、気力消費も見直しました。","仕返しの上限・身代わり・無効相性、幻痛の気力吸収、闇喰らいの回復量を調整しました。","通常20体の習得技を個別化し、見切り・重心・岩肌・反骨などの特性を調整しました。","若葉弾を追加し、悪夢を暗闇属性に変更。メイホーなどの役割を整えました。","反響中でも交代できるよう修正。破魔石は持ち主の攻撃に作用するよう修正しました。","旧編成は新しい習得範囲に合わせて補完し、変更前の保存データもブラウザ内にバックアップします。"]},{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
