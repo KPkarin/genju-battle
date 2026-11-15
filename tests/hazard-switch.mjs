@@ -53,7 +53,12 @@ const {run}=world();
 
 
 await run(`(async()=>{
- const [a,d]=setup();B.hazard.foe.rock=true;B.foe[1].hp=1;B.foe[1].type='無';B.foe[2].hp=1000;B.foe[2].type='無';d.dead=true;d.hp=0;
- await takeTurn(move('tackle'),{kind:'switch',to:1});
- assert.equal(B.foe[1].dead,true);assert.equal(B.fi,2);assert.equal(a.lastMove,'tackle');assert.ok(B.foe[2].hp<875,'replacement takes hazards and the already selected attack');assert.equal(B.turn,2);
-})()`);console.log('PASS hazard KO replacement preserves pending attack');
+ for(const key of ['tackle','sand','focus',null]){
+ const [a,d]=setup();B.hazard.foe.rock=true;B.foe[1].hp=1;B.foe[1].type='無';B.foe[2].hp=1000;B.foe[2].type='無';d.dead=true;d.hp=0;a.en=50;
+ await takeTurn(move(key),{kind:'switch',to:1});
+ assert.equal(B.foe[1].dead,true);assert.equal(B.fi,2);assert.equal(B.foe[2].hp,875,'replacement only takes hazards, never the pending attack');assert.equal(B.turn,2);
+ if(key){assert.equal(a.lastMove,key);assert.equal(a.en,50-MOVES[key].en+EN_REGEN);}
+ if(key==='focus')assert.equal(a.rank.atk,2);
+ if(key==='tackle'||key==='sand')assert.ok(logs().includes('空を切った'));
+ }
+})()`);console.log('PASS hazard KO: paid whiff before replacement, self-boost and focus still execute');
