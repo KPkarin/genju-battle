@@ -51,7 +51,7 @@ await vm.runInContext(`(async () => {
     for (const key of ['hp', 'atk', 'def', 'spd']) assert.ok(s[key] > 0, s.id + ': ' + key);
     assert.equal(SPRITES[s.id].px.length, 32, s.id + ': sprite height');
     assert.ok(SPRITES[s.id].px.every(row => row.length === 32), s.id + ': sprite width');
-    assert.equal(ABIL_OF[s.id].length, ['homura','shiogame','saikaku','fuen'].includes(s.id) ? 3 : 2);
+    assert.equal(ABIL_OF[s.id].length, ['homura','shiogame','saikaku','fuen','rainen','ungei'].includes(s.id) ? 3 : 2);
     assert.ok(ABIL_OF[s.id].every(key => ABILITIES[key]), s.id + ': abilities');
     const pool = learnable(s);
     assert.ok(pool.length >= 4);

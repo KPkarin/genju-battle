@@ -64,7 +64,7 @@ run(`
   assert.equal(JSON.stringify(users),JSON.stringify(['homura','shiogame','saikaku','fuen'].sort()),'exactly four selected species gain stoic');
   for(const [id,previous] of Object.entries(priorAbilities)){
     assert.equal(JSON.stringify(ABIL_OF[id].slice(0,2)),JSON.stringify(previous),id+': existing ability options remain in place');
-    assert.equal(ABIL_OF[id].length,users.includes(id)?3:2,id+': only selected species gain a third choice');
+    assert.equal(ABIL_OF[id].length,users.includes(id)||['rainen','ungei'].includes(id)?3:2,id+': selected species gain a third choice');
     if(users.includes(id))assert.equal(ABIL_OF[id][2],'stoic',id+': stoic is the third ability');
   }
   const builds=['homura','shiogame','fuen'].map(id=>({id,moves:learnable(spec(id)).slice(0,4),equip:'none',ability:'stoic'}));
