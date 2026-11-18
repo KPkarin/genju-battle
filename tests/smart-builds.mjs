@@ -55,7 +55,7 @@ function checkBuild(b){
  assert.equal(moves.length,4);assert.equal(new Set(b.moves).size,4);
  assert.ok(b.moves.every(k=>pool.includes(k)));assert.ok(ABIL_OF[b.id].includes(b.ability));
  const attacks=moves.filter(m=>!isStatusMove(m)),statuses=moves.filter(isStatusMove);
- assert.ok(attacks.some(m=>m.p>0&&m.t===sp.t),sp.id+': actual STAB attack');
+ assert.ok(attacks.some(m=>m.p>0&&hasType(sp.t,m.t)),sp.id+': actual STAB attack');
  if(item.noStatus||item.lock||item.choice){assert.equal(attacks.length,4);assert.equal(statuses.length,0);}
  else {assert.equal(attacks.length,2);assert.equal(statuses.length,2);}
  const physical=attacks.some(m=>m.category==='physical'&&m.p>0),special=attacks.some(m=>m.category==='special'&&m.p>0);

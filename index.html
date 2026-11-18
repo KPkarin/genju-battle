@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>幻獣闘記 — 月下の闘技場</title>
 <meta name="theme-color" content="#0b192b">
-<meta name="description" content="20体の幻獣を編成して戦う、3対3のターン制バトルゲーム。コンピューター対戦と通信対戦に対応。">
+<meta name="description" content="21体の幻獣を編成して戦う、3対3のターン制バトルゲーム。コンピューター対戦と通信対戦に対応。">
 <style>
 :root{
   --bg:#0d1020;
@@ -834,6 +834,7 @@ const expectedHits = m => m.fx === "multi" ? 3.1 : 1;
 const PRI = {startle:0, guard:4, ambush:2, normal:0, counter:-3};
 
 const MOVES = {
+ gillBreath:{key:"gillBreath",contact:false,category:"status",n:"エラ呼吸",t:"水",p:0,acc:null,en:35,fx:"gillBreath",d:"最大HPの30%を回復。雨ならさらに物理攻撃+1"},
   rainDance:{key:"rainDance",contact:false,category:"status",n:"雨乞い",t:"水",p:0,acc:null,en:35,fx:"rain",d:"5ターン雨。流水技1.5倍・火炎技半減。雷撃・迅雷が必中になる"},
   wildfang:{contact:true,category:"physical",n:"かみつく",t:"野",p:60,acc:100,en:20,d:"牙で噛みつく野生の攻撃"},
   wildclaw:{contact:true,category:"physical",n:"ひっかく",t:"野",p:40,acc:100,en:10,d:"鋭い爪で引き裂く野生の攻撃"},
@@ -2979,6 +2980,8 @@ SPRITES.yudachou={"pal":{"o":"#172433","b":"#305c61","s":"#24434e","l":"#55848a"
 BACK_SPRITES.yudachou={"pal":{"o":"#172433","b":"#305c61","s":"#24434e","l":"#55848a","v":"#829e99","w":"#f5e8c8","c":"#b6d7cf","d":"#779fac","n":"#c46657","p":"#eea17b","f":"#e67e3c","h":"#ffd28a","e":"#ffc756"},"px":["................................",".......................w..w.....",".....................wwwwwwww...",".....................dcwdcwdd...","....................opdddddd....","...................ooppdnndo....","...................onpppnoffo...","...................oonnnnoooo...","....................oonnnoo.....",".....................ooooo......","................www.owwwo.......","..............wwwwwwwwwwww......","........www...ddcwwddcwwdwww....","......wwwwwwwooddddddddwwwwwww..","......ddcwwdcbbcddcbocdddcwwdd..",".......ddddcwccwccwccwcpddddd...","........ddccccccccccccccodddo...",".......oblbccccccccccccpobbbbo..",".....d.obbbbcbbcblcbocnpobblbo..",".....c.obsbbsbbsblsbbslbsbbsbo..",".......obblbbbblbbbblbbbblbbbo..",".......obblbbbblbbbblbbbblbbbo..","........osnnsfhsnnhnnsnhsnnso...",".........onnnffnnnfnnnnfnnnd....","..........oonnnnfnnnnfnnnooc....","........d...ooosssssssoooo......","........c.....oooooooo.ovo......","..............ovo......ovo......","..............lll......lll......",".............oooowo...oooowo....","................................","................................"]};
 SPRITES.sarandi={"pal":{"o":"#252b36","b":"#bd8b52","s":"#8e643f","l":"#dec18a","w":"#f5dfb0","t":"#578e98","a":"#9ed2d0","e":"#efb34f","g":"#446873"},"px":["................................","................................",".........o.............o........","..........oo....o....ooo........","..........olooooloooolo.........","...........oloollloollo.........","...........olllblllllo..........","...........obbbbbbbblo..........","..o........obbbbbbbblo.......o..","..oloo...oolooobbbooooo....olo..","...olloooooloaabwbaaooooooblo...","...obwleooollbbbwbbbbloooewlo...","....obwwlloolbbwwwbbllollwloo...","....ooblwllolbbbwbblloblwlloo...",".....olwllloolssssslobbllwoo....",".....owllttbolllllloobttllwo....","....ollltbbtoooooooobtbltlloo...","...ooellbbwwtbbbbbbbtwwbblleoo..","..oolbbbttbtwebbbbbbbtbttbblboo.","...ooobwbbttwbbbbbbbwttbowooo...",".....ooooooobbbbbbeowoooooo.....","......oooooooobotooo....o..aa...","...a......a..ooooto...aaaaa.....","....aaaaaa....oooto.............","................ooto.....oo.....",".................oottooooooo....","...................ootttttooo...",".....................o...oto....","....................aaatttooo...","....................oooooooo....","....................ooooooo.....","................................"]};
 BACK_SPRITES.sarandi={"pal":{"o":"#252b36","b":"#bd8b52","s":"#8e643f","l":"#dec18a","w":"#f5dfb0","t":"#578e98","a":"#9ed2d0","e":"#efb34f","g":"#446873"},"px":["................................","................................",".........o.............o........","..........oo....o....ooo........","..........olooooloooolo.........","...........oloollloollo.........","...........olllbsllllo..........","...........obbssbssblo..........","..o........obsbbbbbslo.......o..","..oloo...oolbbbbsbbsloo....olo..","...ollooooollbbsbsbsboooooblo...","...obwleooollbsbbbbsbloooewlo...","....obwwlloolbbsbssbllollwloo...","....ooblwllolbbbsbblloblwlloo...",".....olwllloolllllllobbllwoo....",".....owllttbolllllloobttllwo....","....ollltbbtoooooooobtbltlloo...","...ooellbbwwtbbbbbbbtwwbblleoo..","..oolbbbttbtwebbbbbbbtbttbblboo.","...ooobwbbttwbbbbbbbwttbowooo...",".....ooooooobbbbbbeowoooooo.....","......oooooooobotooo....o..aa...","...a......a..ooooto...aaaaa.....","....aaaaaa....oooto.............","................ooto.....oo.....",".................oottooooooo....","...................ootttttooo...",".....................o...oto....","....................aaatttooo...","....................oooooooo....","....................ooooooo.....","................................"]};
+SPRITES.hasukaba={"pal": {"o": "#203c3b", "s": "#486c61", "b": "#79a087", "l": "#acc5a0", "h": "#e0e2ba", "g": "#43864e", "v": "#82b460", "p": "#e5a6b9", "e": "#142c31"}, "px": ["................................", "..................o.............", "............oo...opo............", "............opoooppo..oo........", "...........ogoppppppooggo.......", "...........ogooopppogggggo......", "........ooogggggooogvvvvvgo.....", ".....ooogvvvvvvvvvvvgggggggo....", ".....oooggggggggggggggggggo.....", "....ossooggggggggooggggggoso....", "...osssssooogggoooooooggossso...", "...ossssssssooobbbbsssoosssso...", "...ossssohhhhbbbbbbbhhhhossso...", "....ossobhheebbbbbbbeehhboso....", ".....oobbhheebbbbbbbeehhbbo.....", ".....obbbhheebbbbbbbeehhbbbo....", "....oobbbbbooooooooooobbbbboo...", "....oobbooolllllllllllooobboo...", "....oooollllllllllllllllloooo...", "....oollllllllllllllllllllloo...", "....ollloollllllllllllloolllo...", "....ollossolllllllllllossollo...", "....ollloollllllllllllloolllo...", ".....olloolllllllllllllloolo....", "......ooohoossssssssssoooooo....", "......osoohollllllllllohosso....", "......ossooooooooooooooossso....", "......olllooossssssooooolllo....", "......ollllo.oooooo...ollllo....", "......oooooo..........oooooo....", "................................", "................................"]};
+BACK_SPRITES.hasukaba={"pal": {"o": "#203c3b", "s": "#486c61", "b": "#79a087", "l": "#acc5a0", "h": "#e0e2ba", "g": "#43864e", "v": "#82b460", "p": "#e5a6b9", "e": "#142c31"}, "px": ["................................", "..................o.............", "............oo...opo............", "............opoooppo..oo........", "...........ogoppppppooggo.......", "...........ogooopppogggggo......", "........ooogggggooogvvvvvgo.....", ".....ooogvvvvvvvvvvvgggggggo....", "......ooggggggggggggggggggo.....", ".....ossoggggggggooggggggoso....", ".....osssooogggoobboooggosso....", ".....osssobbooobbbbbbboossso....", ".....osssobbbbbbbbbbbbbossso....", "......ooobbbbbbbbbbbbbbbooo.....", ".....obbbbllllllllllllbbbbo.....", ".....obbbbllllllllllllbbbboo....", "....oobbbbllllllllllllbbbbobo...", "....oobbbbbbbbbbbbbbbbbbbbobo...", "....oobbbbbbbbbbbbbbbbbbbbobo...", "....obobbbbbbbbbbbbbbbbbbobbo...", "....obbobbbbbbbbbbbbbbbbobbbo...", ".....obooobbbbbbbbbbbbooobbo....", "......oooooobbbbbbbboooooooo....", "......ossssooooooooossosssooooo.", "......ossssossssssssssosssso.oo.", "......ossssossssssssssosssso.oo.", "......ossssossssssssssosssso.oo.", "......olllloossssssoooollllo....", "......ollllo.oooooo...ollllo....", "......oooooo..........oooooo....", "................................", "................................"]};
 const SPECIES = [
   {"id":"homura","n":"ワホームラ","t":"炎","hp":120,"atk":105,"spatk":85,"def":70,"spdef":70,"spd":95,"aff":"岩","role":"物理アタッカー","roleDesc":"炎牙と岩技で攻める。不屈と気合いで物理火力を伸ばす。"},
   {"id":"shiogame","n":"ミズカガメ","t":"水","hp":160,"atk":65,"spatk":75,"def":115,"spdef":95,"spd":45,"aff":"岩","role":"物理受け","roleDesc":"高いHPと物理防御で受け、白霧や渦潮で相手の攻めを抑える。"},
@@ -2999,10 +3002,12 @@ const SPECIES = [
   {"id":"mubaku","n":"バクネス","t":"幻","hp":145,"atk":60,"spatk":85,"def":95,"spdef":115,"spd":65,"aff":"影","role":"特殊受け・行動妨害","roleDesc":"特殊耐久と封技・反響で相手を止め、幻痛で気力を削る。"},
   {"id":"oborogi","n":"フォクシャドウ","t":"幻","hp":105,"atk":65,"spatk":115,"def":60,"spdef":80,"spd":110,"aff":"雷","role":"高速特殊アタッカー","roleDesc":"幻月・迅雷で攻め、好機で追加効果を狙い、見切りで相手の追加効果に備える。"},
 {"id": "gako", "n": "ワイルドラ", "t": "野", "hp": 110, "atk": 115, "spatk": 55, "def": 75, "spdef": 70, "spd": 115, "aff": "影", "role": "高速物理アタッカー", "roleDesc": "高い素早さと物理攻撃を持つ。牙・爪と暗闇の技が得意。"},
-{"id": "arakuma", "n": "ジャングマ", "t": "野", "hp": 155, "atk": 100, "spatk": 50, "def": 110, "spdef": 80, "spd": 45, "aff": "地", "role": "物理受け兼アタッカー", "roleDesc": "HPと物理防御が高い。威圧や重心で攻撃を受け、大地の技で反撃する。"}
+{"id": "arakuma", "n": "ジャングマ", "t": "野", "hp": 155, "atk": 100, "spatk": 50, "def": 110, "spdef": 80, "spd": 45, "aff": "地", "role": "物理受け兼アタッカー", "roleDesc": "HPと物理防御が高い。威圧や重心で攻撃を受け、大地の技で反撃する。"},
+{"id": "hasukaba", "n": "ハスカバ", "t": ["草", "野"], "hp": 160, "atk": 115, "def": 115, "spatk": 35, "spdef": 45, "spd": 80, "aff": "水", "role": "雨の物理アタッカー", "roleDesc": "蓮を背負う気性の荒いカバ。雨で加速し、エラ呼吸で回復しながら物理攻撃を高める。"}
 ];
 /* 基本の2特性に加え、4種族は3つ目の選択肢「やせ我慢」を選べる */
 const ABIL_OF = {
+  hasukaba:["fluid","ballast"],
   gako:["grit","blur"],arakuma:["pressure","ballast"],
   homura:["grit","tempo","stoic"],      youcho:["hide","ballast"],
   shiogame:["ballast","mirror","stoic"], soukou:["glutton","tempo"],
@@ -3045,6 +3050,7 @@ function statPct(key, v){
 const WILD_LEARNERS = {wildfang:["homura","youcho","soukou","sarou"],wildclaw:["raitachi","tsutazaru","sarou","oborogi"]};
 // 生き物の役割に沿った習得。全員共通の先制・妨害・回復技は廃止。
 const INDIVIDUAL_MOVES={
+ hasukaba:["wildfang","wildclaw","vine","seed","leaf","waterfang","quake","root","rainDance","gillBreath"],
  homura:["firefang","ember","flame","inferno","coal","rock","slide","gravel","wildfang","sub"],
  shiogame:["waterfang","squirt","aqua","tsunami","haze","whirl","rock","spikes","repose","revenge"],
  kokejyu:["sprout","vine","seed","photo","parasite","root","squirt","haze","sub","repose"],
@@ -3074,6 +3080,7 @@ const learnable=s=>[...new Set(COMMON_MOVES.concat(INDIVIDUAL_MOVES[s.id]||[]))]
 /* ================= idle pixel animation ================= */
 // The four native-grid poses are cosmetic; they never consume battle RNG.
 const IDLE_PROFILES = {
+ hasukaba:{period:2800,front:{bodyY:17,footY:29,appendages:[]},back:{bodyY:17,footY:29,appendages:[]}},
   gako:{period:2100,front:{bodyY:17,footY:27,appendages:[{rect:[2,12,6,22],delta:[1,0]}]},back:{bodyY:17,footY:27,appendages:[{rect:[2,12,6,22],delta:[1,0]}]}},
   arakuma:{period:3200,front:{bodyY:18,footY:28,appendages:[]},back:{bodyY:18,footY:28,appendages:[]}},
   "homura":{"period":2200,"front":{"bodyY":18,"footY":27,"appendages":[{"part":"flame-tail-tip","rect":[1,12,7,21],"delta":[1,-1]}]},"back":{"bodyY":16,"footY":27,"appendages":[{"part":"flame-tail-tip","rect":[2,11,9,20],"delta":[1,-1]}]}},
@@ -3898,7 +3905,7 @@ function randomBuildRules(species,equip){
   const attacks=pool.filter(k=>!isStatusMove(MOVES[k]))
     .filter(k=>!["fang","fullKnuckle"].includes(equip)||(MOVES[k].category==="physical"&&MOVES[k].p>0))
     .filter(k=>!["orb","fullGlasses"].includes(equip)||(MOVES[k].category==="special"&&MOVES[k].p>0));
-  const stab=attacks.filter(k=>MOVES[k].p>0&&MOVES[k].t===species.t);
+  const stab=attacks.filter(k=>MOVES[k].p>0&&hasType(species.t,MOVES[k].t));
   const statuses=pool.filter(k=>isStatusMove(MOVES[k]));
   if(attacks.length<attackCount||!stab.length)return null;
   if(attackCount===2&&statuses.filter(k=>!["atkup","spatkup"].includes(MOVES[k].fx)).length<2)return null;
@@ -3949,7 +3956,7 @@ function renderRoster(){
     });
   }
   const box = $("#roster"); box.innerHTML = "";
-  SPECIES.filter(s=> rosterFilter==="all" || s.t===rosterFilter).forEach(s=>{
+  SPECIES.filter(s=> rosterFilter==="all" || hasType(s.t,rosterFilter)).forEach(s=>{
     const on = party.some(p=>p.id===s.id);
     const full = party.length>=3 && !on;
     const c = el("button","moncard"+(on?" sel":""));
@@ -4065,7 +4072,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id":"news-20261115-03","date":"2026-11-15","title":"天候「雨」と新しい技・特性を追加","items":["雨は5ターン継続し、流水技1.5倍・火炎技半減。雷撃と迅雷が必中になります。","雨乞いをミズカガメ・イナマヅ・ホゲールに追加しました。","ホゲールに登場時に雨を降らせる「雨獣」、イナマヅに雨の間素早さ2倍の「流麗」を追加しました。","雨・夕立・砂嵐は互いに上書きします。通常の雨には割合ダメージや回復はありません。"]},{"id": "news-20261115-02", "date": "2026-11-15", "title": "交代時の設置ダメージと技の順序を調整", "items": ["交代先が岩棘で倒れた場合、選択済みの相手を対象とする技は気力を消費して空振りし、その後に次の幻獣が登場します。", "自分への強化・回復や気力溜めは、相手が不在でも実行できます。"]},{"id": "news-20261115-01", "date": "2026-11-15", "title": "交代時の岩棘と行動継続を修正", "items": ["交代先が岩棘で倒れた場合、次の幻獣を出してから選択済みの技を続行するよう修正しました。"]},{"id":"news-20261113-05","date":"2026-11-13","title":"透明感のあるUIにリニューアル","items":["画面全体を青緑・青紫の光と半透明パネルで統一しました。","ボタンやカードの境界線を淡くし、選択中・フォーカス中の表示を整えました。","編成・装備選択・戦闘・各ウィンドウに新しいデザインを反映しました。"]},{"id":"news-20261113-04","date":"2026-11-13","title":"持ち物のドット絵を追加","items":["全20種の持ち物に48×48ドットのイラストを追加しました。","装備選択・編成・戦闘中の幻獣詳細に持ち物の絵を表示します。","装備選択はイラストと効果を並べ、スマホでも選びやすくしました。"]},{"id":"news-20261113-03","date":"2026-11-13","title":"新しい持ち物と癒しの鈴の調整","items":["気力帯の追加回復を毎ターン5に変更しました。","ゆるゆるパジャマを追加。持ち主の技の消費気力が5増えます。","癒しの鈴は交代で出たときに2回まで状態異常を治します。奇術でも使用回数を引き継ぎます。","プロテイン・ほろ酔いカクテルを追加。ターン終了時に物防・特防をそれぞれ1段階上げ、一度使うとなくなります。","全力シューズ・全力ナックル・全力メガネを追加。素早さ・物攻・特攻をそれぞれ1.5倍にしますが、最初に使った技に固定されます。交代すると固定が解除されます。"]},{"id":"news-20261113-02","date":"2026-11-13","title":"気力と守る・行動制限を調整","items":["ターン終了時の気力回復を12に変更。守る以外は同じ技を連続使用するたび消費気力が5増えます。別の技・気力溜め・交代で加算がリセットされます。","集中は気力上限150で開始し、気力溜めの回復量2倍と被ダメ増加なしに。好機の追加効果倍率は1.5倍へ変更しました。","守るは反響・封技・挑発など、相手から直接受ける変化技も防ぎます。天気や既存の継続ダメージ、場全体の効果は防げません。","反響・封技・挑発は、後手でかけた場合に次のターンから持続を数え、先手・後手とも3回の行動に影響するようになりました。"]},{"id":"news-20261113-01","date":"2026-11-13","detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/rebalance-v17.md","title":"通常20体と技・特性を全体調整","items":["おどかすの行動阻止と先制を撤廃。通常攻撃に50%の物攻低下を付けました。","気合い・精神統一・結界を2段階上昇へ変更し、気力消費も見直しました。","仕返しの上限・身代わり・無効相性、幻痛の気力吸収、闇喰らいの回復量を調整しました。","通常20体の習得技を個別化し、見切り・重心・岩肌・反骨などの特性を調整しました。","若葉弾を追加し、悪夢を暗闇属性に変更。メイホーなどの役割を整えました。","反響中でも交代できるよう修正。破魔石は持ち主の攻撃に作用するよう修正しました。","旧編成は新しい習得範囲に合わせて補完し、変更前の保存データもブラウザ内にバックアップします。"]},{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id": "news-20261115-04", "date": "2026-11-15", "title": "草木・野生のハスカバ登場", "items": ["通常幻獣にハスカバを追加。高いHP・物攻・物防と、雨で加速する流麗が特徴です。", "エラ呼吸を追加。気力35でHP30%回復、雨の間はさらに物攻が1段階上がります。", "通常幻獣の複合属性に合わせて、属性フィルター・一致技表示・おまかせ編成を対応しました。"]},{"id":"news-20261115-03","date":"2026-11-15","title":"天候「雨」と新しい技・特性を追加","items":["雨は5ターン継続し、流水技1.5倍・火炎技半減。雷撃と迅雷が必中になります。","雨乞いをミズカガメ・イナマヅ・ホゲールに追加しました。","ホゲールに登場時に雨を降らせる「雨獣」、イナマヅに雨の間素早さ2倍の「流麗」を追加しました。","雨・夕立・砂嵐は互いに上書きします。通常の雨には割合ダメージや回復はありません。"]},{"id": "news-20261115-02", "date": "2026-11-15", "title": "交代時の設置ダメージと技の順序を調整", "items": ["交代先が岩棘で倒れた場合、選択済みの相手を対象とする技は気力を消費して空振りし、その後に次の幻獣が登場します。", "自分への強化・回復や気力溜めは、相手が不在でも実行できます。"]},{"id": "news-20261115-01", "date": "2026-11-15", "title": "交代時の岩棘と行動継続を修正", "items": ["交代先が岩棘で倒れた場合、次の幻獣を出してから選択済みの技を続行するよう修正しました。"]},{"id":"news-20261113-05","date":"2026-11-13","title":"透明感のあるUIにリニューアル","items":["画面全体を青緑・青紫の光と半透明パネルで統一しました。","ボタンやカードの境界線を淡くし、選択中・フォーカス中の表示を整えました。","編成・装備選択・戦闘・各ウィンドウに新しいデザインを反映しました。"]},{"id":"news-20261113-04","date":"2026-11-13","title":"持ち物のドット絵を追加","items":["全20種の持ち物に48×48ドットのイラストを追加しました。","装備選択・編成・戦闘中の幻獣詳細に持ち物の絵を表示します。","装備選択はイラストと効果を並べ、スマホでも選びやすくしました。"]},{"id":"news-20261113-03","date":"2026-11-13","title":"新しい持ち物と癒しの鈴の調整","items":["気力帯の追加回復を毎ターン5に変更しました。","ゆるゆるパジャマを追加。持ち主の技の消費気力が5増えます。","癒しの鈴は交代で出たときに2回まで状態異常を治します。奇術でも使用回数を引き継ぎます。","プロテイン・ほろ酔いカクテルを追加。ターン終了時に物防・特防をそれぞれ1段階上げ、一度使うとなくなります。","全力シューズ・全力ナックル・全力メガネを追加。素早さ・物攻・特攻をそれぞれ1.5倍にしますが、最初に使った技に固定されます。交代すると固定が解除されます。"]},{"id":"news-20261113-02","date":"2026-11-13","title":"気力と守る・行動制限を調整","items":["ターン終了時の気力回復を12に変更。守る以外は同じ技を連続使用するたび消費気力が5増えます。別の技・気力溜め・交代で加算がリセットされます。","集中は気力上限150で開始し、気力溜めの回復量2倍と被ダメ増加なしに。好機の追加効果倍率は1.5倍へ変更しました。","守るは反響・封技・挑発など、相手から直接受ける変化技も防ぎます。天気や既存の継続ダメージ、場全体の効果は防げません。","反響・封技・挑発は、後手でかけた場合に次のターンから持続を数え、先手・後手とも3回の行動に影響するようになりました。"]},{"id":"news-20261113-01","date":"2026-11-13","detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/rebalance-v17.md","title":"通常20体と技・特性を全体調整","items":["おどかすの行動阻止と先制を撤廃。通常攻撃に50%の物攻低下を付けました。","気合い・精神統一・結界を2段階上昇へ変更し、気力消費も見直しました。","仕返しの上限・身代わり・無効相性、幻痛の気力吸収、闇喰らいの回復量を調整しました。","通常20体の習得技を個別化し、見切り・重心・岩肌・反骨などの特性を調整しました。","若葉弾を追加し、悪夢を暗闇属性に変更。メイホーなどの役割を整えました。","反響中でも交代できるよう修正。破魔石は持ち主の攻撃に作用するよう修正しました。","旧編成は新しい習得範囲に合わせて補完し、変更前の保存データもブラウザ内にバックアップします。"]},{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
@@ -4299,8 +4306,8 @@ const GameUI = {
     if(this.tab==="moves"){
       panel.appendChild(el("p","hint",`技を4つ選びます。一致タイプの攻撃技は1.5倍。選択済みの技を押すと外せます。`));
       const pool=learnable(species);
-      for(const type of [species.t,species.aff,...pool.map(key=>MOVES[key].t),"無"].filter((type,index,array)=>array.indexOf(type)===index)){
-        panel.appendChild(el("div","mgrp",`${chip(type)} <span>${type===species.t?"タイプ一致 / 1.5倍":type===species.aff?"適性の技":type==="無"?"無属性の技":"その他の習得技"}</span>`));
+      for(const type of [...unitTypes(species.t),species.aff,...pool.map(key=>MOVES[key].t),"無"].filter((type,index,array)=>array.indexOf(type)===index)){
+        panel.appendChild(el("div","mgrp",`${chip(type)} <span>${hasType(species.t,type)?"タイプ一致 / 1.5倍":type===species.aff?"適性の技":type==="無"?"無属性の技":"その他の習得技"}</span>`));
         for(const key of pool.filter(key=>MOVES[key].t===type)){
           const on=build.moves.includes(key),disabled=build.moves.length>=4&&!on;
           const row=moveRow(MOVES[key],key,on,disabled,()=>this.selectMove(this.index,key));
@@ -5018,6 +5025,7 @@ const MOVE_MOTION_PROFILES = {
   windmantle:{shape:"wind",actor:"rise",scale:35,count:8,self:true},
   sprout:{shape:"leaf",actor:"cast",scale:24,count:7,tilt:1},
   steamchoice:{shape:"steam",actor:"cast",scale:34,count:14,tilt:1},
+  gillBreath:{shape:"heal",actor:"brace",scale:25,count:8,self:true},
   rainDance:{shape:"shower",actor:"rise",scale:32,count:12,self:true},
   unwantedshower:{shape:"shower",actor:"rise",scale:38,count:14,self:true},
   wildrock:{shape:"crack",actor:"lunge",scale:44,count:12,tilt:1},
@@ -5311,9 +5319,9 @@ function aiChoose(){
   if(f.restTurns>0)return {kind:"move",key:null};
   let usable = f.moves.filter(k => f.en >= enCost(f, k) && !moveBlocked(f, k));
   // 交代判断: 今の相手に2倍を取られていて、控えに有利な子がいる
-  if(!isBound(f) && rng() < .35 && attackEff(y.type, f.type) > 1){
+  if(!isBound(f) && rng() < .35 && Math.max(...unitTypes(y).map(t=>attackEff(t,f))) > 1){
     const cand = B.foe.map((u,i)=>({u,i}))
-      .filter(o => !o.u.dead && o.i !== B.fi && attackEff(y.type, o.u.type) <= 1
+      .filter(o => !o.u.dead && o.i !== B.fi && Math.max(...unitTypes(y).map(t=>attackEff(t,o.u))) <= 1
                    && o.u.moves.some(k => MOVES[k].p>0 && attackEff(MOVES[k].t, y.type) > 1));
     if(cand.length) return {kind:"switch", to:pick(cand).i};
   }
@@ -5357,6 +5365,8 @@ function aiChoose(){
       v=B.weather?.kind==="shower"?0:showerFraction(f)<0?450:30;
     } else if(m.fx === "wildreturn"){
       v=f.wildAwakened?0:105;
+    } else if(m.fx === "gillBreath"){
+      v=lowHp<.55?230:inRain()&&f.rank.atk<6?100:5;
     } else if(m.fx === "heal"){
       v = lowHp < .45 ? 240 : 10;
     } else if(m.fx === "guard"){
@@ -5380,7 +5390,7 @@ function aiChoose(){
       else {
         const bestAgainst=(att,def,reverse)=>Math.max(0,...att.moves.filter(k=>MOVES[k].p>0).map(k=>{
           const move=MOVES[k],mult=reverse?inverseEff(eff(move.t,def.type)):eff(move.t,def.type);
-          return move.p*expectedHits(move)*moveAttack(att,move)/moveDefense(def,move,att)*mult*(move.t===att.type?1.5:1);
+          return move.p*expectedHits(move)*moveAttack(att,move)/moveDefense(def,move,att)*mult*(hasType(att,move.t)?1.5:1);
         }));
         const swing=bestAgainst(f,y,true)-bestAgainst(f,y,false)+bestAgainst(y,f,false)-bestAgainst(y,f,true);
         v=swing>0?Math.min(130,35+swing*.45):3;
@@ -5886,6 +5896,11 @@ async function doMove(u, target, key, canFlinch=true){
     const effectBefore=statusEffectSnapshot(u,target);
     await sleep(200);
   if(B!==battle || battle.over)return;
+    if(m.fx === "gillBreath"){
+      const h=Math.min(u.maxhp-u.hp,Math.floor(u.maxhp*.30));u.hp+=h;
+      if(h>0){popDmg(u.side,"+"+h,"#63c07d");say(`${nm(u)} はエラ呼吸で回復した (+${h})`);}else say("体力は満タンだ。");
+      if(inRain()&&u.rank.atk<6){u.rank.atk++;say(`${nm(u)} の物理攻撃が上がった！`);}
+    }
     if(m.fx === "heal"){
       const h = Math.min(u.maxhp-u.hp,Math.floor(u.maxhp*.35));
       if(h>0){u.hp+=h;popDmg(u.side,"+"+h,"#63c07d");say(`${nm(u)} は体力を回復した (+${h})`);}
@@ -6450,7 +6465,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "rain-v22";
+const BATTLE_RULES_VERSION = "hippo-v23";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});

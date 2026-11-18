@@ -27,7 +27,7 @@ const context = vm.createContext({
 vm.runInContext(source, context, {filename:'index.html', timeout:10_000});
 const sprites = JSON.parse(vm.runInContext('JSON.stringify(SPRITES)', context));
 const backSprites = JSON.parse(vm.runInContext('JSON.stringify(BACK_SPRITES)', context));
-assert.equal(Object.keys(sprites).length, 23);
+assert.equal(Object.keys(sprites).length, 24);
 assert.deepEqual(Object.keys(backSprites).sort(),Object.keys(sprites).sort(),'every species has a back sprite');
 
 function rgba(color) {

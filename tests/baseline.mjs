@@ -44,10 +44,10 @@ vm.runInContext(script, context, {filename: 'index.html', timeout: 10_000});
 console.log('PASS JavaScript syntax and startup with DOM stubs');
 
 await vm.runInContext(`(async () => {
-  assert.equal(SPECIES.length, 20);
-  assert.equal(new Set(SPECIES.map(s => s.id)).size, 20);
+  assert.equal(SPECIES.length, 21);
+  assert.equal(new Set(SPECIES.map(s => s.id)).size, 21);
   for (const s of SPECIES) {
-    assert.ok(TYPES.includes(s.t) && TYPES.includes(s.aff), s.id + ': types');
+    assert.ok(unitTypes(s.t).every(t=>TYPES.includes(t)) && TYPES.includes(s.aff), s.id + ': types');
     for (const key of ['hp', 'atk', 'def', 'spd']) assert.ok(s[key] > 0, s.id + ': ' + key);
     assert.equal(SPRITES[s.id].px.length, 32, s.id + ': sprite height');
     assert.ok(SPRITES[s.id].px.every(row => row.length === 32), s.id + ': sprite width');

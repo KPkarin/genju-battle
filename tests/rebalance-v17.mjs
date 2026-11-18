@@ -79,7 +79,7 @@ await run(`(async()=>{
  [a,d]=setup();a.ability='quick';a.status='やけど';await endTurn();assert.equal(a.status,'やけど');await endTurn();assert.equal(a.status,null);
  [a,d]=setup();d.maxhp=d.hp=1200;a.maxhp=160;a.hp=50;d.seedTurns=2;await endTurn();assert.equal(d.hp,1100);assert.equal(a.hp,70,'seed heal capped at host max HP / 8');
  assert.equal(MOVES.night.t,'影');assert.ok(learnable(spec('fukurou')).includes('night'));assert.ok(learnable(spec('kokejyu')).includes('sprout'));assert.deepEqual([...ABIL_OF.tsutazaru],['glutton','spite']);
- for(const sp of SPECIES){assert.ok(learnable(sp).some(k=>MOVES[k].p>0&&MOVES[k].t===sp.t));if(ABIL_OF[sp.id].includes('tempo'))assert.ok(learnable(sp).some(k=>MOVES[k].pr>0&&MOVES[k].pr<1),sp.id+': no dead secondary trait');}
+ for(const sp of SPECIES){assert.ok(learnable(sp).some(k=>MOVES[k].p>0&&hasType(sp.t,MOVES[k].t)));if(ABIL_OF[sp.id].includes('tempo'))assert.ok(learnable(sp).some(k=>MOVES[k].pr>0&&MOVES[k].pr<1),sp.id+': no dead secondary trait');}
  assert.equal(SPECIES.filter(s=>learnable(s).includes('revenge')).length,7);assert.ok(!learnable(spec('raitachi')).includes('bond'));assert.ok(!learnable(spec('homura')).includes('revenge'));
  assert.equal(KEFAROCK.hp,500);assert.equal(YUDACHOU.hp,450);assert.equal(SARANDI.hp,480);
 })()`);
