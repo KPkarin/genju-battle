@@ -51,7 +51,7 @@ function world(){
 }
 const {run}=world();
 run(`
-const contact=['wildfang','wildclaw','firefang','waterfang','thunderclaw','tackle','ambush','revenge','vine','pivot','dive','devour'];
+const contact=['tearBite','wildfang','wildclaw','firefang','waterfang','thunderclaw','tackle','ambush','revenge','vine','pivot','dive','devour'];
 for(const [key,m] of Object.entries(MOVES)){
  assert.equal(typeof m.contact,'boolean',key+': explicit classification');
  assert.equal(isContactMove(m),contact.includes(key),key);
@@ -65,7 +65,7 @@ await run(`(async()=>{
  for(const key of Object.keys(MOVES).filter(k=>!isStatusMove(MOVES[k]))){
   const [a,d]=setup();a.hp=500;a.maxhp=1000;a.dmgTaken=10;d.maxhp=d.hp=1000;d.type='水';d.equip='thorn';d.plannedMove=key==='ambush'?'tackle':'focus';fixedRandom(.1);fixedDamage(10);
   await doMove(a,d,key);
-  if(['wildfang','wildclaw','firefang','waterfang','thunderclaw','tackle','ambush','revenge','vine','pivot','dive','devour'].includes(key)){
+  if(['tearBite','wildfang','wildclaw','firefang','waterfang','thunderclaw','tackle','ambush','revenge','vine','pivot','dive','devour'].includes(key)){
    // Every successful body-contact move triggers the same reaction.
    assert.ok(a.hp<500+(key==='vine'?3:key==='devour'?5:0),key+': contact retaliates');
   }else if(key!=='inferno')assert.equal(a.hp,500,key+': ranged does not trigger poison');

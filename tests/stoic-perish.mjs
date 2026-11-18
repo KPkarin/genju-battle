@@ -61,7 +61,7 @@ const w=world(),run=w.run;
 run(`
   assert.equal(ABILITIES.stoic.n,'やせ我慢');
   const users=Object.keys(ABIL_OF).filter(id=>ABIL_OF[id].includes('stoic')).sort();
-  assert.equal(JSON.stringify(users),JSON.stringify(['homura','shiogame','saikaku','fuen'].sort()),'exactly four selected species gain stoic');
+  assert.equal(JSON.stringify(users),JSON.stringify(['homura','shiogame','saikaku','fuen','damasdevil'].sort()),'exactly four selected species gain stoic');
   for(const [id,previous] of Object.entries(priorAbilities)){
     assert.equal(JSON.stringify(ABIL_OF[id].slice(0,2)),JSON.stringify(previous),id+': existing ability options remain in place');
     assert.equal(ABIL_OF[id].length,users.includes(id)||['rainen','ungei'].includes(id)?3:2,id+': selected species gain a third choice');

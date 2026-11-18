@@ -30,7 +30,7 @@ const json=code=>JSON.parse(run('JSON.stringify('+code+')'));
 const markup=n=>n.innerHTML+n.textContent+n.children.map(markup).join('');
 run(source);
 run(`
-  assert.equal(SPECIES.length,21);
+  assert.equal(SPECIES.length,22);
   for(const s of SPECIES){
     for(const key of ['hp','atk','def','spatk','spdef','spd'])
       assert.ok(Number.isInteger(s[key])&&s[key]>0,s.id+': '+key+' is a positive integer');
@@ -194,7 +194,7 @@ run(`
 console.log('PASS AI category selection and seeded determinism, legacy saved teams, and payload validation');
 
 const roster=getNode('#roster');
-assert.equal(roster.children.length,21,'all species remain visible');
+assert.equal(roster.children.length,22,'all species remain visible');
 const species=json('SPECIES');
 for(let i=0;i<species.length;i++){
   const card=markup(roster.children[i]);

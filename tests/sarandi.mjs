@@ -119,7 +119,7 @@ await run(`(async()=>{
  [a,d]=setup();d.windMantle=true;a.maxhp=a.hp=10;a.baseSpAtk=10000;a.baseSpDef=1;a.equip='charm';rng=()=>.5;await doMove(a,d,'flame');assert.equal(a.hp,1);assert.equal(a.charmUsed,true);
  [a,d]=setup();d.windMantle=true;leaveField(d);assert.equal(d.windMantle,false);
 
- party=randBuild().map(x=>({...x,equip:'none'}));startChallenge('sarandi');let boss=FOE();assert.equal(boss.hp,480);assert.equal(boss.boss,true);assert.equal(hasType(boss,'地'),true);assert.equal(hasType(boss,'空'),true);assert.equal(boss.ability,'hani');assert.equal(SPECIES.length,21);
+ party=randBuild().map(x=>({...x,equip:'none'}));startChallenge('sarandi');let boss=FOE();assert.equal(boss.hp,480);assert.equal(boss.boss,true);assert.equal(hasType(boss,'地'),true);assert.equal(hasType(boss,'空'),true);assert.equal(boss.ability,'hani');assert.equal(SPECIES.length,22);
  rng=()=>.5;assert.equal(aiChoose().key,'sandbreak');await doMove(boss,YOU(),'sandbreak');assert.equal(B.weather.kind,'sandstorm');
  boss.en=100;boss.windInterruptedBy=battleUnitKey(YOU());YOU().lastMove='flame';assert.notEqual(aiChoose().key,'windmantle','observed startle does not cause a new wind-setup loop');
  startChallenge(challengeMode);assert.equal(FOE().windMantle,false);assert.equal(B.weather,null);
