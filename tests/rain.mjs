@@ -63,6 +63,14 @@ await run(`(async()=>{
  const hp=a.hp;for(let i=0;i<5;i++){await endTurn();assert.equal(a.hp,hp,'ordinary rain has no weather damage');}assert.equal(B.weather,null);assert.equal(SPD(a),base);
  [a,d]=setup();a.ability='rainBeast';B.weather={kind:'sandstorm',turns:2};onEnter(a);assert.equal(B.weather.kind,'rain');assert.equal(B.weather.turns,5);leaveField(a);assert.equal(B.weather.kind,'rain');
  a.equip='mask';B.weather=null;onEnter(a);assert.equal(B.weather,null);a.equip='none';onEnter(a);await endTurn();assert.equal(B.weather.turns,4);onEnter(a);assert.equal(B.weather.turns,5);
- a.en=100;await doMove(a,d,'unwantedshower');assert.equal(B.weather.kind,'shower');assert.equal(weatherDamageFactor(MOVES.flame),1);a.ability='fluid';assert.equal(SPD(a),a.baseSpd);a.en=100;await doMove(a,d,'rainDance');assert.equal(B.weather.kind,'rain');a.en=100;await doMove(a,d,'sandbreak');assert.equal(B.weather.kind,'sandstorm');
+ a.en=100;await doMove(a,d,'unwantedshower');assert.equal(B.weather.kind,'rain');B.weather=null;a.en=100;await doMove(a,d,'unwantedshower');assert.equal(B.weather.kind,'shower');assert.equal(weatherDamageFactor(MOVES.flame),1);a.ability='fluid';assert.equal(SPD(a),a.baseSpd);a.en=100;await doMove(a,d,'rainDance');assert.equal(B.weather.kind,'rain');a.en=100;await doMove(a,d,'sandbreak');assert.equal(B.weather.kind,'sandstorm');
  assert.ok(ABIL_OF.ungei.includes('rainBeast'));assert.ok(ABIL_OF.rainen.includes('fluid'));for(const id of ['shiogame','rainen','ungei'])assert.ok(learnable(spec(id)).includes('rainDance'));
 })()`);console.log('PASS rain duration, weather replacement, modifiers, sure hits/wind, speed/mask/ailment, entry trait, learners');
+
+await run(`(async()=>{
+ let [a,d]=setup();B.weather={kind:'rain',turns:3};const weather=B.weather;a.en=100;let fx=0;const originalFx=playFx;playFx=()=>fx++;
+ assert.equal(fxNullified(MOVES.unwantedshower,d,a),true);await doMove(a,d,'unwantedshower');assert.equal(B.weather,weather);assert.equal(B.weather.turns,3);assert.equal(a.en,65);assert.equal(a.lastMove,'unwantedshower');assert.equal(fx,0);assert.ok(logs().includes('夕立を起こせなかった'));playFx=originalFx;
+ d.moves=['unwantedshower','flame'];d.en=100;for(let i=0;i<20;i++)assert.notEqual(aiChoose().key,'unwantedshower');
+ for(let i=0;i<3;i++)await endTurn();assert.equal(B.weather,null);a.en=100;assert.equal(fxNullified(MOVES.unwantedshower,d,a),false);await doMove(a,d,'unwantedshower');assert.equal(B.weather.kind,'shower');assert.equal(B.weather.turns,5);
+ [a,d]=setup();a.baseSpd=200;d.baseSpd=50;await takeTurn(move('rainDance'),move('unwantedshower'));assert.equal(B.weather.kind,'rain');assert.equal(d.lastMove,'unwantedshower');
+})()`);console.log('PASS rain blocks shower at execution without resetting duration/FX, pays cost, AI avoids it, rain expiry restores use and faster rain interrupts setup');
