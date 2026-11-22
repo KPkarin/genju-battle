@@ -3,8 +3,9 @@
   'use strict';
   if (typeof Image !== 'function') return;
   const root = 'assets/pixel-v1/';
-  const ids = ['homura','shiogame','kokejyu','raitachi','iwaushi','fukurou','doryu','fuen','youcho','soukou','tsutazaru','rainen','saikaku','yoigumo','sarou','ungei','mubaku','oborogi','gako','arakuma','hasukaba','damasdevil','kefarock','yudachou','sarandi'];
+  const ids = ['homura','shiogame','kokejyu','raitachi','iwaushi','fukurou','doryu','fuen','youcho','soukou','tsutazaru','rainen','saikaku','yoigumo','sarou','ungei','mubaku','oborogi','gako','arakuma','hasukaba','damasdevil','kefarock','yudachou','sarandi','tsurarauchi','shimosura','kamegane','kanippa','hazumimi','robariton'];
   const rightFacing = new Set(['homura','shiogame','kokejyu','fuen','youcho','soukou','tsutazaru','sarou','ungei','arakuma','kefarock','fukurou','doryu','oborogi','hasukaba','damasdevil']);
+  const backFacingLeft = new Set(['tsurarauchi','shimosura','kamegane','hazumimi','robariton']);
   const durations = [420,220,220,300,420,300,220,220];
   const images = new Map(), actors = new Map(), fields = new Map();
   const weatherBuffer = document.createElement('canvas');
@@ -25,7 +26,7 @@
       weatherPhase=-1;
       window.dispatchEvent(new Event('pixelartready'));
     };
-    im.src=root+name;
+    im.src=root+name+(name.startsWith('creatures-')?'?v=20261123-02':'');
     return im;
   }
   const loaded=im=>im.complete && im.naturalWidth>0;
@@ -54,7 +55,7 @@
       actors.delete(cv);
       if(cv.width!==128)cv.width=128;if(cv.height!==128)cv.height=128;
       const ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;ctx.clearRect(0,0,128,128);
-      const mirror=cv.id==='spFoe' && view==='front' && rightFacing.has(id);
+      const mirror=(cv.id==='spFoe' && view==='front' && rightFacing.has(id)) || (cv.id==='spYou' && view==='back' && backFacingLeft.has(id));
       if(mirror){ctx.save();ctx.translate(128,0);ctx.scale(-1,1);}
       ctx.drawImage(im,phase*128,row*128,128,128,0,0,128,128);
       if(mirror)ctx.restore();

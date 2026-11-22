@@ -125,12 +125,42 @@
       "id": "sarandi",
       "name": "サランディ",
       "number": 25
+    },
+    {
+      "id": "tsurarauchi",
+      "name": "ツララウチ",
+      "number": 26
+    },
+    {
+      "id": "shimosura",
+      "name": "シモスラ",
+      "number": 27
+    },
+    {
+      "id": "kamegane",
+      "name": "カメガネ",
+      "number": 28
+    },
+    {
+      "id": "kanippa",
+      "name": "カニッパ",
+      "number": 29
+    },
+    {
+      "id": "hazumimi",
+      "name": "ハズミミ",
+      "number": 30
+    },
+    {
+      "id": "robariton",
+      "name": "ロバリトン",
+      "number": 31
     }
   ],
   "native_size": 128,
   "creature_sheet": [
     1024,
-    3200
+    3968
   ],
   "frames": 8,
   "durations_ms": [

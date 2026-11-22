@@ -44,8 +44,8 @@ vm.runInContext(script, context, {filename: 'index.html', timeout: 10_000});
 console.log('PASS JavaScript syntax and startup with DOM stubs');
 
 await vm.runInContext(`(async () => {
-  assert.equal(SPECIES.length, 25);
-  assert.equal(new Set(SPECIES.map(s => s.id)).size, 25);
+  assert.equal(SPECIES.length, 31);
+  assert.equal(new Set(SPECIES.map(s => s.id)).size, 31);
   for (const s of SPECIES) {
     assert.ok(unitTypes(s.t).every(t=>TYPES.includes(t)) && TYPES.includes(s.aff), s.id + ': types');
     for (const key of ['hp', 'atk', 'def', 'spd']) assert.ok(s[key] > 0, s.id + ': ' + key);
@@ -90,6 +90,8 @@ await vm.runInContext(`(async () => {
   assert.equal(repaired[0].moves.length, 0);
   console.log('PASS 100 random parties, draft roundtrips, malformed draft recovery');
 
+  // This engine simulation supplies forced turns itself; avoid the UI auto-turn microtask.
+  renderCmd=()=>{};
   // Automate only the human replacement choice. Keep engine and AI unchanged.
   chooseReplacement = async () => myTeam().findIndex(u => !u.dead && u !== MY());
   const choosePlayerMove = () => {

@@ -56,7 +56,7 @@ await run(`(async()=>{
  let [a,d]=setup();a.ability=d.ability='grit';rng=()=>.5;
  const keys=['icePebble','frostFang','iceLance','coldRay','whiteStorm','snowCall','iceArmor','scrapShot','alloyClaw','alchemyShot','resonantCannon','armoredRush','plateArmor','repair'];
  assert.equal(Object.keys(MOVES).length,94); // six boss signature moves are deliberately nonenumerable
- for(const key of keys){const m=MOVES[key];assert.ok(BY_TYPE[m.t].includes(key));assert.equal(m.key,key);assert.ok(MOVE_MOTION_PROFILES[key]);for(const sp of SPECIES)assert.ok(!learnable(sp).includes(key),'future characters only: '+key);}
+ for(const key of keys){const m=MOVES[key];assert.ok(BY_TYPE[m.t].includes(key));assert.equal(m.key,key);assert.ok(MOVE_MOTION_PROFILES[key]);for(const sp of SPECIES.slice(0,25))assert.ok(!learnable(sp).includes(key),'future characters only: '+key);}
  for(const key of ['icePebble','frostFang','iceLance','coldRay','whiteStorm','scrapShot','alloyClaw','alchemyShot','resonantCannon','armoredRush']){
  [a,d]=setup();a.ability=d.ability='grit';rng=()=>.5;const p=d.hp;await doMove(a,d,key);assert.ok(d.hp<p,key);assert.equal(a.en,100-MOVES[key].en);assert.equal(isContactMove(MOVES[key]),['frostFang','alloyClaw','armoredRush'].includes(key));}
  [a,d]=setup();a.ability=d.ability='grit';a.type='氷';a.baseDef=100;await doMove(a,d,'snowCall');assert.equal(B.weather.kind,'snow');assert.equal(B.weather.turns,5);assert.equal(DEF(a),150);assert.equal(SPDEF(a),100);for(let t=0;t<5;t++){await endTurn();B.turn++;}assert.equal(B.weather,null);

@@ -5,8 +5,8 @@ import vm from 'node:vm';
 const assetRoot=new URL('../assets/pixel-v1/',import.meta.url);
 const manifest=JSON.parse(fs.readFileSync(new URL('manifest.json',assetRoot),'utf8'));
 const pngSize=path=>{const b=fs.readFileSync(new URL(path,assetRoot));assert.equal(b.subarray(1,4).toString(),'PNG');return [b.readUInt32BE(16),b.readUInt32BE(20)];};
-assert.equal(manifest.creatures.length,25);
-for(const side of ['front','back'])assert.deepEqual(pngSize(`creatures-${side}.png`),[1024,3200]);
+assert.equal(manifest.creatures.length,31);
+for(const side of ['front','back'])assert.deepEqual(pngSize(`creatures-${side}.png`),[1024,3968]);
 for(const kind of ['clear','rain','shower','sandstorm','snow'])assert.deepEqual(pngSize(`field-${kind}.png`),[384,288]);
 for(const key of manifest.statuses)assert.deepEqual(pngSize(`status-${key}.png`),[1280,320]);
 
@@ -38,7 +38,7 @@ for(const [row,sp] of manifest.creatures.entries())for(const view of ['front','b
  const cv=canvas();assert.equal(api.creature(cv,sp.id,view,phase),true);
  assert.equal(cv.width,128);assert.equal(cv.height,128);
  const draw=cv.getContext().calls.findLast(x=>x[0]==='draw');
- assert.equal(draw[1].src,`assets/pixel-v1/creatures-${view}.png`);
+ assert.equal(draw[1].src,`assets/pixel-v1/creatures-${view}.png?v=20261123-02`);
  assert.deepEqual(draw.slice(2),[128*phase,128*row,128,128,0,0,128,128]);
 }
 assert.equal(api.creature(canvas(),'missing'),false);
