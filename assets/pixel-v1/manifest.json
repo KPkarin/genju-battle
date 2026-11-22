@@ -1,0 +1,176 @@
+{
+  "version": "pixel-v1",
+  "creatures": [
+    {
+      "id": "homura",
+      "name": "ワホームラ",
+      "number": 1
+    },
+    {
+      "id": "shiogame",
+      "name": "ミズカガメ",
+      "number": 2
+    },
+    {
+      "id": "kokejyu",
+      "name": "カモスカ",
+      "number": 3
+    },
+    {
+      "id": "raitachi",
+      "name": "ジンライタチ",
+      "number": 4
+    },
+    {
+      "id": "iwaushi",
+      "name": "モーロック",
+      "number": 5
+    },
+    {
+      "id": "fukurou",
+      "name": "メイホー",
+      "number": 6
+    },
+    {
+      "id": "doryu",
+      "name": "モグラウンド",
+      "number": 7
+    },
+    {
+      "id": "fuen",
+      "name": "スワローラ",
+      "number": 8
+    },
+    {
+      "id": "youcho",
+      "name": "シラヌイノ",
+      "number": 9
+    },
+    {
+      "id": "soukou",
+      "name": "カプケード",
+      "number": 10
+    },
+    {
+      "id": "tsutazaru",
+      "name": "ワカクサル",
+      "number": 11
+    },
+    {
+      "id": "rainen",
+      "name": "イナマヅ",
+      "number": 12
+    },
+    {
+      "id": "saikaku",
+      "name": "ペトライノ",
+      "number": 13
+    },
+    {
+      "id": "yoigumo",
+      "name": "コモリクモ",
+      "number": 14
+    },
+    {
+      "id": "sarou",
+      "name": "ジョウルフ",
+      "number": 15
+    },
+    {
+      "id": "ungei",
+      "name": "ホゲール",
+      "number": 16
+    },
+    {
+      "id": "mubaku",
+      "name": "バクネス",
+      "number": 17
+    },
+    {
+      "id": "oborogi",
+      "name": "フォクシャドウ",
+      "number": 18
+    },
+    {
+      "id": "gako",
+      "name": "ワイルドラ",
+      "number": 19
+    },
+    {
+      "id": "arakuma",
+      "name": "ジャングマ",
+      "number": 20
+    },
+    {
+      "id": "hasukaba",
+      "name": "ハスカバ",
+      "number": 21
+    },
+    {
+      "id": "damasdevil",
+      "name": "ダマスデビル",
+      "number": 22
+    },
+    {
+      "id": "kefarock",
+      "name": "ケファロック",
+      "number": 23
+    },
+    {
+      "id": "yudachou",
+      "name": "ユダチョウ",
+      "number": 24
+    },
+    {
+      "id": "sarandi",
+      "name": "サランディ",
+      "number": 25
+    }
+  ],
+  "native_size": 128,
+  "creature_sheet": [
+    1024,
+    3200
+  ],
+  "frames": 8,
+  "durations_ms": [
+    420,
+    220,
+    220,
+    300,
+    420,
+    300,
+    220,
+    220
+  ],
+  "field_size": [
+    384,
+    288
+  ],
+  "stage_crop": [
+    0,
+    36,
+    384,
+    216
+  ],
+  "status_size": 160,
+  "status_sheet": [
+    1280,
+    320
+  ],
+  "status_frames": 16,
+  "status_frame_ms": 150,
+  "statuses": [
+    "paralysis",
+    "burn",
+    "freeze",
+    "sleep",
+    "confusion",
+    "drowsy",
+    "bleed1",
+    "bleed2",
+    "bleed3",
+    "bleed4",
+    "bleed5"
+  ]
+}

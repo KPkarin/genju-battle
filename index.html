@@ -243,6 +243,9 @@ select{
   background:#10192b;
   border:1px solid var(--line);border-radius:3px;overflow:hidden;margin-bottom:8px;
 }
+#pixelWeatherCanvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none;z-index:2}
+#pixelWeatherCanvas[hidden]{display:none}
+canvas.actor{z-index:1}#statusCanvas,#moveCanvas{z-index:3}
 #fieldCanvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}
 #statusCanvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;pointer-events:none}
 .status-preview-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
@@ -646,6 +649,7 @@ select,.pass{color:var(--bone);background:#172c40e8;border-color:var(--glass-edg
 @media(prefers-reduced-motion:reduce){button:hover:not(:disabled){transform:none}}
 
 .t-氷{background:#244b61;color:#c7f6ff}.t-錬{background:#4c4439;color:#ffe4ad}
+@media(max-width:999px) and (orientation:portrait){.battle-active .stage{aspect-ratio:4/3}.battle-active .stage canvas.actor.foe{bottom:48%}.battle-active .stage canvas.actor.you{bottom:20%}}
 </style>
 <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
@@ -683,6 +687,7 @@ select,.pass{color:var(--bone);background:#172c40e8;border-color:var(--glass-edg
   <div class="battle-topbar"><div><span class="section-kicker">MOONLIT ARENA</span><h2>月下の闘技場 <small id="battleMode">コンピューター対戦</small></h2></div><div class="turn-badge"><span>TURN</span><b id="battleTurn">01</b></div></div>
   <div class="battle-layout"><section class="battle-arena" aria-label="戦場">  <div class="stage" id="stage">
     <canvas id="fieldCanvas" width="384" height="216" aria-hidden="true"></canvas>
+    <canvas id="pixelWeatherCanvas" width="384" height="216" aria-hidden="true" hidden></canvas>
     <div id="weatherOverlay" class="rain-overlay" aria-hidden="true" hidden></div>
     <canvas class="actor foe" id="spFoe" width="32" height="32"></canvas>
     <canvas class="actor you" id="spYou" width="32" height="32"></canvas>
@@ -770,6 +775,13 @@ select,.pass{color:var(--bone);background:#172c40e8;border-color:var(--glass-edg
       <button type="button" data-status-preview="freeze" aria-pressed="false">凍結</button>
       <button type="button" data-status-preview="sleep" aria-pressed="false">眠り</button>
       <button type="button" data-status-preview="confusion" aria-pressed="false">混乱（予定）</button>
+      <button type="button" data-status-preview="drowsy" aria-pressed="false">眠気</button>
+      <button type="button" data-status-preview="bleed1" aria-pressed="false">流血 Lv.1</button>
+      <button type="button" data-status-preview="bleed2" aria-pressed="false">流血 Lv.2</button>
+      <button type="button" data-status-preview="bleed3" aria-pressed="false">流血 Lv.3</button>
+      <button type="button" data-status-preview="bleed4" aria-pressed="false">流血 Lv.4</button>
+      <button type="button" data-status-preview="bleed5" aria-pressed="false">流血 Lv.5</button>
+
     </div>
     <canvas id="statusDemo" width="192" height="112" role="img" aria-label="フォクシャドウの状態異常の表示"></canvas>
     <p class="status-preview-note" id="statusCaption" aria-live="polite"></p>
@@ -784,6 +796,7 @@ select,.pass{color:var(--bone);background:#172c40e8;border-color:var(--glass-edg
   <section class="modal-panel"><header class="modal-header"><div><span class="section-kicker">GENJU TOUKI</span><h2 id="modalTitle">幻獣闘記</h2></div><button id="btnModalClose" aria-label="ウィンドウを閉じる">×</button></header><div class="modal-body" id="modalBody"></div></section>
 </div>
 
+<script src="pixel-art.js?v=20261122-03"></script>
 <script>
 "use strict";
 
@@ -2845,6 +2858,7 @@ function drawField(canvas){
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d");
   ctx.imageSmoothingEnabled = false;
+  if(window.PixelArt?.field(canvas))return;
   let seed = 0x67b38ac1;
   const rand = n => {
     seed = (Math.imul(seed,1664525) + 1013904223) >>> 0;
@@ -3286,6 +3300,7 @@ const IdleAnimation = {
       if(mine) drawBattleSprite($("#spYou"),mine,"back");
       if(foe) drawBattleSprite($("#spFoe"),foe);
     }
+    window.PixelArt?.weather(B?.weather?.kind,visualNow(),false);
     StatusEffects.sync();
   },
   tick(now){
@@ -3303,10 +3318,11 @@ const IdleAnimation = {
       if(paused){ this.last.delete(canvas); continue; }
       const offset=[...unit.id].reduce((n,c)=>n+c.charCodeAt(0),0)*13+(view==="back"?170:0);
       const cycle=((now-this.epoch+offset)%IDLE_PROFILES[unit.id].period)/IDLE_PROFILES[unit.id].period;
-      const phase=cycle<.3?0:cycle<.48?1:cycle<.7?2:cycle<.86?3:0;
+      const phase=window.PixelArt?window.PixelArt.phase(now-this.epoch+offset):cycle<.3?0:cycle<.48?1:cycle<.7?2:cycle<.86?3:0;
       const key=`${unit.id}:${view}:${phase}`;
       if(this.last.get(canvas)!==key){ drawBattleSprite(canvas,unit,view,phase); this.last.set(canvas,key); }
     }
+    window.PixelArt?.weather(B.weather?.kind,now,true);
     StatusEffects.render(now,true);
     this.handle=requestAnimationFrame(time=>this.tick(time));
   }
@@ -3322,6 +3338,7 @@ else if(idleMotionPreference?.addListener) idleMotionPreference.addListener(()=>
 
 
 function drawSprite(cv, id, view="front", phase=0){
+  if(window.PixelArt?.creature(cv,id,view,phase))return;
   const sp = getIdleFrame(id, view, phase);
   const h = sp.px.length, w = sp.px[0].length;
   if(cv.width !== w) cv.width = w;
@@ -3339,6 +3356,7 @@ function drawSprite(cv, id, view="front", phase=0){
    Pure drawing only: no timers, random numbers, game state, or canvas clearing. */
 function drawStatusEffect(ctx, key, frame, box, burst=false){
   if(!ctx || !box || !Number.isFinite(box.x+box.y+box.w+box.h) || box.w<=0 || box.h<=0) return;
+  if(window.PixelArt?.status(ctx,key,frame,box))return;
   const f=Number.isFinite(frame)?((Math.floor(frame)%8)+8)%8:0;
   const sx=box.w/32, sy=box.h/32;
   const rect=(x,y,w,h,color)=>{
@@ -3484,6 +3502,12 @@ const STATUS_VISUALS = {
   burn:{label:"火傷",caption:"炎と火の粉が立ちのぼります。火傷ダメージを受けたときに炎が強まります。"},
   freeze:{label:"凍結",caption:"1〜3ターン行動不可。火炎で解凍、通常被弾で20%解凍。火炎・氷雪には無効。"},
   sleep:{label:"眠り",caption:"眠りの泡と浮かぶZ。眠りは1〜3回の行動を休みます。"},
+  drowsy:{label:"眠気",caption:"三日月と小さな粒。次のターン終了時に眠りへ変化します。"},
+  bleed1:{label:"流血 Lv.1",caption:"回復で1段階軽減する流血。ほかの状態異常と同時に表示します。"},
+  bleed2:{label:"流血 Lv.2",caption:"回復で1段階軽減する流血。ほかの状態異常と同時に表示します。"},
+  bleed3:{label:"流血 Lv.3",caption:"回復で1段階軽減する流血。ほかの状態異常と同時に表示します。"},
+  bleed4:{label:"流血 Lv.4",caption:"回復で1段階軽減する流血。ほかの状態異常と同時に表示します。"},
+  bleed5:{label:"流血 Lv.5",caption:"回復で1段階軽減する流血。ほかの状態異常と同時に表示します。"},
   confusion:{label:"混乱",caption:"頭上を回る星。今後の実装に向けた演出の見本です。"}
 };
 const STATUS_VISUAL_ALIASES = {
@@ -3497,6 +3521,8 @@ function getStatusVisualKeys(unit){
   const keys=[], primary=visualStatusKey(unit.status);
   if(primary) keys.push(primary);
   if(unit.confusionTurns>0 && !keys.includes("confusion")) keys.push("confusion");
+  if(unit.drowsy)keys.push("drowsy");
+  if(unit.bleedLevel>0)keys.push("bleed"+Math.min(5,unit.bleedLevel));
   return keys;
 }
 const visualNow = () => typeof performance!=="undefined" && typeof performance.now==="function" ? performance.now() : 0;
@@ -3504,7 +3530,7 @@ const StatusEffects = {
   pulses:new WeakMap(), signature:"", dirty:true, lastDraw:-Infinity,
   clear(){
     const canvas=$("#statusCanvas");
-    if(canvas) canvas.getContext("2d").clearRect(0,0,384,216);
+    if(canvas) canvas.getContext("2d").clearRect(0,0,384,Math.max(216,canvas.height||216));
     this.signature=""; this.dirty=true; this.pulses=new WeakMap();
   },
   sync(){ this.dirty=true; this.render(visualNow(),false); },
@@ -3520,15 +3546,16 @@ const StatusEffects = {
     if(!canvas) return;
     const ctx=canvas.getContext("2d");
     if(!B || B.over || document.hidden || !$("#scBattle").classList.contains("on")){
-      ctx.clearRect(0,0,384,216); this.signature=""; return;
+      ctx.clearRect(0,0,384,Math.max(216,canvas.height||216)); this.signature=""; return;
     }
     if(animate && !this.dirty && now-this.lastDraw<100) return;
     const entries=[
       {unit:MY(),actor:$("#spYou"),box:{x:44,y:75,w:111,h:111}},
       {unit:OP(),actor:$("#spFoe"),box:{x:240,y:29,w:88,h:88}}
     ];
-    const frame=animate ? Math.floor(now/140)%8 : 0;
+    const frame=animate ? window.PixelArt?Math.floor(now/150)%16:Math.floor(now/140)%8 : 0;
     const effects=entries.map(({unit,actor,box})=>{
+      if(window.PixelArt)box=window.PixelArt.actorBox(actor,box);
       const paused=unit.dead || unit.hp<=0 || ["enter","lunge","faint","move-lunge","move-cast","move-rise","move-brace","move-recoil"].some(c=>actor.classList.contains(c));
       const pulse=this.pulses.get(unit);
       return {id:unit.id,keys:paused?[]:getStatusVisualKeys(unit),box,
@@ -3536,7 +3563,7 @@ const StatusEffects = {
     });
     const signature=JSON.stringify([frame,effects]);
     if(!this.dirty && signature===this.signature) return;
-    ctx.clearRect(0,0,384,216); ctx.imageSmoothingEnabled=false;
+    ctx.clearRect(0,0,384,Math.max(216,canvas.height||216)); ctx.imageSmoothingEnabled=false;
     for(const effect of effects) for(const key of effect.keys){
       drawStatusEffect(ctx,key,frame,effect.box,effect.burst && effect.pulseKey===key);
     }
@@ -3598,6 +3625,7 @@ const StatusPreview = {
       const w=Math.floor(49*Math.sqrt(1-y*y/25));
       ctx.fillRect(96-w,94+y,w*2,1);
     }
+    if(window.PixelArt?.preview(ctx,this.key,now,animate))return;
     const phase=animate && this.key!=="freeze" ? Math.floor(now/500)%4 : 0;
     const sprite=getIdleFrame("oborogi","front",phase);
     for(let y=0;y<32;y++) for(let x=0;x<32;x++){
@@ -4144,7 +4172,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id": "news-20261122-02", "date": "2026-11-22", "detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/new-move-review.md", "title": "氷雪・錬成の汎用技を追加", "items": ["氷雪と錬成に、安定攻撃・大技・補助技を各7種ずつ内部追加しました。", "雪招きで5ターン雪、氷の鎧・装甲強化で防御2段階上昇、修復でHP35%回復。新キャラと習得先の追加は後日です。", "既存の専用技の数値は維持しています。"]},{"id": "news-20261122-01", "date": "2026-11-22", "title": "氷雪・錬成の相性と新しい戦闘ルール", "items": ["氷雪・錬成を追加し、確定した属性相性へ更新しました。新しい幻獣の追加は後日です。", "雪、新技・新特性、音・蹴り分類を内部実装しました。", "野生の基本技の効率を改善し、荒ぶる牙をダマスデビル・ハスカバ・ケファロック・ジャングマに追加しました。"]},{"id": "news-20261115-09", "date": "2026-11-15", "title": "暗闇技「目覚ましビンタ」を追加", "items": ["威力70・気力35の物理接触技を追加しました。眠っている相手には威力2倍、本体に命中すると起こします。", "カプケード・ワカクサル・ダマスデビルが習得できます。"]},{"id": "news-20261115-08", "date": "2026-11-15", "title": "騙し合い・殺息・お隣いかがと眠気を追加", "items": ["騙し合いは次の行動を変化技に制限。後手でかけられ、次のターンに使える変化技がなければやけくそになります。", "殺息は物理防御-1・回避+2。お隣いかがは物理防御+1と、次の行動まで接触した相手に眠気を与えます。", "眠気は次のターン終了時に眠りへ変化。眠りは1〜3回の行動をランダムで休みます。"]},{"id": "news-20261115-07", "date": "2026-11-15", "title": "雨の間は望まぬ夕立が失敗するよう変更", "items": ["天気が雨のとき、望まぬ夕立は雨を上書きできなくなりました。", "雨が降っている間は効果なしと表示し、AIも夕立の使用を避けます。実行して失敗した場合は気力を消費します。"]},{"id": "news-20261115-06", "date": "2026-11-15", "title": "ケファロック・ユダチョウ・サランディを通常実装", "items": ["3体を能力合計550の通常幻獣として編成できるようにしました。専用技と特性も使用できます。", "チャレンジ版は名前をボスケファロック・ボスユダチョウ・ボスサランディに変更。チャレンジ用の高い能力値は維持します。", "通常版は通常対戦の道連れ・滅びの唄のルールを使い、編成保存・通信・おまかせにも対応します。"]},{"id": "news-20261115-05", "date": "2026-11-15", "title": "ダマスデビルと流血を追加", "items": ["暗闇・野生の通常幻獣ダマスデビル、専用技かみちぎるを追加しました。", "流血は状態異常と共存し、5段階で毎ターン最大HPの1・2・4・8・16%のダメージ。交代では解除されません。", "実際にHPが回復すると流血・発症予約が1段階減ります。", "ターン終了時の回復・継続ダメージを原因のテキストとともに、間を置いて表示します。"]},{"id": "news-20261115-04", "date": "2026-11-15", "title": "草木・野生のハスカバ登場", "items": ["通常幻獣にハスカバを追加。高いHP・物攻・物防と、雨で加速する流麗が特徴です。", "エラ呼吸を追加。気力35でHP30%回復、雨の間はさらに物攻が1段階上がります。", "通常幻獣の複合属性に合わせて、属性フィルター・一致技表示・おまかせ編成を対応しました。"]},{"id":"news-20261115-03","date":"2026-11-15","title":"天候「雨」と新しい技・特性を追加","items":["雨は5ターン継続し、流水技1.5倍・火炎技半減。雷撃と迅雷が必中になります。","雨乞いをミズカガメ・イナマヅ・ホゲールに追加しました。","ホゲールに登場時に雨を降らせる「雨獣」、イナマヅに雨の間素早さ2倍の「流麗」を追加しました。","雨・夕立・砂嵐は互いに上書きします。通常の雨には割合ダメージや回復はありません。"]},{"id": "news-20261115-02", "date": "2026-11-15", "title": "交代時の設置ダメージと技の順序を調整", "items": ["交代先が岩棘で倒れた場合、選択済みの相手を対象とする技は気力を消費して空振りし、その後に次の幻獣が登場します。", "自分への強化・回復や気力溜めは、相手が不在でも実行できます。"]},{"id": "news-20261115-01", "date": "2026-11-15", "title": "交代時の岩棘と行動継続を修正", "items": ["交代先が岩棘で倒れた場合、次の幻獣を出してから選択済みの技を続行するよう修正しました。"]},{"id":"news-20261113-05","date":"2026-11-13","title":"透明感のあるUIにリニューアル","items":["画面全体を青緑・青紫の光と半透明パネルで統一しました。","ボタンやカードの境界線を淡くし、選択中・フォーカス中の表示を整えました。","編成・装備選択・戦闘・各ウィンドウに新しいデザインを反映しました。"]},{"id":"news-20261113-04","date":"2026-11-13","title":"持ち物のドット絵を追加","items":["全20種の持ち物に48×48ドットのイラストを追加しました。","装備選択・編成・戦闘中の幻獣詳細に持ち物の絵を表示します。","装備選択はイラストと効果を並べ、スマホでも選びやすくしました。"]},{"id":"news-20261113-03","date":"2026-11-13","title":"新しい持ち物と癒しの鈴の調整","items":["気力帯の追加回復を毎ターン5に変更しました。","ゆるゆるパジャマを追加。持ち主の技の消費気力が5増えます。","癒しの鈴は交代で出たときに2回まで状態異常を治します。奇術でも使用回数を引き継ぎます。","プロテイン・ほろ酔いカクテルを追加。ターン終了時に物防・特防をそれぞれ1段階上げ、一度使うとなくなります。","全力シューズ・全力ナックル・全力メガネを追加。素早さ・物攻・特攻をそれぞれ1.5倍にしますが、最初に使った技に固定されます。交代すると固定が解除されます。"]},{"id":"news-20261113-02","date":"2026-11-13","title":"気力と守る・行動制限を調整","items":["ターン終了時の気力回復を12に変更。守る以外は同じ技を連続使用するたび消費気力が5増えます。別の技・気力溜め・交代で加算がリセットされます。","集中は気力上限150で開始し、気力溜めの回復量2倍と被ダメ増加なしに。好機の追加効果倍率は1.5倍へ変更しました。","守るは反響・封技・挑発など、相手から直接受ける変化技も防ぎます。天気や既存の継続ダメージ、場全体の効果は防げません。","反響・封技・挑発は、後手でかけた場合に次のターンから持続を数え、先手・後手とも3回の行動に影響するようになりました。"]},{"id":"news-20261113-01","date":"2026-11-13","detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/rebalance-v17.md","title":"通常20体と技・特性を全体調整","items":["おどかすの行動阻止と先制を撤廃。通常攻撃に50%の物攻低下を付けました。","気合い・精神統一・結界を2段階上昇へ変更し、気力消費も見直しました。","仕返しの上限・身代わり・無効相性、幻痛の気力吸収、闇喰らいの回復量を調整しました。","通常20体の習得技を個別化し、見切り・重心・岩肌・反骨などの特性を調整しました。","若葉弾を追加し、悪夢を暗闇属性に変更。メイホーなどの役割を整えました。","反響中でも交代できるよう修正。破魔石は持ち主の攻撃に作用するよう修正しました。","旧編成は新しい習得範囲に合わせて補完し、変更前の保存データもブラウザ内にバックアップします。"]},{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id": "news-20261122-03", "date": "2026-11-22", "title": "幻獣と戦闘画面のドット絵を更新", "items": ["現在登場する25体の正面・背面を128pxのドット絵に更新。体の部位に合わせた呼吸アニメを追加しました。", "戦闘背景と雨・夕立・砂嵐・雪の演出を更新しました。", "麻痺・やけど・凍結・眠り・眠気と流血5段階の演出を更新。図鑑側の演出見本でも確認できます。"]},{"id": "news-20261122-02", "date": "2026-11-22", "detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/new-move-review.md", "title": "氷雪・錬成の汎用技を追加", "items": ["氷雪と錬成に、安定攻撃・大技・補助技を各7種ずつ内部追加しました。", "雪招きで5ターン雪、氷の鎧・装甲強化で防御2段階上昇、修復でHP35%回復。新キャラと習得先の追加は後日です。", "既存の専用技の数値は維持しています。"]},{"id": "news-20261122-01", "date": "2026-11-22", "title": "氷雪・錬成の相性と新しい戦闘ルール", "items": ["氷雪・錬成を追加し、確定した属性相性へ更新しました。新しい幻獣の追加は後日です。", "雪、新技・新特性、音・蹴り分類を内部実装しました。", "野生の基本技の効率を改善し、荒ぶる牙をダマスデビル・ハスカバ・ケファロック・ジャングマに追加しました。"]},{"id": "news-20261115-09", "date": "2026-11-15", "title": "暗闇技「目覚ましビンタ」を追加", "items": ["威力70・気力35の物理接触技を追加しました。眠っている相手には威力2倍、本体に命中すると起こします。", "カプケード・ワカクサル・ダマスデビルが習得できます。"]},{"id": "news-20261115-08", "date": "2026-11-15", "title": "騙し合い・殺息・お隣いかがと眠気を追加", "items": ["騙し合いは次の行動を変化技に制限。後手でかけられ、次のターンに使える変化技がなければやけくそになります。", "殺息は物理防御-1・回避+2。お隣いかがは物理防御+1と、次の行動まで接触した相手に眠気を与えます。", "眠気は次のターン終了時に眠りへ変化。眠りは1〜3回の行動をランダムで休みます。"]},{"id": "news-20261115-07", "date": "2026-11-15", "title": "雨の間は望まぬ夕立が失敗するよう変更", "items": ["天気が雨のとき、望まぬ夕立は雨を上書きできなくなりました。", "雨が降っている間は効果なしと表示し、AIも夕立の使用を避けます。実行して失敗した場合は気力を消費します。"]},{"id": "news-20261115-06", "date": "2026-11-15", "title": "ケファロック・ユダチョウ・サランディを通常実装", "items": ["3体を能力合計550の通常幻獣として編成できるようにしました。専用技と特性も使用できます。", "チャレンジ版は名前をボスケファロック・ボスユダチョウ・ボスサランディに変更。チャレンジ用の高い能力値は維持します。", "通常版は通常対戦の道連れ・滅びの唄のルールを使い、編成保存・通信・おまかせにも対応します。"]},{"id": "news-20261115-05", "date": "2026-11-15", "title": "ダマスデビルと流血を追加", "items": ["暗闇・野生の通常幻獣ダマスデビル、専用技かみちぎるを追加しました。", "流血は状態異常と共存し、5段階で毎ターン最大HPの1・2・4・8・16%のダメージ。交代では解除されません。", "実際にHPが回復すると流血・発症予約が1段階減ります。", "ターン終了時の回復・継続ダメージを原因のテキストとともに、間を置いて表示します。"]},{"id": "news-20261115-04", "date": "2026-11-15", "title": "草木・野生のハスカバ登場", "items": ["通常幻獣にハスカバを追加。高いHP・物攻・物防と、雨で加速する流麗が特徴です。", "エラ呼吸を追加。気力35でHP30%回復、雨の間はさらに物攻が1段階上がります。", "通常幻獣の複合属性に合わせて、属性フィルター・一致技表示・おまかせ編成を対応しました。"]},{"id":"news-20261115-03","date":"2026-11-15","title":"天候「雨」と新しい技・特性を追加","items":["雨は5ターン継続し、流水技1.5倍・火炎技半減。雷撃と迅雷が必中になります。","雨乞いをミズカガメ・イナマヅ・ホゲールに追加しました。","ホゲールに登場時に雨を降らせる「雨獣」、イナマヅに雨の間素早さ2倍の「流麗」を追加しました。","雨・夕立・砂嵐は互いに上書きします。通常の雨には割合ダメージや回復はありません。"]},{"id": "news-20261115-02", "date": "2026-11-15", "title": "交代時の設置ダメージと技の順序を調整", "items": ["交代先が岩棘で倒れた場合、選択済みの相手を対象とする技は気力を消費して空振りし、その後に次の幻獣が登場します。", "自分への強化・回復や気力溜めは、相手が不在でも実行できます。"]},{"id": "news-20261115-01", "date": "2026-11-15", "title": "交代時の岩棘と行動継続を修正", "items": ["交代先が岩棘で倒れた場合、次の幻獣を出してから選択済みの技を続行するよう修正しました。"]},{"id":"news-20261113-05","date":"2026-11-13","title":"透明感のあるUIにリニューアル","items":["画面全体を青緑・青紫の光と半透明パネルで統一しました。","ボタンやカードの境界線を淡くし、選択中・フォーカス中の表示を整えました。","編成・装備選択・戦闘・各ウィンドウに新しいデザインを反映しました。"]},{"id":"news-20261113-04","date":"2026-11-13","title":"持ち物のドット絵を追加","items":["全20種の持ち物に48×48ドットのイラストを追加しました。","装備選択・編成・戦闘中の幻獣詳細に持ち物の絵を表示します。","装備選択はイラストと効果を並べ、スマホでも選びやすくしました。"]},{"id":"news-20261113-03","date":"2026-11-13","title":"新しい持ち物と癒しの鈴の調整","items":["気力帯の追加回復を毎ターン5に変更しました。","ゆるゆるパジャマを追加。持ち主の技の消費気力が5増えます。","癒しの鈴は交代で出たときに2回まで状態異常を治します。奇術でも使用回数を引き継ぎます。","プロテイン・ほろ酔いカクテルを追加。ターン終了時に物防・特防をそれぞれ1段階上げ、一度使うとなくなります。","全力シューズ・全力ナックル・全力メガネを追加。素早さ・物攻・特攻をそれぞれ1.5倍にしますが、最初に使った技に固定されます。交代すると固定が解除されます。"]},{"id":"news-20261113-02","date":"2026-11-13","title":"気力と守る・行動制限を調整","items":["ターン終了時の気力回復を12に変更。守る以外は同じ技を連続使用するたび消費気力が5増えます。別の技・気力溜め・交代で加算がリセットされます。","集中は気力上限150で開始し、気力溜めの回復量2倍と被ダメ増加なしに。好機の追加効果倍率は1.5倍へ変更しました。","守るは反響・封技・挑発など、相手から直接受ける変化技も防ぎます。天気や既存の継続ダメージ、場全体の効果は防げません。","反響・封技・挑発は、後手でかけた場合に次のターンから持続を数え、先手・後手とも3回の行動に影響するようになりました。"]},{"id":"news-20261113-01","date":"2026-11-13","detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/rebalance-v17.md","title":"通常20体と技・特性を全体調整","items":["おどかすの行動阻止と先制を撤廃。通常攻撃に50%の物攻低下を付けました。","気合い・精神統一・結界を2段階上昇へ変更し、気力消費も見直しました。","仕返しの上限・身代わり・無効相性、幻痛の気力吸収、闇喰らいの回復量を調整しました。","通常20体の習得技を個別化し、見切り・重心・岩肌・反骨などの特性を調整しました。","若葉弾を追加し、悪夢を暗闇属性に変更。メイホーなどの役割を整えました。","反響中でも交代できるよう修正。破魔石は持ち主の攻撃に作用するよう修正しました。","旧編成は新しい習得範囲に合わせて補完し、変更前の保存データもブラウザ内にバックアップします。"]},{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
@@ -4856,7 +4884,8 @@ function paint(enter){
   }
   const fieldState=$("#fieldState");
   if(fieldState){const states=[];if(B.reverseTurns>0)states.push(`アベコベルーム：相性反転中（残り${B.reverseTurns}ターン）`);if(B.weather?.kind==="sandstorm")states.push(`砂嵐（残り${B.weather.turns}ターン）`);if(inSnow())states.push(`雪（残り${B.weather.turns}ターン）`);if(inRain())states.push(`雨（残り${B.weather.turns}ターン）`);if(B.weather?.kind==="shower")states.push(`夕立（残り${B.weather.turns}ターン）`);fieldState.hidden=!states.length;fieldState.textContent=states.join(" ／ ");}
-  const rain=$("#weatherOverlay");if(rain){rain.hidden=!B.weather;rain.classList.remove("sandstorm-overlay");if(B.weather?.kind==="sandstorm")rain.classList.add("sandstorm-overlay");}
+  if(window.PixelArt){window.PixelArt.field($("#fieldCanvas"),B.weather?.kind);window.PixelArt.weather(B.weather?.kind,visualNow(),!document.hidden&&!idleMotionPreference?.matches);}
+  const rain=$("#weatherOverlay");if(rain){rain.hidden=!!window.PixelArt||!B.weather;rain.classList.remove("sandstorm-overlay");if(B.weather?.kind==="sandstorm")rain.classList.add("sandstorm-overlay");}
   $("#youName").innerHTML = `${y.name} ${chip(y.type)}${bleedMarker(y)}${y.sub>0?'<span class="sub-marker">身代わり</span>':""}`;
   $("#foeName").innerHTML = `<span class="pfx">相手の</span>${f.name} ${chip(f.type)}${bleedMarker(f)}${f.sub>0?'<span class="sub-marker">身代わり</span>':""}`;
   $("#youTags").innerHTML = tags(y);
@@ -5225,7 +5254,7 @@ function drawMoveMotion(ctx,key,progress,from,to,kind="attack",attackType=null){
   const size=p.scale,fade=Math.sin(Math.PI*t),hit=kind!=="miss" && t>.20;
   const px=(x,y,w=2,h=w,c=0)=>{
     const a=Math.max(0,Math.round(x)),b=Math.max(0,Math.round(y));
-    const right=Math.min(384,Math.round(x+w)),bottom=Math.min(216,Math.round(y+h));
+    const right=Math.min(384,Math.round(x+w)),bottom=Math.min(ctx.canvas?.height||216,Math.round(y+h));
     if(right<=a || bottom<=b)return;
     ctx.fillStyle=typeof c==="string"?c:colors[(c%3+3)%3];ctx.fillRect(a,b,right-a,bottom-b);
   };
@@ -5399,7 +5428,7 @@ const MoveMotion = {
     if(this.timer!==null)clearTimeout(this.timer);
     this.frame=this.timer=null;this.active=null;
     for(const id of ["spYou","spFoe","decoyYou","decoyFoe"]){const actor=document.getElementById(id);if(actor)actor.classList.remove("move-lunge","move-cast","move-rise","move-brace","move-recoil");}
-    const canvas=document.getElementById("moveCanvas");if(canvas)canvas.getContext("2d").clearRect(0,0,384,216);
+    const canvas=document.getElementById("moveCanvas");if(canvas)canvas.getContext("2d").clearRect(0,0,384,Math.max(216,canvas.height||216));
   },
   play(u,target,m,kind="attack"){
     this.stop();
@@ -5408,12 +5437,16 @@ const MoveMotion = {
     const canvas=document.getElementById("moveCanvas");
     if(!profile || !canvas || document.hidden || !document.getElementById("scBattle")?.classList.contains("on"))return;
     const points={you:{x:100,y:130},foe:{x:288,y:83}};
+    if(window.PixelArt)for(const side of ['you','foe']){
+      const b=window.PixelArt.actorBox(document.getElementById(side==='you'?'spYou':'spFoe'),null);
+      if(b)points[side]={x:Math.round(b.x+b.w/2),y:Math.round(b.y+b.h/2)};
+    }
     const from=points[screenPos(u.side)],to=points[screenPos(target.side)];
     const ctx=canvas.getContext("2d");ctx.imageSmoothingEnabled=false;
     const reduced=!!idleMotionPreference?.matches;
     if(!reduced)sprite(u.side).classList.add("move-"+profile.actor);
     const active={key,from,to,kind,started:visualNow(),duration:620};this.active=active;
-    const paint=progress=>{ctx.clearRect(0,0,384,216);drawMoveMotion(ctx,key,progress,from,to,kind,m.t);};
+    const paint=progress=>{ctx.clearRect(0,0,384,Math.max(216,canvas.height||216));drawMoveMotion(ctx,key,progress,from,to,kind,m.t);};
     if(reduced || typeof requestAnimationFrame!=="function"){
       paint(.48);this.timer=setTimeout(()=>this.stop(),350);return;
     }
@@ -6819,6 +6852,10 @@ $("#btnClearDraft").onclick = ()=>{
 $("#btnAgain").onclick = ()=>{ void BattleMusic.unlock(); if(challengeMode)startChallenge(challengeMode);else startBattle(); };
 $("#btnBack").onclick  = ()=>{ NET.reset(); ME = "you"; show("scBuild"); renderAll(); };
 
+window.addEventListener?.("pixelartready",()=>{
+  if(B && !B.over){StatusEffects.sync();window.PixelArt?.weather(B.weather?.kind,visualNow(),!document.hidden&&!idleMotionPreference?.matches);}
+  StatusPreview.render(visualNow(),false);
+});
 drawField(document.getElementById("fieldCanvas"));
 renderChart();
 GameUI.init();
