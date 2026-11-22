@@ -62,8 +62,8 @@ await run(`(async()=>{
  await doMove(boss,a,'wildreturn');assert.equal(boss.en,65);assert.equal(boss.wildAwakened,true);
  assert.ok(logs().includes('野生に目覚めている!!'));
  assert.equal(attackEff('水',boss),.5);assert.equal(attackEff('炎',boss),2);assert.equal(attackEff('空',boss),4);
- a.type='草';assert.equal(attackEff('野',a,boss),4);
- a.type='雷';assert.equal(attackEff('野',a,boss),.25);
+ a.type='草';assert.equal(attackEff('野',a,boss),1);
+ a.type='雷';assert.equal(attackEff('野',a,boss),1);
  const originalRng=rng;rng=()=>.5;a.type='無';
  boss.wildAwakened=false;const plain=damage(boss,a,MOVES.wildfang).dmg;
  boss.wildAwakened=true;assert.ok(damage(boss,a,MOVES.wildfang).dmg>plain*1.4);

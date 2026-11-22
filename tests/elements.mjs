@@ -51,23 +51,17 @@ function world(){
 }
 const {run}=world();
 run(`
-const agreed=[
-[.5,.5,2,1,.5,2,.5,1,1,2,1],[2,.5,.5,.5,2,1,2,1,1,.5,1],
-[.5,2,.5,1,2,.5,2,.5,1,.5,1],[1,2,.5,.5,.5,1,0,2,2,1,1],
-[2,.5,.5,2,1,1,.5,2,1,1,1],[1,1,2,1,1,.5,1,1,1,.5,2],
-[2,.5,.5,2,2,1,1,0,1,.5,1],[.5,1,2,1,1,1,1,.5,1,2,1],
-[1,1,1,1,1,2,1,1,.5,1,0],[1,1,2,.5,.5,2,1,.5,.5,2,1],
-[1,1,1,1,1,1,1,1,0,1,1]];
-const order=['炎','水','草','雷','岩','影','地','空','幻','野','無'];
+const agreed=[[0.5, 0.5, 2, 1, 0.5, 2, 0.5, 1, 1, 2, 2, 2, 1], [2, 0.5, 0.5, 0.5, 2, 1, 2, 1, 1, 0.5, 1, 1, 1], [0.5, 2, 0.5, 1, 2, 0.5, 2, 0.5, 1, 0.5, 1, 0.5, 1], [1, 2, 0.5, 0.5, 1, 1, 0, 2, 2, 1, 1, 1, 1], [2, 0.5, 0.5, 1, 1, 1, 0.5, 2, 1, 1, 2, 1, 1], [1, 1, 2, 1, 1, 0.5, 1, 1, 1, 0.5, 1, 1, 2], [2, 0.5, 0.5, 2, 2, 1, 1, 0, 1, 0.5, 1, 2, 1], [0.5, 1, 2, 1, 1, 1, 1, 0.5, 1, 2, 1, 0.5, 1], [1, 1, 1, 1, 1, 2, 1, 1, 0.5, 1, 1, 1, 0], [1, 1, 1, 1, 0.5, 2, 1, 0.5, 0.5, 2, 1, 0.5, 1], [0.5, 1, 2, 1, 0.5, 1, 1, 2, 1, 2, 0.5, 0.5, 1], [0.5, 0.5, 1, 0.5, 2, 1, 1, 1, 1, 2, 2, 0.5, 1], [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0.5, 1]];
+const order=['炎','水','草','雷','岩','影','地','空','幻','野','氷','錬','無'];
 assert.equal(TYPES.join(),order.join());
 setup();
-for(let a=0;a<11;a++)for(let d=0;d<11;d++){
+for(let a=0;a<13;a++)for(let d=0;d<13;d++){
  assert.equal(eff(order[a],order[d]),agreed[a][d],order[a]+'/'+order[d]);
  B.reverseTurns=3;
  assert.equal(attackEff(order[a],order[d]),agreed[a][d]===0?4:1/agreed[a][d]);
  B.reverseTurns=0;
 }
-assert.equal(Object.values(TYPE_NAMES).join(),'火炎,流水,草木,雷電,岩石,暗闇,大地,天空,幽玄,野生,無属性');
+assert.equal(Object.values(TYPE_NAMES).join(),'火炎,流水,草木,雷電,岩石,暗闇,大地,天空,幽玄,野生,氷雪,錬成,無属性');
 for(const t of TYPES){assert.ok(TYPE_SYMBOLS[t]);assert.ok(chip(t).includes('<svg'));assert.ok(chip(t).includes(typeName(t)));}
 assert.equal(SPECIES.slice(0,18).map(s=>s.t).join(),'炎,水,草,雷,岩,影,地,空,炎,水,草,雷,岩,影,地,空,幻,幻');
 assert.ok(learnable(spec('homura')).includes('wildfang'));
@@ -92,4 +86,4 @@ await run(`(async()=>{
  assert.equal(damage(a,d,MOVES.wildfang).e,2);
  a.en=100;d.hp=1000;await doMove(a,d,'wildfang');assert.ok(d.hp<1000);
 })()`);
-console.log('PASS agreed 121 matchups, reverse room, eleven named SVG symbols, legacy species and learned moves, wild damage and chart labels');
+console.log('PASS agreed 169 matchups, reverse room, thirteen named SVG symbols, legacy species and learned moves, wild damage and chart labels');

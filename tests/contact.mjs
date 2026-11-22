@@ -51,7 +51,7 @@ function world(){
 }
 const {run}=world();
 run(`
-const contact=['wakeSlap','tearBite','wildfang','wildclaw','firefang','waterfang','thunderclaw','tackle','ambush','revenge','vine','pivot','dive','devour'];
+const contact=['pincer','kenkenma','jumpKick','headlong','wildRampage','wakeSlap','tearBite','wildfang','wildclaw','firefang','waterfang','thunderclaw','tackle','ambush','revenge','vine','pivot','dive','devour'];
 for(const [key,m] of Object.entries(MOVES)){
  assert.equal(typeof m.contact,'boolean',key+': explicit classification');
  assert.equal(isContactMove(m),contact.includes(key),key);
@@ -64,11 +64,12 @@ await run(`(async()=>{
  const normalDecide=decideSwitch;decideSwitch=async(side,seq,alive)=>alive[0].i;
  for(const key of Object.keys(MOVES).filter(k=>!isStatusMove(MOVES[k]))){
   const [a,d]=setup();a.hp=500;a.maxhp=1000;a.dmgTaken=10;d.maxhp=d.hp=1000;d.type='水';d.equip='thorn';d.plannedMove=key==='ambush'?'tackle':'focus';fixedRandom(.1);fixedDamage(10);
+  if(key==='kenkenma'){a.combo=2;a.en=100;}
   await doMove(a,d,key);
-  if(['wakeSlap','tearBite','wildfang','wildclaw','firefang','waterfang','thunderclaw','tackle','ambush','revenge','vine','pivot','dive','devour'].includes(key)){
+  if(['pincer','kenkenma','jumpKick','headlong','wildRampage','wakeSlap','tearBite','wildfang','wildclaw','firefang','waterfang','thunderclaw','tackle','ambush','revenge','vine','pivot','dive','devour'].includes(key)){
    // Every successful body-contact move triggers the same reaction.
    assert.ok(a.hp<500+(key==='vine'?3:key==='devour'?5:0),key+': contact retaliates');
-  }else if(key!=='inferno')assert.equal(a.hp,500,key+': ranged does not trigger poison');
+  }else if(key!=='inferno'&&key!=='heeHaw')assert.equal(a.hp,500,key+': ranged does not trigger poison');
   restoreRandom();
  }
  for(const mode of ['shield','guard','miss','ghost']){
@@ -97,4 +98,4 @@ await run(`(async()=>{
  }
  decideSwitch=normalDecide;
 })()`);
-console.log('PASS all 62 contact flags, physical/ranged/special separation, thorn contact-only reaction and protection, fixed retaliation immunity, full-HP charm boundary, recovery, one-use and multi-hit continuation');
+console.log('PASS all current contact flags, physical/ranged/special separation, thorn contact-only reaction and protection, fixed retaliation immunity, full-HP charm boundary, recovery, one-use and multi-hit continuation');
