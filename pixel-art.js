@@ -4,7 +4,7 @@
   if (typeof Image !== 'function') return;
   const root = 'assets/pixel-v1/';
   const ids = ['homura','shiogame','kokejyu','raitachi','iwaushi','fukurou','doryu','fuen','youcho','soukou','tsutazaru','rainen','saikaku','yoigumo','sarou','ungei','mubaku','oborogi','gako','arakuma','hasukaba','damasdevil','kefarock','yudachou','sarandi'];
-  const rightFacing = new Set(['homura','shiogame','kokejyu','fuen','youcho','soukou','tsutazaru','sarou','ungei','arakuma','kefarock']);
+  const rightFacing = new Set(['homura','shiogame','kokejyu','fuen','youcho','soukou','tsutazaru','sarou','ungei','arakuma','kefarock','fukurou','doryu','oborogi','hasukaba','damasdevil']);
   const durations = [420,220,220,300,420,300,220,220];
   const images = new Map(), actors = new Map(), fields = new Map();
   const weatherBuffer = document.createElement('canvas');

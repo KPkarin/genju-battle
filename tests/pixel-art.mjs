@@ -45,6 +45,14 @@ assert.equal(api.creature(canvas(),'missing'),false);
 const foe=canvas('spFoe');api.creature(foe,'homura');assert.ok(foe.getContext().calls.some(x=>x[0]==='scale'&&x[1]===-1));
 const portraitCanvas=canvas();api.creature(portraitCanvas,'homura');assert.ok(!portraitCanvas.getContext().calls.some(x=>x[0]==='scale'),'roster artwork keeps its approved orientation');
 
+for(const id of ['fukurou','doryu','oborogi','hasukaba','damasdevil']){
+ const enemy=canvas('spFoe');api.creature(enemy,id);assert.ok(enemy.getContext().calls.some(x=>x[0]==='scale'&&x[1]===-1),id+': right-facing enemy turns toward player');
+ const roster=canvas();api.creature(roster,id);assert.ok(!roster.getContext().calls.some(x=>x[0]==='scale'),id+': portrait keeps its original art');
+}
+for(const id of ['raitachi','rainen','saikaku','mubaku','yudachou']){
+ const enemy=canvas('spFoe');api.creature(enemy,id);assert.ok(!enemy.getContext().calls.some(x=>x[0]==='scale'),id+': already left-facing enemy stays left');
+}
+
 const field=nodes.get('fieldCanvas');api.field(field);
 assert.equal(field.height,216);
 portrait=true;events.get('resize')();assert.equal(field.height,288);
