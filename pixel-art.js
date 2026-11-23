@@ -32,6 +32,7 @@
   const loaded=im=>im.complete && im.naturalWidth>0;
   const api=window.PixelArt={
     stageHeight() {
+      if(Number.isFinite(window.innerHeight/window.innerWidth)&&window.matchMedia('(max-width:999px) and (orientation:landscape)').matches)return Math.min(288,Math.max(1,Math.round(384*window.innerHeight/window.innerWidth)));
       return window.matchMedia('(max-width:999px) and (orientation:portrait)').matches?288:216;
     },
     actorBox(actor,fallback) {
