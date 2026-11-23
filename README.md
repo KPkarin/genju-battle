@@ -68,3 +68,5 @@ Node.jsで `node tests/baseline.mjs` など `tests/` 内の各 `.mjs` を実行�
 勝利音「Jingle#24」／ **BGM：hitoshi by Senses Circuit** ([Senses Circuit](https://www.senses-circuit.com/))
 
 対戦中の情報公開範囲とAIの参照方針は [公開情報の仕様](docs/public-information.md) を参照してください。
+
+高速自動対戦と継続試行は [self-play環境](tools/selfplay/README.md) を参照してください。

@@ -1,0 +1,40 @@
+name: Battle self-play
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 19 * * *'
+  push:
+    paths:
+      - 'tools/selfplay/**'
+      - '.github/workflows/selfplay.yml'
+permissions:
+  contents: read
+concurrency:
+  group: battle-selfplay
+  cancel-in-progress: false
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run deterministic paired battles
+        run: node tools/selfplay/run.mjs --games 10000 --seed "$(($(date -u +%Y%m%d) * 10000))" --out selfplay-results
+      - name: Save results and replay information
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selfplay-${{ github.run_id }}
+          path: selfplay-results/
+          retention-days: 90
+      - name: Show summary
+        if: always()
+        run: |
+          if test -f selfplay-results/summary.json; then
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat selfplay-results/summary.json >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi

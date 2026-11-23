@@ -1,0 +1,505 @@
+{
+  "config": {
+    "games": 10000,
+    "startSeed": 20261123,
+    "maxTurns": 150,
+    "fingerprint": "da3723b7cf5dde6653288f1b9280a612ea67b33838ed3795eb0c93059733c8e7",
+    "format": 1
+  },
+  "completed": 10000,
+  "counts": {
+    "you": 4929,
+    "foe": 4962,
+    "turnLimit": 109,
+    "error": 0
+  },
+  "medianTurns": 11,
+  "actions": 295482,
+  "species": {
+    "fuen": {
+      "games": 1934,
+      "wins": 869
+    },
+    "iwaushi": {
+      "games": 1980,
+      "wins": 988
+    },
+    "gako": {
+      "games": 1950,
+      "wins": 884
+    },
+    "kefarock": {
+      "games": 1996,
+      "wins": 1143
+    },
+    "raitachi": {
+      "games": 1992,
+      "wins": 855
+    },
+    "tsurarauchi": {
+      "games": 1958,
+      "wins": 1045
+    },
+    "hasukaba": {
+      "games": 1834,
+      "wins": 943
+    },
+    "kamegane": {
+      "games": 1916,
+      "wins": 1078
+    },
+    "robariton": {
+      "games": 1852,
+      "wins": 875
+    },
+    "ungei": {
+      "games": 1956,
+      "wins": 1009
+    },
+    "kokejyu": {
+      "games": 1896,
+      "wins": 800
+    },
+    "soukou": {
+      "games": 1996,
+      "wins": 908
+    },
+    "rainen": {
+      "games": 1920,
+      "wins": 1051
+    },
+    "yoigumo": {
+      "games": 1972,
+      "wins": 862
+    },
+    "kanippa": {
+      "games": 1932,
+      "wins": 1167
+    },
+    "shimosura": {
+      "games": 1920,
+      "wins": 951
+    },
+    "saikaku": {
+      "games": 1888,
+      "wins": 937
+    },
+    "damasdevil": {
+      "games": 1916,
+      "wins": 923
+    },
+    "doryu": {
+      "games": 1914,
+      "wins": 1032
+    },
+    "fukurou": {
+      "games": 2028,
+      "wins": 862
+    },
+    "mubaku": {
+      "games": 1910,
+      "wins": 968
+    },
+    "sarou": {
+      "games": 1894,
+      "wins": 957
+    },
+    "yudachou": {
+      "games": 1900,
+      "wins": 1220
+    },
+    "youcho": {
+      "games": 1896,
+      "wins": 1061
+    },
+    "tsutazaru": {
+      "games": 1900,
+      "wins": 815
+    },
+    "oborogi": {
+      "games": 1996,
+      "wins": 898
+    },
+    "homura": {
+      "games": 1902,
+      "wins": 870
+    },
+    "sarandi": {
+      "games": 1990,
+      "wins": 959
+    },
+    "hazumimi": {
+      "games": 1838,
+      "wins": 712
+    },
+    "shiogame": {
+      "games": 2002,
+      "wins": 1034
+    },
+    "arakuma": {
+      "games": 2022,
+      "wins": 997
+    }
+  },
+  "updatedAt": "2026-11-23T07:26:31.816Z",
+  "note": "Baseline observations only; random team win rates are not controlled balance estimates. No automatic promotion.",
+  "turnLimitSamples": [
+    {
+      "index": 80,
+      "seed": 3964657032,
+      "mirror": false,
+      "build": {
+        "you": [
+          {
+            "id": "fukurou",
+            "moves": [
+              "touch",
+              "spark",
+              "swap",
+              "sub"
+            ],
+            "equip": "pajamas",
+            "ability": "tempo"
+          },
+          {
+            "id": "mubaku",
+            "moves": [
+              "phantom",
+              "tackle",
+              "swap",
+              "repose"
+            ],
+            "equip": "pajamas",
+            "ability": "glutton"
+          },
+          {
+            "id": "shimosura",
+            "moves": [
+              "coldRay",
+              "tackle",
+              "sub",
+              "snowball"
+            ],
+            "equip": "ward",
+            "ability": "blur"
+          }
+        ],
+        "foe": [
+          {
+            "id": "damasdevil",
+            "moves": [
+              "wildclaw",
+              "tearBite",
+              "taunt",
+              "guard"
+            ],
+            "equip": "bell",
+            "ability": "glutton"
+          },
+          {
+            "id": "fukurou",
+            "moves": [
+              "night",
+              "spark",
+              "barrier",
+              "sub"
+            ],
+            "equip": "ward",
+            "ability": "tempo"
+          },
+          {
+            "id": "hazumimi",
+            "moves": [
+              "jumpKick",
+              "pivot",
+              "tackle",
+              "headlong"
+            ],
+            "equip": "fullShoes",
+            "ability": "superLegs"
+          }
+        ]
+      },
+      "log": [
+        "<span class=\"u-you\">バクネス</span> には 効果がないようだ…",
+        "<span class=\"u-you\">バクネス</span> は静養の反動で動けない。",
+        "<span class=\"u-foe\">相手のハズミミ</span> は息を整えた (+25)",
+        "<span class=\"u-you\">バクネス</span> の 静養！",
+        "<span class=\"u-you\">バクネス</span> は静養した (+72)",
+        "<span class=\"sys\">バクネス は次のターン動けない。</span>",
+        "<span class=\"u-foe\">相手のハズミミ</span> の 翻し！",
+        "<span class=\"bad\">効果はいまひとつのようだ。</span>",
+        "<span class=\"sys\">ハズミミ は入れ替わる相手がいない。</span>",
+        "<span class=\"u-you\">バクネス</span> は静養の反動で動けない。",
+        "<span class=\"u-foe\">相手のハズミミ</span> の 翻し！",
+        "<span class=\"bad\">効果はいまひとつのようだ。</span>",
+        "<span class=\"sys\">ハズミミ は入れ替わる相手がいない。</span>",
+        "<span class=\"u-you\">バクネス</span> は息を整えた (+25)",
+        "<span class=\"u-foe\">相手のハズミミ</span> は息を整えた (+25)",
+        "<span class=\"u-you\">バクネス</span> の 静養！",
+        "<span class=\"u-you\">バクネス</span> は静養した (+72)",
+        "<span class=\"sys\">バクネス は次のターン動けない。</span>",
+        "<span class=\"u-foe\">相手のハズミミ</span> の 翻し！",
+        "急所に当たった！",
+        "<span class=\"bad\">効果はいまひとつのようだ。</span>",
+        "<span class=\"sys\">ハズミミ は入れ替わる相手がいない。</span>",
+        "<span class=\"u-you\">バクネス</span> は静養の反動で動けない。",
+        "<span class=\"u-foe\">相手のハズミミ</span> の 翻し！",
+        "<span class=\"bad\">効果はいまひとつのようだ。</span>",
+        "<span class=\"sys\">ハズミミ は入れ替わる相手がいない。</span>",
+        "<span class=\"u-you\">バクネス</span> の 静養！",
+        "<span class=\"u-you\">バクネス</span> は静養した (+72)",
+        "<span class=\"sys\">バクネス は次のターン動けない。</span>",
+        "<span class=\"u-foe\">相手のハズミミ</span> は息を整えた (+25)",
+        "<span class=\"u-you\">バクネス</span> は静養の反動で動けない。",
+        "<span class=\"u-foe\">相手のハズミミ</span> の 翻し！",
+        "<span class=\"bad\">効果はいまひとつのようだ。</span>",
+        "<span class=\"sys\">ハズミミ は入れ替わる相手がいない。</span>",
+        "<span class=\"u-you\">バクネス</span> は息を整えた (+25)",
+        "<span class=\"u-foe\">相手のハズミミ</span> の 体当たり！",
+        "<span class=\"u-you\">バクネス</span> には 効果がないようだ…",
+        "<span class=\"u-you\">バクネス</span> の 静養！",
+        "<span class=\"u-you\">バクネス</span> は静養した (+72)",
+        "<span class=\"sys\">バクネス は次のターン動けない。</span>"
+      ]
+    },
+    {
+      "index": 90,
+      "seed": 1248821569,
+      "mirror": false,
+      "build": {
+        "you": [
+          {
+            "id": "yudachou",
+            "moves": [
+              "squirt",
+              "ember",
+              "aqua",
+              "tsunami"
+            ],
+            "equip": "armor",
+            "ability": "quick"
+          },
+          {
+            "id": "arakuma",
+            "moves": [
+              "wildclaw",
+              "tackle",
+              "repose",
+              "root"
+            ],
+            "equip": "protein",
+            "ability": "ballast"
+          },
+          {
+            "id": "soukou",
+            "moves": [
+              "squirt",
+              "touch",
+              "meditate",
+              "barrier"
+            ],
+            "equip": "berry",
+            "ability": "glutton"
+          }
+        ],
+        "foe": [
+          {
+            "id": "iwaushi",
+            "moves": [
+              "gravel",
+              "tackle",
+              "edge",
+              "rock"
+            ],
+            "equip": "plate",
+            "ability": "mirror"
+          },
+          {
+            "id": "kokejyu",
+            "moves": [
+              "seed",
+              "tackle",
+              "sprout",
+              "vine"
+            ],
+            "equip": "veil",
+            "ability": "regen"
+          },
+          {
+            "id": "tsurarauchi",
+            "moves": [
+              "frostFang",
+              "tackle",
+              "snowCall",
+              "iceArmor"
+            ],
+            "equip": "berry",
+            "ability": "snowWarning"
+          }
+        ]
+      },
+      "log": [
+        "<span class=\"u-foe\">相手のツララウチ</span> は命の実で回復した (+7)",
+        "<span class=\"u-foe\">相手のツララウチ</span> は息を整えた (+25)",
+        "<span class=\"u-you\">ジャングマ</span> の 静養！",
+        "<span class=\"u-you\">ジャングマ</span> は静養した (+77)",
+        "<span class=\"sys\">ジャングマ は次のターン動けない。</span>",
+        "<span class=\"u-foe\">相手のツララウチ</span> は命の実で回復した (+7)",
+        "<span class=\"u-foe\">相手のツララウチ</span> の 氷牙！",
+        "<span class=\"good\">効果はばつぐんだ！</span>",
+        "これ以上は下がらない。",
+        "<span class=\"u-you\">ジャングマ</span> は静養の反動で動けない。",
+        "<span class=\"u-foe\">相手のツララウチ</span> は命の実で回復した (+2)",
+        "<span class=\"u-foe\">相手のツララウチ</span> の 氷牙！",
+        "急所に当たった！",
+        "<span class=\"good\">効果はばつぐんだ！</span>",
+        "<span class=\"u-you\">ジャングマ</span> の ひっかく！",
+        "<span class=\"u-foe\">相手のツララウチ</span> は命の実で回復した (+7)",
+        "雪がやんだ。",
+        "<span class=\"u-foe\">相手のツララウチ</span> は息を整えた (+25)",
+        "<span class=\"u-you\">ジャングマ</span> の ひっかく！",
+        "<span class=\"u-foe\">相手のツララウチ</span> は命の実で回復した (+7)",
+        "<span class=\"u-foe\">相手のツララウチ</span> の 雪招き！",
+        "雪が降り始めた！",
+        "<span class=\"u-you\">ジャングマ</span> の ひっかく！",
+        "<span class=\"u-foe\">相手のツララウチ</span> は命の実で回復した (+7)",
+        "<span class=\"u-foe\">相手のツララウチ</span> の 体当たり！",
+        "<span class=\"u-you\">ジャングマ</span> の ひっかく！",
+        "<span class=\"u-foe\">相手のツララウチ</span> は命の実で回復した (+7)",
+        "<span class=\"u-foe\">相手のツララウチ</span> は息を整えた (+25)",
+        "<span class=\"u-you\">ジャングマ</span> は息を整えた (+25)",
+        "<span class=\"u-foe\">相手のツララウチ</span> は命の実で回復した (+7)",
+        "<span class=\"u-foe\">相手のツララウチ</span> の 氷牙！",
+        "<span class=\"good\">効果はばつぐんだ！</span>",
+        "<span class=\"u-you\">ジャングマ</span> の 静養！",
+        "<span class=\"u-you\">ジャングマ</span> は静養した (+77)",
+        "<span class=\"sys\">ジャングマ は次のターン動けない。</span>",
+        "<span class=\"u-foe\">相手のツララウチ</span> は命の実で回復した (+3)",
+        "<span class=\"u-foe\">相手のツララウチ</span> の 氷牙！",
+        "<span class=\"good\">効果はばつぐんだ！</span>",
+        "<span class=\"u-you\">ジャングマ</span> は静養の反動で動けない。",
+        "雪がやんだ。"
+      ]
+    },
+    {
+      "index": 91,
+      "seed": 1944598436,
+      "mirror": true,
+      "build": {
+        "you": [
+          {
+            "id": "iwaushi",
+            "moves": [
+              "gravel",
+              "tackle",
+              "edge",
+              "rock"
+            ],
+            "equip": "plate",
+            "ability": "mirror"
+          },
+          {
+            "id": "kokejyu",
+            "moves": [
+              "seed",
+              "tackle",
+              "sprout",
+              "vine"
+            ],
+            "equip": "veil",
+            "ability": "regen"
+          },
+          {
+            "id": "tsurarauchi",
+            "moves": [
+              "frostFang",
+              "tackle",
+              "snowCall",
+              "iceArmor"
+            ],
+            "equip": "berry",
+            "ability": "snowWarning"
+          }
+        ],
+        "foe": [
+          {
+            "id": "yudachou",
+            "moves": [
+              "squirt",
+              "ember",
+              "aqua",
+              "tsunami"
+            ],
+            "equip": "armor",
+            "ability": "quick"
+          },
+          {
+            "id": "arakuma",
+            "moves": [
+              "wildclaw",
+              "tackle",
+              "repose",
+              "root"
+            ],
+            "equip": "protein",
+            "ability": "ballast"
+          },
+          {
+            "id": "soukou",
+            "moves": [
+              "squirt",
+              "touch",
+              "meditate",
+              "barrier"
+            ],
+            "equip": "berry",
+            "ability": "glutton"
+          }
+        ]
+      },
+      "log": [
+        "<span class=\"u-you\">ツララウチ</span> の 氷牙！",
+        "<span class=\"good\">効果はばつぐんだ！</span>",
+        "<span class=\"u-foe\">相手のジャングマ</span> は息を整えた (+25)",
+        "<span class=\"u-you\">ツララウチ</span> は命の実で回復した (+7)",
+        "<span class=\"u-you\">ツララウチ</span> の 氷牙！",
+        "<span class=\"good\">効果はばつぐんだ！</span>",
+        "<span class=\"u-foe\">相手のジャングマ</span> の 静養！",
+        "<span class=\"u-foe\">相手のジャングマ</span> は静養した (+77)",
+        "<span class=\"sys\">ジャングマ は次のターン動けない。</span>",
+        "<span class=\"u-you\">ツララウチ</span> は命の実で回復した (+7)",
+        "雪がやんだ。",
+        "<span class=\"u-you\">ツララウチ</span> は息を整えた (+25)",
+        "<span class=\"u-foe\">相手のジャングマ</span> は静養の反動で動けない。",
+        "<span class=\"u-you\">ツララウチ</span> は命の実で回復した (+1)",
+        "<span class=\"u-you\">ツララウチ</span> の 雪招き！",
+        "雪が降り始めた！",
+        "<span class=\"u-foe\">相手のジャングマ</span> の ひっかく！",
+        "<span class=\"u-you\">ツララウチ</span> は命の実で回復した (+7)",
+        "<span class=\"u-you\">ツララウチ</span> の 体当たり！",
+        "<span class=\"u-foe\">相手のジャングマ</span> の ひっかく！",
+        "<span class=\"u-you\">ツララウチ</span> は命の実で回復した (+7)",
+        "<span class=\"u-you\">ツララウチ</span> は息を整えた (+25)",
+        "<span class=\"u-foe\">相手のジャングマ</span> の ひっかく！",
+        "<span class=\"u-you\">ツララウチ</span> は命の実で回復した (+7)",
+        "<span class=\"u-you\">ツララウチ</span> の 氷牙！",
+        "<span class=\"good\">効果はばつぐんだ！</span>",
+        "<span class=\"u-foe\">相手のジャングマ</span> の ひっかく！",
+        "<span class=\"u-you\">ツララウチ</span> は命の実で回復した (+7)",
+        "<span class=\"u-you\">ツララウチ</span> の 氷牙！",
+        "<span class=\"good\">効果はばつぐんだ！</span>",
+        "<span class=\"u-foe\">相手のジャングマ</span> は息を整えた (+25)",
+        "<span class=\"u-you\">ツララウチ</span> は命の実で回復した (+5)",
+        "雪がやんだ。",
+        "<span class=\"u-you\">ツララウチ</span> は息を整えた (+25)",
+        "<span class=\"u-foe\">相手のジャングマ</span> の 静養！",
+        "<span class=\"u-foe\">相手のジャングマ</span> は静養した (+77)",
+        "<span class=\"sys\">ジャングマ は次のターン動けない。</span>",
+        "<span class=\"u-you\">ツララウチ</span> の 雪招き！",
+        "雪が降り始めた！",
+        "<span class=\"u-foe\">相手のジャングマ</span> は静養の反動で動けない。"
+      ]
+    }
+  ]
+}
