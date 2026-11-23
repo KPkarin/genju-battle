@@ -26,3 +26,15 @@
 @media(min-width:1000px){.battle-active .cmd .mvn{font-size:15px}.battle-active .cmd .mvd{font-size:13px}.battle-active .cmd .mvx{font-size:12px;line-height:1.55}}
 @media(max-width:999px) and (orientation:portrait){.stage-info-button{left:55%}}
 @media(max-width:999px) and (orientation:landscape){.battle-active .stage canvas.actor.you{width:min(23vw,48vh)}.battle-active .stage canvas.actor.foe{width:min(16.5vw,34vh)}.battle-active .battle-sidebar{max-height:calc(100dvh - 60px);overflow-y:auto;overscroll-behavior:contain}}
+/* Buttons use a plum/indigo surface against the teal field interface. */
+.command-tile.is-available{background:linear-gradient(145deg,#344b73f5,#303655f5);border-color:#c4d5f7b3;box-shadow:inset 0 1px #e1eaff40,0 3px 9px #03091466}
+.command-tile.is-available:hover{background:linear-gradient(145deg,#475e87,#443e68);border-color:#f2e2ff}
+.command-tile.is-unavailable{background:#151c2cef;border-color:#46516a}
+.command-tile .move-inspect{background:#4e476ed9;border-color:#d3c4ec55;color:#fff2ff}
+.battle-active .battle-actions #btnFocusEnergy{background:#775431ed;color:#fff1cb;border-color:#e3bd7b99;box-shadow:inset 0 1px #fff2c62b}
+.battle-active .battle-actions #btnBattleMonsters{background:#514273ed;color:#f8eaff;border-color:#c4a5ed99;box-shadow:inset 0 1px #ead3ff33}
+.stage-info-button,.stage-command-toggle{background:#41486bed;color:#f4ecff;border-color:#c1c1ed99}
+#abilityBanner{position:absolute;z-index:7;left:3%;top:32%;width:min(260px,43%);padding:10px 13px;border:1px solid #f2ca85b3;border-left:5px solid #f3c87e;border-radius:9px;background:linear-gradient(110deg,#433452f5,#142b43f5);color:#fff6df;box-shadow:0 5px 20px #0008;pointer-events:none}
+#abilityBanner[hidden]{display:none}#abilityBanner[data-side=foe]{left:auto;right:3%;border-left-color:#c7b9ff;border-color:#c7b9ff99}#abilityBanner small,#abilityBanner strong,#abilityBanner span{display:block}#abilityBanner small{font-size:11px;color:#e1ccea}#abilityBanner strong{font-size:17px;margin:3px 0;font-weight:850}#abilityBanner span{font-size:12px;line-height:1.5}#abilityBanner[data-kind=item]{border-left-color:#a7e5b7}
+@media(max-width:999px) and (orientation:portrait){#abilityBanner{top:28%;width:46%;padding:7px 9px}#abilityBanner strong{font-size:14px}#abilityBanner small,#abilityBanner span{font-size:10px}}
+@media(max-width:999px) and (orientation:landscape){#abilityBanner{top:28%;left:2%;width:29%;padding:7px 10px}#abilityBanner[data-side=foe]{right:45%;left:auto}#abilityBanner strong{font-size:14px}}

@@ -36,11 +36,11 @@
       return window.matchMedia('(max-width:999px) and (orientation:portrait)').matches?288:216;
     },
     actorBox(actor,fallback) {
-      const stage=document.getElementById('stage')?.getBoundingClientRect();
-      const box=actor?.getBoundingClientRect();
-      if(!stage?.width || !box?.width)return fallback;
-      const scale=384/stage.width;
-      return {x:Math.round((box.left-stage.left)*scale),y:Math.round((box.top-stage.top)*scale),w:Math.round(box.width*scale),h:Math.round(box.height*scale)};
+      const overlay=document.getElementById('statusCanvas');
+      const area=overlay?.getBoundingClientRect();const box=actor?.getBoundingClientRect();
+      if(!area?.width||!area?.height||!box?.width)return fallback;
+      const sx=overlay.width/area.width,sy=overlay.height/area.height;
+      return {x:Math.round((box.left-area.left)*sx),y:Math.round((box.top-area.top)*sy),w:Math.round(box.width*sx),h:Math.round(box.height*sy)};
     },
     phase(ms) {
       let t=((ms%2320)+2320)%2320;
@@ -83,10 +83,10 @@
       const im=image(`status-${key}.png`);
       if(!loaded(im))return false;
       const f=((Math.floor(frame)%16)+16)%16;
-      const scale=box.w/128;
+      const scale=box.w/128,scaleY=box.h/128;
       ctx.imageSmoothingEnabled=false;
       ctx.drawImage(im,f%8*160,Math.floor(f/8)*160,160,160,
-        Math.round(box.x-16*scale),Math.round(box.y-24*scale),Math.round(160*scale),Math.round(160*scale));
+        Math.round(box.x-16*scale),Math.round(box.y-24*scaleY),Math.round(160*scale),Math.round(160*scaleY));
       return true;
     },
     preview(ctx,key,now,animate) {
