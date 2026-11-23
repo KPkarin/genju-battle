@@ -66,3 +66,5 @@ Node.jsで `node tests/baseline.mjs` など `tests/` 内の各 `.mjs` を実行�
 戦闘BGM「イクスゲイナー」／ [MusMus](https://musmus.main.jp/)
 
 勝利音「Jingle#24」／ **BGM：hitoshi by Senses Circuit** ([Senses Circuit](https://www.senses-circuit.com/))
+
+対戦中の情報公開範囲とAIの参照方針は [公開情報の仕様](docs/public-information.md) を参照してください。

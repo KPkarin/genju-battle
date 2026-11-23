@@ -112,7 +112,7 @@ function world(storage=new Map(),options={}){
 }
 
 
-const w=world(new Map());w.click('btnNewsDone');w.run('party=randBuild();renderAll()');
+const w=world(new Map());w.click('btnNewsDone');w.run("party=randBuild();party.forEach(u=>u.ability='quick');renderAll()");
 w.click('btnChallenge');assert.equal(w.run('GameUI.kind'),'challenge');
 assert.equal(w.get('modalTitle').textContent,'チャレンジ');
 w.click('btnChallenge_yudachou');assert.equal(w.run('selectedChallenge'),'yudachou');

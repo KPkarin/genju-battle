@@ -799,7 +799,7 @@ select,.pass{color:var(--bone);background:#172c40e8;border-color:var(--glass-edg
   <section class="modal-panel"><header class="modal-header"><div><span class="section-kicker">GENJU TOUKI</span><h2 id="modalTitle">幻獣闘記</h2></div><button id="btnModalClose" aria-label="ウィンドウを閉じる">×</button></header><div class="modal-body" id="modalBody"></div></section>
 </div>
 
-<script src="pixel-art.js?v=20261123-04"></script>
+<script src="pixel-art.js?v=20261123-05"></script>
 <script>
 "use strict";
 
@@ -1116,6 +1116,7 @@ const hasVs = (def, k, att) => has(def, k) && !(att && has(att, "breaker"));
 
 /* 拘束中かどうか。縛った個体が場を離れていれば解けている扱い */
 function isBound(u){
+  if(u?.publicView)return !!u.publicBound;
   if(!u || (!u.trapped && u.bindTurns <= 0) || !u.boundBy) return false;
   const by = u.boundBy;
   return !by.dead && active(by.side) === by;
@@ -4210,7 +4211,7 @@ function renderChart(){
 }
 
 /* Newest first. Add a new immutable ID and Japan-local release date for each update. */
-const UPDATE_NEWS = [{"id": "news-20261123-04", "date": "2026-11-23", "detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/battle-presentation.md", "title": "特性テロップとHP表示のタイミングを改善", "items": ["ボタンを背景から見分けやすい配色へ調整しました。", "登場時の天候変更・威圧・反骨・状態異常の防御などに発動テロップを追加。護りの札は持ち物名で表示します。", "HPの数字とバーが一緒に変化し、0になってから瀕死演出が始まります。各画面で状態異常演出の座標を調整しました。"]},{"id": "news-20261123-03", "date": "2026-11-23", "detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/battle-review-plans.md", "title": "戦闘画面と情報ウィンドウを改善", "items": ["HPバーと数字を見やすくし、PC・スマホ縦・横それぞれの配置を調整しました。", "場の効果を一覧で確認できます。技の詳細に威力補正・命中・消費気力・技分類を追加しました。", "使用できない技や、反動・継続技の間も情報を閲覧できます。スマホ横画面では重なるコマンドパネルを畳めます。"]},{"id": "news-20261123-02", "date": "2026-11-23", "title": "氷雪・錬成・無属性の幻獣6体が登場", "items": ["ツララウチ・シモスラ・カメガネ・カニッパ・ハズミミ・ロバリトンを通常幻獣として追加しました。", "全員の能力値合計は550。作成済みの正面・背面ドット絵と呼吸アニメを実装しました。", "製氷・雪合戦・けんけんま・跳ね蹴り・ヒーホー砲などを、モチーフと役割に合わせて習得します。"]},{"id": "news-20261123-01", "date": "2026-11-23", "title": "敵の向きとHPバーを調整", "items": ["メイホー・モグラウンド・フォクシャドウ・ハスカバ・ダマスデビルも、敵側ではこちらを向くよう左右反転しました。", "戦闘中のHPバーが約0.8秒かけて変化するようにし、減少量を見やすくしました。"]},{"id": "news-20261122-03", "date": "2026-11-22", "title": "幻獣と戦闘画面のドット絵を更新", "items": ["現在登場する25体の正面・背面を128pxのドット絵に更新。体の部位に合わせた呼吸アニメを追加しました。", "戦闘背景と雨・夕立・砂嵐・雪の演出を更新しました。", "麻痺・やけど・凍結・眠り・眠気と流血5段階の演出を更新。図鑑側の演出見本でも確認できます。"]},{"id": "news-20261122-02", "date": "2026-11-22", "detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/new-move-review.md", "title": "氷雪・錬成の汎用技を追加", "items": ["氷雪と錬成に、安定攻撃・大技・補助技を各7種ずつ内部追加しました。", "雪招きで5ターン雪、氷の鎧・装甲強化で防御2段階上昇、修復でHP35%回復。新キャラと習得先の追加は後日です。", "既存の専用技の数値は維持しています。"]},{"id": "news-20261122-01", "date": "2026-11-22", "title": "氷雪・錬成の相性と新しい戦闘ルール", "items": ["氷雪・錬成を追加し、確定した属性相性へ更新しました。新しい幻獣の追加は後日です。", "雪、新技・新特性、音・蹴り分類を内部実装しました。", "野生の基本技の効率を改善し、荒ぶる牙をダマスデビル・ハスカバ・ケファロック・ジャングマに追加しました。"]},{"id": "news-20261115-09", "date": "2026-11-15", "title": "暗闇技「目覚ましビンタ」を追加", "items": ["威力70・気力35の物理接触技を追加しました。眠っている相手には威力2倍、本体に命中すると起こします。", "カプケード・ワカクサル・ダマスデビルが習得できます。"]},{"id": "news-20261115-08", "date": "2026-11-15", "title": "騙し合い・殺息・お隣いかがと眠気を追加", "items": ["騙し合いは次の行動を変化技に制限。後手でかけられ、次のターンに使える変化技がなければやけくそになります。", "殺息は物理防御-1・回避+2。お隣いかがは物理防御+1と、次の行動まで接触した相手に眠気を与えます。", "眠気は次のターン終了時に眠りへ変化。眠りは1〜3回の行動をランダムで休みます。"]},{"id": "news-20261115-07", "date": "2026-11-15", "title": "雨の間は望まぬ夕立が失敗するよう変更", "items": ["天気が雨のとき、望まぬ夕立は雨を上書きできなくなりました。", "雨が降っている間は効果なしと表示し、AIも夕立の使用を避けます。実行して失敗した場合は気力を消費します。"]},{"id": "news-20261115-06", "date": "2026-11-15", "title": "ケファロック・ユダチョウ・サランディを通常実装", "items": ["3体を能力合計550の通常幻獣として編成できるようにしました。専用技と特性も使用できます。", "チャレンジ版は名前をボスケファロック・ボスユダチョウ・ボスサランディに変更。チャレンジ用の高い能力値は維持します。", "通常版は通常対戦の道連れ・滅びの唄のルールを使い、編成保存・通信・おまかせにも対応します。"]},{"id": "news-20261115-05", "date": "2026-11-15", "title": "ダマスデビルと流血を追加", "items": ["暗闇・野生の通常幻獣ダマスデビル、専用技かみちぎるを追加しました。", "流血は状態異常と共存し、5段階で毎ターン最大HPの1・2・4・8・16%のダメージ。交代では解除されません。", "実際にHPが回復すると流血・発症予約が1段階減ります。", "ターン終了時の回復・継続ダメージを原因のテキストとともに、間を置いて表示します。"]},{"id": "news-20261115-04", "date": "2026-11-15", "title": "草木・野生のハスカバ登場", "items": ["通常幻獣にハスカバを追加。高いHP・物攻・物防と、雨で加速する流麗が特徴です。", "エラ呼吸を追加。気力35でHP30%回復、雨の間はさらに物攻が1段階上がります。", "通常幻獣の複合属性に合わせて、属性フィルター・一致技表示・おまかせ編成を対応しました。"]},{"id":"news-20261115-03","date":"2026-11-15","title":"天候「雨」と新しい技・特性を追加","items":["雨は5ターン継続し、流水技1.5倍・火炎技半減。雷撃と迅雷が必中になります。","雨乞いをミズカガメ・イナマヅ・ホゲールに追加しました。","ホゲールに登場時に雨を降らせる「雨獣」、イナマヅに雨の間素早さ2倍の「流麗」を追加しました。","雨・夕立・砂嵐は互いに上書きします。通常の雨には割合ダメージや回復はありません。"]},{"id": "news-20261115-02", "date": "2026-11-15", "title": "交代時の設置ダメージと技の順序を調整", "items": ["交代先が岩棘で倒れた場合、選択済みの相手を対象とする技は気力を消費して空振りし、その後に次の幻獣が登場します。", "自分への強化・回復や気力溜めは、相手が不在でも実行できます。"]},{"id": "news-20261115-01", "date": "2026-11-15", "title": "交代時の岩棘と行動継続を修正", "items": ["交代先が岩棘で倒れた場合、次の幻獣を出してから選択済みの技を続行するよう修正しました。"]},{"id":"news-20261113-05","date":"2026-11-13","title":"透明感のあるUIにリニューアル","items":["画面全体を青緑・青紫の光と半透明パネルで統一しました。","ボタンやカードの境界線を淡くし、選択中・フォーカス中の表示を整えました。","編成・装備選択・戦闘・各ウィンドウに新しいデザインを反映しました。"]},{"id":"news-20261113-04","date":"2026-11-13","title":"持ち物のドット絵を追加","items":["全20種の持ち物に48×48ドットのイラストを追加しました。","装備選択・編成・戦闘中の幻獣詳細に持ち物の絵を表示します。","装備選択はイラストと効果を並べ、スマホでも選びやすくしました。"]},{"id":"news-20261113-03","date":"2026-11-13","title":"新しい持ち物と癒しの鈴の調整","items":["気力帯の追加回復を毎ターン5に変更しました。","ゆるゆるパジャマを追加。持ち主の技の消費気力が5増えます。","癒しの鈴は交代で出たときに2回まで状態異常を治します。奇術でも使用回数を引き継ぎます。","プロテイン・ほろ酔いカクテルを追加。ターン終了時に物防・特防をそれぞれ1段階上げ、一度使うとなくなります。","全力シューズ・全力ナックル・全力メガネを追加。素早さ・物攻・特攻をそれぞれ1.5倍にしますが、最初に使った技に固定されます。交代すると固定が解除されます。"]},{"id":"news-20261113-02","date":"2026-11-13","title":"気力と守る・行動制限を調整","items":["ターン終了時の気力回復を12に変更。守る以外は同じ技を連続使用するたび消費気力が5増えます。別の技・気力溜め・交代で加算がリセットされます。","集中は気力上限150で開始し、気力溜めの回復量2倍と被ダメ増加なしに。好機の追加効果倍率は1.5倍へ変更しました。","守るは反響・封技・挑発など、相手から直接受ける変化技も防ぎます。天気や既存の継続ダメージ、場全体の効果は防げません。","反響・封技・挑発は、後手でかけた場合に次のターンから持続を数え、先手・後手とも3回の行動に影響するようになりました。"]},{"id":"news-20261113-01","date":"2026-11-13","detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/rebalance-v17.md","title":"通常20体と技・特性を全体調整","items":["おどかすの行動阻止と先制を撤廃。通常攻撃に50%の物攻低下を付けました。","気合い・精神統一・結界を2段階上昇へ変更し、気力消費も見直しました。","仕返しの上限・身代わり・無効相性、幻痛の気力吸収、闇喰らいの回復量を調整しました。","通常20体の習得技を個別化し、見切り・重心・岩肌・反骨などの特性を調整しました。","若葉弾を追加し、悪夢を暗闇属性に変更。メイホーなどの役割を整えました。","反響中でも交代できるよう修正。破魔石は持ち主の攻撃に作用するよう修正しました。","旧編成は新しい習得範囲に合わせて補完し、変更前の保存データもブラウザ内にバックアップします。"]},{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
+const UPDATE_NEWS = [{"id": "news-20261123-05", "date": "2026-11-23", "title": "対戦中に分かる相手の情報を整理", "items": ["未登場の相手は「？」で表示。開始時に相手の編成は公開されなくなりました。", "技・特性・持ち物は使用や発動、交換で判明した情報だけ確認できます。控えの状態は最後に見た情報です。", "相手のHPは割合表示に変更。対戦AIも確認済みの情報で判断します。"]},{"id": "news-20261123-04", "date": "2026-11-23", "detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/battle-presentation.md", "title": "特性テロップとHP表示のタイミングを改善", "items": ["ボタンを背景から見分けやすい配色へ調整しました。", "登場時の天候変更・威圧・反骨・状態異常の防御などに発動テロップを追加。護りの札は持ち物名で表示します。", "HPの数字とバーが一緒に変化し、0になってから瀕死演出が始まります。各画面で状態異常演出の座標を調整しました。"]},{"id": "news-20261123-03", "date": "2026-11-23", "detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/battle-review-plans.md", "title": "戦闘画面と情報ウィンドウを改善", "items": ["HPバーと数字を見やすくし、PC・スマホ縦・横それぞれの配置を調整しました。", "場の効果を一覧で確認できます。技の詳細に威力補正・命中・消費気力・技分類を追加しました。", "使用できない技や、反動・継続技の間も情報を閲覧できます。スマホ横画面では重なるコマンドパネルを畳めます。"]},{"id": "news-20261123-02", "date": "2026-11-23", "title": "氷雪・錬成・無属性の幻獣6体が登場", "items": ["ツララウチ・シモスラ・カメガネ・カニッパ・ハズミミ・ロバリトンを通常幻獣として追加しました。", "全員の能力値合計は550。作成済みの正面・背面ドット絵と呼吸アニメを実装しました。", "製氷・雪合戦・けんけんま・跳ね蹴り・ヒーホー砲などを、モチーフと役割に合わせて習得します。"]},{"id": "news-20261123-01", "date": "2026-11-23", "title": "敵の向きとHPバーを調整", "items": ["メイホー・モグラウンド・フォクシャドウ・ハスカバ・ダマスデビルも、敵側ではこちらを向くよう左右反転しました。", "戦闘中のHPバーが約0.8秒かけて変化するようにし、減少量を見やすくしました。"]},{"id": "news-20261122-03", "date": "2026-11-22", "title": "幻獣と戦闘画面のドット絵を更新", "items": ["現在登場する25体の正面・背面を128pxのドット絵に更新。体の部位に合わせた呼吸アニメを追加しました。", "戦闘背景と雨・夕立・砂嵐・雪の演出を更新しました。", "麻痺・やけど・凍結・眠り・眠気と流血5段階の演出を更新。図鑑側の演出見本でも確認できます。"]},{"id": "news-20261122-02", "date": "2026-11-22", "detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/new-move-review.md", "title": "氷雪・錬成の汎用技を追加", "items": ["氷雪と錬成に、安定攻撃・大技・補助技を各7種ずつ内部追加しました。", "雪招きで5ターン雪、氷の鎧・装甲強化で防御2段階上昇、修復でHP35%回復。新キャラと習得先の追加は後日です。", "既存の専用技の数値は維持しています。"]},{"id": "news-20261122-01", "date": "2026-11-22", "title": "氷雪・錬成の相性と新しい戦闘ルール", "items": ["氷雪・錬成を追加し、確定した属性相性へ更新しました。新しい幻獣の追加は後日です。", "雪、新技・新特性、音・蹴り分類を内部実装しました。", "野生の基本技の効率を改善し、荒ぶる牙をダマスデビル・ハスカバ・ケファロック・ジャングマに追加しました。"]},{"id": "news-20261115-09", "date": "2026-11-15", "title": "暗闇技「目覚ましビンタ」を追加", "items": ["威力70・気力35の物理接触技を追加しました。眠っている相手には威力2倍、本体に命中すると起こします。", "カプケード・ワカクサル・ダマスデビルが習得できます。"]},{"id": "news-20261115-08", "date": "2026-11-15", "title": "騙し合い・殺息・お隣いかがと眠気を追加", "items": ["騙し合いは次の行動を変化技に制限。後手でかけられ、次のターンに使える変化技がなければやけくそになります。", "殺息は物理防御-1・回避+2。お隣いかがは物理防御+1と、次の行動まで接触した相手に眠気を与えます。", "眠気は次のターン終了時に眠りへ変化。眠りは1〜3回の行動をランダムで休みます。"]},{"id": "news-20261115-07", "date": "2026-11-15", "title": "雨の間は望まぬ夕立が失敗するよう変更", "items": ["天気が雨のとき、望まぬ夕立は雨を上書きできなくなりました。", "雨が降っている間は効果なしと表示し、AIも夕立の使用を避けます。実行して失敗した場合は気力を消費します。"]},{"id": "news-20261115-06", "date": "2026-11-15", "title": "ケファロック・ユダチョウ・サランディを通常実装", "items": ["3体を能力合計550の通常幻獣として編成できるようにしました。専用技と特性も使用できます。", "チャレンジ版は名前をボスケファロック・ボスユダチョウ・ボスサランディに変更。チャレンジ用の高い能力値は維持します。", "通常版は通常対戦の道連れ・滅びの唄のルールを使い、編成保存・通信・おまかせにも対応します。"]},{"id": "news-20261115-05", "date": "2026-11-15", "title": "ダマスデビルと流血を追加", "items": ["暗闇・野生の通常幻獣ダマスデビル、専用技かみちぎるを追加しました。", "流血は状態異常と共存し、5段階で毎ターン最大HPの1・2・4・8・16%のダメージ。交代では解除されません。", "実際にHPが回復すると流血・発症予約が1段階減ります。", "ターン終了時の回復・継続ダメージを原因のテキストとともに、間を置いて表示します。"]},{"id": "news-20261115-04", "date": "2026-11-15", "title": "草木・野生のハスカバ登場", "items": ["通常幻獣にハスカバを追加。高いHP・物攻・物防と、雨で加速する流麗が特徴です。", "エラ呼吸を追加。気力35でHP30%回復、雨の間はさらに物攻が1段階上がります。", "通常幻獣の複合属性に合わせて、属性フィルター・一致技表示・おまかせ編成を対応しました。"]},{"id":"news-20261115-03","date":"2026-11-15","title":"天候「雨」と新しい技・特性を追加","items":["雨は5ターン継続し、流水技1.5倍・火炎技半減。雷撃と迅雷が必中になります。","雨乞いをミズカガメ・イナマヅ・ホゲールに追加しました。","ホゲールに登場時に雨を降らせる「雨獣」、イナマヅに雨の間素早さ2倍の「流麗」を追加しました。","雨・夕立・砂嵐は互いに上書きします。通常の雨には割合ダメージや回復はありません。"]},{"id": "news-20261115-02", "date": "2026-11-15", "title": "交代時の設置ダメージと技の順序を調整", "items": ["交代先が岩棘で倒れた場合、選択済みの相手を対象とする技は気力を消費して空振りし、その後に次の幻獣が登場します。", "自分への強化・回復や気力溜めは、相手が不在でも実行できます。"]},{"id": "news-20261115-01", "date": "2026-11-15", "title": "交代時の岩棘と行動継続を修正", "items": ["交代先が岩棘で倒れた場合、次の幻獣を出してから選択済みの技を続行するよう修正しました。"]},{"id":"news-20261113-05","date":"2026-11-13","title":"透明感のあるUIにリニューアル","items":["画面全体を青緑・青紫の光と半透明パネルで統一しました。","ボタンやカードの境界線を淡くし、選択中・フォーカス中の表示を整えました。","編成・装備選択・戦闘・各ウィンドウに新しいデザインを反映しました。"]},{"id":"news-20261113-04","date":"2026-11-13","title":"持ち物のドット絵を追加","items":["全20種の持ち物に48×48ドットのイラストを追加しました。","装備選択・編成・戦闘中の幻獣詳細に持ち物の絵を表示します。","装備選択はイラストと効果を並べ、スマホでも選びやすくしました。"]},{"id":"news-20261113-03","date":"2026-11-13","title":"新しい持ち物と癒しの鈴の調整","items":["気力帯の追加回復を毎ターン5に変更しました。","ゆるゆるパジャマを追加。持ち主の技の消費気力が5増えます。","癒しの鈴は交代で出たときに2回まで状態異常を治します。奇術でも使用回数を引き継ぎます。","プロテイン・ほろ酔いカクテルを追加。ターン終了時に物防・特防をそれぞれ1段階上げ、一度使うとなくなります。","全力シューズ・全力ナックル・全力メガネを追加。素早さ・物攻・特攻をそれぞれ1.5倍にしますが、最初に使った技に固定されます。交代すると固定が解除されます。"]},{"id":"news-20261113-02","date":"2026-11-13","title":"気力と守る・行動制限を調整","items":["ターン終了時の気力回復を12に変更。守る以外は同じ技を連続使用するたび消費気力が5増えます。別の技・気力溜め・交代で加算がリセットされます。","集中は気力上限150で開始し、気力溜めの回復量2倍と被ダメ増加なしに。好機の追加効果倍率は1.5倍へ変更しました。","守るは反響・封技・挑発など、相手から直接受ける変化技も防ぎます。天気や既存の継続ダメージ、場全体の効果は防げません。","反響・封技・挑発は、後手でかけた場合に次のターンから持続を数え、先手・後手とも3回の行動に影響するようになりました。"]},{"id":"news-20261113-01","date":"2026-11-13","detailsUrl":"https://github.com/KPkarin/genju-battle/blob/main/docs/rebalance-v17.md","title":"通常20体と技・特性を全体調整","items":["おどかすの行動阻止と先制を撤廃。通常攻撃に50%の物攻低下を付けました。","気合い・精神統一・結界を2段階上昇へ変更し、気力消費も見直しました。","仕返しの上限・身代わり・無効相性、幻痛の気力吸収、闇喰らいの回復量を調整しました。","通常20体の習得技を個別化し、見切り・重心・岩肌・反骨などの特性を調整しました。","若葉弾を追加し、悪夢を暗闇属性に変更。メイホーなどの役割を整えました。","反響中でも交代できるよう修正。破魔石は持ち主の攻撃に作用するよう修正しました。","旧編成は新しい習得範囲に合わせて補完し、変更前の保存データもブラウザ内にバックアップします。"]},{"id":"news-20261111-05","date":"2026-11-11","title":"奇術の交換条件を変更","items":["奇術は、双方が持ち物を持っている場合だけ成功するようになりました。","どちらかの持ち物が持ち主から離れない場合も失敗します。","技の説明・効果なし表示・AIの判断にも交換条件を反映しました。"]},{"id":"news-20261111-04","date":"2026-11-11","title":"チャレンジボス・サランディ登場","items":["大地・天空の複合ボス、サランディを追加しました。","サンドブレイクは使用直後から5ターン砂嵐を起こし、30%で相手をひるませます。","風纏は次の特殊攻撃の命中率を100ポイント下げ、外れた攻撃を威力半分で反射します。","砂嵐中は岩石の特防が1.5倍。専用特性はにうんどうは防御・特防1.5倍、追加効果の確率2倍です。","爆発分類を追加し、サンドブレイクと種爆弾を分類しました。"]},{"id":"news-20261111-03","date":"2026-11-11","title":"ボスのHPと即戦闘不能技を調整","items":["ケファロックのHPを500、ユダチョウのHPを450に引き上げました。","ボスへの道連れ・滅びの唄は、最大HPの1/3ダメージに変更しました。味方と通常対戦への効果は変わりません。","ボス用ルールを挑戦前の画面に追加しました。"]},{"id":"news-20261111-02","date":"2026-11-11","title":"ユダチョウの行動を調整","items":["望まぬ夕立をおどかすで阻止された後は、同じ相手に対して攻撃技を優先するようになりました。","おどかすによる阻止や、反響などの強制行動の効果は引き続き有効です。"]},{"id":"news-20261111-01","date":"2026-11-11","title":"チャレンジボス・ユダチョウ登場","items":["火炎・流水の複合属性を持つユダチョウに挑戦できます。","スチームチョイスは相性に応じて流水と火炎を使い分け、50%でやけどにします。","望まぬ夕立は5ターン継続。流水属性は回復し、複合属性の影響は合算されます。","専用特性スチームタンクは流水ダメージを回復へ変え、火炎攻撃を受けると特攻が上がります。"]},{"id":"news-20261110-03","date":"2026-11-10","title":"チャレンジボス・ケファロック登場","items":["岩石・野生の複合属性を持つケファロックに挑戦できます。","専用技ワイルドロック・野生回帰、専用特性いしあたまを追加しました。","体当たり・翻し・翔撃などに内部の突進区分を追加しました。"]},{"id":"news-20261110-02","date":"2026-11-10","title":"反動ターンと強制行動を修正","items":["反動で動けないターンはコマンド入力を省略し、おどかすは失敗します。","反響で使う技が気力不足や使用制限で使えない場合は、攻撃扱いのやけくそで最大HPの20%を失います。","道連れの優先度を通常技と同じにしました。"]},{"id": "news-20261110-01", "date": "2026-11-10", "title": "お知らせ機能を追加", "items": ["未読の最新アップデートを起動時に一度だけ表示します。", "メニューの「お知らせ」から更新履歴を確認できます。"]}, {"id": "b0bf28e-contact", "date": "2026-11-09", "title": "接触技と持ち物の調整", "items": ["攻撃技に接触・非接触の区分を追加しました。", "毒棘は接触技が本体に当たったときだけ発動します。", "護りの札はHP満タンから倒される場合に、一度だけHP1で耐える仕様になりました。"]}, {"id": "057fa31-smart-builds", "date": "2026-11-08", "title": "おまかせ編成を改善", "items": ["持ち物・技・特性が噛み合う組み合わせを選ぶようになりました。", "属性一致の攻撃技を必ず含み、技制限のない持ち物では攻撃2・変化2で編成します。"]}, {"id": "7163438-combat", "date": "2026-11-08", "title": "技と気力溜めのバランス調整", "items": ["痺れ砂の麻痺を交代時50%へ変更。岩投げ・砂礫・体当たりを調整しました。", "守るは攻撃ダメージと追加効果を防ぎ、おどかすでは阻止されなくなりました。", "気力溜めを選択したターンは、攻撃から受けるダメージが1.2倍になります。", "火の粉などの低威力技は、追加効果と気力消費で使い分けられるようにしました。"]}, {"id": "91b43b1-names", "date": "2026-11-08", "title": "幻獣の名前を変更", "items": ["全20体の名前をカタカナに変更しました。", "保存済みの編成は引き続き使用できます。"]}, {"id": "dac5275-move-types", "date": "2026-11-08", "title": "技の属性を整理", "items": ["全62技を見直し、結界・砂かけ・翻し・悪夢など11技の属性を変更しました。", "変更前に覚えられた技と、保存済みの技構成は維持しています。"]}];
 const UpdateNews = {
   key:"genju_battle_news_seen_v1",seen:new Set(),started:false,
   load(){
@@ -4536,14 +4537,16 @@ const GameUI = {
     body.appendChild(el("p","unit-selection-note",pending?(this.replacement.title||"交代する幻獣を選んでください。"):"控えを選んで交代。長押し、または「詳細」で状態を確認できます。"));
     for(const [side,label] of [[ME,"じぶんの幻獣"],[ME==="you"?"foe":"you","あいての幻獣"]]){
       const team=side==="you"?B.you:B.foe;
-      const heading=el("div","unit-team-heading",`${label}<small>${team.filter(unit=>!unit.dead).length} / ${team.length}</small>`);body.appendChild(heading);
+      const heading=el("div","unit-team-heading",`${label}<small>${side===ME?team.filter(unit=>!unit.dead).length:team.length-team.filter(unit=>BattleIntel.view(unit)?.dead).length} / ${team.length}</small>`);body.appendChild(heading);
       const grid=el("div","battle-unit-grid");
       team.forEach((unit,index)=>{
-        const activeUnit=active(side)===unit,selected=side===ME&&this.selectedBattleIndex===index;
+        if(side!==ME&&!BattleIntel.entry(unit)?.seen){grid.appendChild(BattleIntel.unknownCard());return;}
+        const original=unit;if(side!==ME)unit=BattleIntel.view(unit);
+        const activeUnit=active(side)===original,selected=side===ME&&this.selectedBattleIndex===index;
         const card=el("div","battle-unit-card"+(activeUnit?" is-active":"")+(selected?" is-selected":"")+(unit.dead?" is-dead":""));
         card.setAttribute?.("data-battle-unit",side+":"+index);card.setAttribute?.("role","button");card.setAttribute?.("tabindex","0");card.setAttribute?.("aria-label",unit.name+"。"+(activeUnit?"場に出ています。":"")+"長押しで詳細");
         const hp=Math.max(0,Math.ceil(unit.hp)),percent=Math.max(0,unit.hp/unit.maxhp)*100;
-        const main=el("div","unit-card-main",`<canvas class="sp" width="32" height="32"></canvas><strong>${unit.name} ${chip(unit.type)}</strong><div class="bar"><i style="width:${percent}%"></i></div><span class="unit-hp">HP ${hp}/${unit.maxhp}</span><span class="unit-card-state">${unit.dead?"戦闘不能":activeUnit?"場に出ています":unit.status||"控え"}</span>`);
+        const main=el("div","unit-card-main",`<canvas class="sp" width="32" height="32"></canvas><strong>${unit.name} ${chip(unit.type)}</strong><div class="bar"><i style="width:${percent}%"></i></div><span class="unit-hp">${side===ME?`HP ${hp}/${unit.maxhp}`:`HP ${unit.hpPercent}%`}</span><span class="unit-card-state">${unit.dead?"戦闘不能":activeUnit?"場に出ています":unit.status||"控え"}</span>`);
         card.appendChild(main);drawSprite(main.querySelector("canvas"),unit.id);
         const detail=el("button","unit-detail-button","詳細");detail.setAttribute?.("data-unit-detail",side+":"+index);detail.setAttribute?.("aria-label",unit.name+"の詳しい状態");
         detail.onclick=event=>{event.stopPropagation?.();this.inspectBattleUnit(side,index);};card.appendChild(detail);this.bindUnitPress(card,side,index);grid.appendChild(card);
@@ -4559,13 +4562,14 @@ const GameUI = {
   },
   inspectBattleUnit(side,index){
     if(!B||!["you","foe"].includes(side)||!Number.isInteger(index))return;
-    const unit=(side==="you"?B.you:B.foe)[index];if(!unit)return;
+    const unit=(side==="you"?B.you:B.foe)[index];if(!unit||side!==ME&&!BattleIntel.entry(unit)?.seen)return;
     this.battleUnitSide=side;this.battleUnitIndex=index;this.open("unit");
   },
   returnBattleMonsters(){this.open("monsters",{keepSelection:true});},
   renderBattleUnit(){
     if(!B)return;
     const unit=(this.battleUnitSide==="you"?B.you:B.foe)[this.battleUnitIndex];if(!unit){this.returnBattleMonsters();return;}
+    if(unit.side!==ME){BattleIntel.renderUnit(unit);return;}
     const body=document.getElementById("modalBody");body.innerHTML="";
     const back=el("button","ghost","← 幻獣一覧へ");back.setAttribute?.("id","btnUnitBack");back.onclick=()=>this.returnBattleMonsters();body.appendChild(back);
     const hero=el("div","unit-detail-hero",`<canvas class="sp" width="32" height="32"></canvas><div><span class="hero-eyebrow">${unit.side===ME?"じぶんの幻獣":"あいての幻獣"}</span><h3>${unit.name} ${chip(unit.type)}</h3><p class="hint">HP ${Math.max(0,Math.ceil(unit.hp))} / ${unit.maxhp}　気力 ${Math.floor(unit.en)} / ${unit.maxen}</p></div>`);body.appendChild(hero);drawSprite(hero.querySelector("canvas"),unit.id);
@@ -4639,7 +4643,7 @@ const EN_FOCUS   = 25;  // 「気を溜める」で追加回復する量
 /* 一部の装備は、直前に使った技をそのまま繰り返すことを禁じる */
 /* その技を今このターン選べるか。選べない場合は理由文字列を返す */
 function statusOnlyActive(u){return !!u.statusOnly&&B.turn>=u.statusOnly.startTurn;}
-function usableStatus(u){return u.moves.filter(k=>isStatusMove(MOVES[k])&&!moveBlocked(u,k)&&u.en>=enCost(u,k));}
+function usableStatus(u,knownOpponent=null){return u.moves.filter(k=>isStatusMove(MOVES[k])&&!moveBlocked(u,k)&&u.en>=enCost(u,k,knownOpponent));}
 function raiseRank(u,key,n=1){const before=u.rank[key];u.rank[key]=Math.min(6,before+n);if(before<u.rank[key])say(`${nm(u)} の${RANK_LABEL[key]}が上がった！`);}
 function moveLock(u, key){
   const m = MOVES[key];
@@ -4665,13 +4669,13 @@ const moveBlocked = (u, key) => !!moveLock(u, key);
 
 /* 守るは30→60→120…。それ以外は同じ技の連続使用ごとに+5。
    lastMove（反響・装備用）とは独立して記録する。 */
-function enCost(u, key){
+function enCost(u, key, knownOpponent=null){
   const m = MOVES[key];
   if(key==="kenkenma"&&u.combo)return 0;
   let c = m.fx === "guard" ? m.en * Math.pow(2, u.guardStreak) : m.en + (u.repeatMove===key ? 5*(u.repeatCount||0) : 0);
   c += EQUIPS[u.equip].energyCost||0;
   if(B){                                        // 相手の重圧で余計に消耗する
-    const foe = u.side === "you" ? FOE() : YOU();
+    const foe = knownOpponent || (u.side === "you" ? FOE() : YOU());
     if(foe && foe !== u && !foe.dead && hasVs(foe, "heavy",u)) c += 5;
   }
   return c;
@@ -4744,11 +4748,12 @@ function SPD(u){ let v = u.baseSpd*statMul(u.rank.spd); if(u.equip==="wing") v*=
 /* 場を離れた個体の処理。
    能力ランク・守り・ひるみは失う。麻痺などの状態異常は持ち越す。 */
 function leaveField(u){
+  BattleIntel.observe(u);
   const msgs = [];
   if(B)for(const x of [...B.you,...B.foe])if(x.boundBy===u){x.trapped=false;x.bindTurns=0;x.boundBy=null;}
   if(has(u,"regen") && !u.dead && u.hp < u.maxhp){
     const h = Math.max(1, Math.floor(u.maxhp*.25));
-    window.BattlePresentation?.ability(u,"regen","交代で体力を回復した！");
+    BattleIntel.ability(u,"regen","交代で体力を回復した！");
     recoverHP(u,h);
     msgs.push(`は再生で体力を取り戻した (+${h})`);
   }
@@ -4774,6 +4779,7 @@ function leaveField(u){
   u.perishStartTurn=null;
   if(u.pendingStatus){u.pendingStatus=null;msgs.push("のやせ我慢の発症予約は消えた。");}
   u.bond = false;
+  BattleIntel.observe(u);
   return msgs;
 }
 
@@ -4790,7 +4796,7 @@ function tags(u){
   if(u.encore)   h += `<span class="st-tag st-幻">反響${u.encore.turns}</span>`;
   if(u.disabled) h += `<span class="st-tag st-幻">封技${u.disabled.turns}</span>`;
   if(u.tauntTurns > 0) h += `<span class="st-tag st-挑発">挑発${u.tauntTurns}</span>`;
-  if(u.sub > 0)    h += `<span class="st-tag st-身代">身代${u.sub}</span>`;
+  if(u.sub > 0)    h += `<span class="st-tag st-身代">身代${u.publicView?"":u.sub}</span>`;
   if(u.windMantle)h+='<span class="st-tag">風纏</span>';
   if(u.perish > 0) h += `<span class="st-tag st-滅び">滅び${u.perish}</span>`;
   const lbl = {atk:"物攻", def:"物防", spatk:"特攻", spdef:"特防", acc:"命", spd:"速", eva:"回"};
@@ -4804,7 +4810,7 @@ function tags(u){
 /* ダメージ適用。被弾直前のHPを控えておく（護りの札の発動条件に使う） */
 /* 直接攻撃以外のダメージ。霊体を持っていれば通らない */
 function indirect(u, amount, label){
-  if(has(u, "ghost")&&["やけどのダメージ","岩棘","夕立のダメージ","砂嵐のダメージ"].includes(label)){ window.BattlePresentation?.ability(u,"ghost",`${label}を受け流した！`);say(`${nm(u)} は霊体で${label}を受けない。`); return 0; }
+  if(has(u, "ghost")&&["やけどのダメージ","岩棘","夕立のダメージ","砂嵐のダメージ"].includes(label)){ BattleIntel.ability(u,"ghost",`${label}を受け流した！`);say(`${nm(u)} は霊体で${label}を受けない。`); return 0; }
   hurt(u, amount); return amount;
 }
 
@@ -4814,6 +4820,54 @@ function hurt(u, amount){
 }
 
 let B = null;
+
+/* Public observations are separate from authoritative battle units, for both sides. */
+const BattleIntel = {
+  entry(u){
+    if(!B||!u)return null;
+    if(this.battle!==B){this.battle=B;this.records={you:[],foe:[]};}const i=B[u.side]?.indexOf(u);if(i<0||i==null)return null;
+    return this.records[u.side][i]??={seen:false,ability:null,item:null,itemHistory:[],moves:[],snapshot:null};
+  },
+  observe(u){
+    const e=this.entry(u);if(!e)return;e.seen=true;
+    const s={};
+    for(const k of ['id','name','type','side','boss','dead','status','seedTurns','bindTurns','trapped','perish','perishStartTurn','tauntTurns','tauntStartTurn','restTurns','combo','wildAwakened','windMantle','snowball','inviting','headlongLock','bleedLevel','lastMove','guarding','bond','runUp','usedStatusTurn'])s[k]=u[k];
+    for(const k of ['rank','pendingStatus','bleedPending','drowsy','encore','disabled','statusOnly'])s[k]=JSON.parse(JSON.stringify(u[k]??null));
+  s.hpPercent=Math.max(0,Math.min(100,Math.ceil(u.hp/u.maxhp*100)));s.publicBound=isBound(u);
+    s.sub=u.sub>0?1:0;s.boundBy=u.boundBy?{side:u.boundBy.side}:null;s.turn=B.turn;e.snapshot=s;
+  },
+  move(u,key){const e=this.entry(u);if(!e)return;if(!e.seen)this.observe(u);if(!e.moves.includes(key))e.moves.push(key);},
+  revealAbility(u,key=u.ability){const e=this.entry(u);if(e)e.ability=key;},
+  revealItem(u,key=u.equip){const e=this.entry(u);if(!e)return;e.item=key;if(key!=='none'&&!e.itemHistory.includes(key))e.itemHistory.push(key);},
+  ability(u,key,message,weather=null){this.revealAbility(u,key);window.BattlePresentation?.ability(u,key,message,weather);},
+  item(u,key,message){this.revealItem(u,key);window.BattlePresentation?.item(u,key,message);},
+  view(u){
+    const e=this.entry(u);if(!e?.seen||!e.snapshot)return null;
+    // Construct from species and public fields, never spread the private unit.
+    const v=makeUnit({id:e.snapshot.id,boss:e.snapshot.boss,moves:e.moves,equip:e.item??'none',ability:e.ability??'unknown'},u.side);
+    Object.assign(v,JSON.parse(JSON.stringify(e.snapshot)));
+    v.hp=v.maxhp*v.hpPercent/100;v.moves=e.moves.slice();v.ability=e.ability??'unknown';v.equip=e.item??'none';
+    v.publicView=true;v.itemKnown=e.item!==null;v.en=100;v.maxen=100;v.choiceMove=null;v.itemBound=false;
+    return v;
+  },
+  opponent(u){this.observe(u);return this.view(u);},
+  hpText(u){const v=this.view(u);return v?`HP ${v.hpPercent}%`:'HP 不明';},
+  eqText(u){const e=this.entry(u);return `✦ ${e?.ability?ABILITIES[e.ability].n:'特性不明'} / ◈ ${e?.item?EQUIPS[e.item].n:'持ち物不明'}`;},
+  unknownCard(){return el('div','battle-unit-card is-unknown','<div class="unit-card-main"><strong>？</strong><span class="unit-card-state">未登場</span></div>');},
+  renderUnit(u){
+    const body=$('#modalBody');body.innerHTML='';const back=el('button','ghost','← 幻獣一覧へ');back.id='btnUnitBack';back.onclick=()=>GameUI.returnBattleMonsters();body.appendChild(back);
+    const e=this.entry(u),v=this.view(u);if(!v){body.appendChild(el('p','hint','まだ登場していない幻獣です。'));return;}
+    const current=active(u.side)===u;
+    const hero=el('div','unit-detail-hero',`<canvas class="sp" width="32" height="32"></canvas><div><span class="hero-eyebrow">あいての幻獣</span><h3>${v.name} ${chip(v.type)}</h3><p class="hint">${this.hpText(u)}${current?'':' ／ 最後に確認した状態（'+v.turn+'ターン目）'}</p></div>`);body.appendChild(hero);drawSprite(hero.querySelector('canvas'),v.id);
+    body.appendChild(el('div','unit-detail-status',tags(v)));
+    const facts=el('div','unit-detail-facts');
+    facts.appendChild(el('div',null,`<strong>特性：${e.ability?ABILITIES[e.ability].n:'不明'}</strong><small>${e.ability?ABILITIES[e.ability].d:'発動が確認されると記録されます。'}</small>`));
+    facts.appendChild(el('div',null,`<strong>持ち物：${e.item?EQUIPS[e.item].n:'不明'}</strong><small>${e.item?EQUIPS[e.item].d:'効果や交換で判明すると記録されます。'}</small>`));
+    facts.appendChild(el('div',null,`<strong>確認した技（${e.moves.length}/4）</strong><small>${e.moves.map(k=>chip(MOVES[k].t)+' '+MOVES[k].n).join('<br>')||'まだ確認していません。'}</small>`));
+    if(e.itemHistory.length)facts.appendChild(el('div',null,`<strong>確認した持ち物の履歴</strong><small>${e.itemHistory.map(k=>EQUIPS[k].n).join(' ／ ')}</small>`));
+    body.appendChild(facts);
+  }
+};
 
 function beginBattle(youTeam, foeTeam, seed, meSide){
   window.BattlePresentation?.reset();
@@ -4833,7 +4887,8 @@ function beginBattle(youTeam, foeTeam, seed, meSide){
   $("#log").innerHTML = "";
   ["you","foe"].forEach(sd => (sd==="you"?$("#spYou"):$("#spFoe")).classList.remove("faint","enter","hit"));
   show("scBattle");
-  say(`<span class="sys">── 相手の手持ち: ${opTeam().map(u=>u.name).join(" / ")}</span>`);
+  say(`<span class="sys">── 対戦開始 ──</span>`);
+  say(`相手は ${nm(OP())} を繰り出した！`);
   if(NET.on) say(`<span class="sys">通信対戦（あなたは ${ME==="you"?"ホスト":"ゲスト"}側）</span>`);
   say(`ゆけ、${nm(MY())}！`);
   onEnter(FOE()); onEnter(YOU());
@@ -4913,6 +4968,7 @@ const sleep = ms => new Promise(r=>setTimeout(r,Math.max(Math.round(ms*1.18),Bat
 
 function paint(enter){
   const y = MY(), f = OP();
+  BattleIntel.observe(y);BattleIntel.observe(f);
   drawBattleSprite($("#spYou"), y, "back"); drawBattleSprite($("#spFoe"), f);
   IdleAnimation.invalidate();
   if(enter){
@@ -4929,7 +4985,7 @@ function paint(enter){
   $("#youName").innerHTML = `${y.name} ${chip(y.type)}${bleedMarker(y)}${y.sub>0?'<span class="sub-marker">身代わり</span>':""}`;
   $("#foeName").innerHTML = `<span class="pfx">相手の</span>${f.name} ${chip(f.type)}${bleedMarker(f)}${f.sub>0?'<span class="sub-marker">身代わり</span>':""}`;
   $("#youTags").innerHTML = tags(y);
-  $("#foeTags").innerHTML = tags(f);
+  $("#foeTags").innerHTML = tags(BattleIntel.view(f));
   const yp = Math.max(0,y.hp/y.maxhp), fp = Math.max(0,f.hp/f.maxhp);
   $("#youHp").style.width = (yp*100)+"%";
   $("#foeHp").style.width = (fp*100)+"%";
@@ -4937,9 +4993,9 @@ function paint(enter){
   $("#youHp").style.background = yp<.25?"var(--red)":yp<.5?"var(--gold)":"var(--green)";
   $("#foeHp").style.background = fp<.25?"var(--red)":fp<.5?"var(--gold)":"var(--green)";
   $("#youHpV").textContent = `HP ${Math.max(0,Math.ceil(y.hp))}/${y.maxhp}  気力 ${Math.floor(y.en)}`;
-  $("#foeHpV").textContent = `HP ${Math.max(0,Math.ceil(f.hp))}/${f.maxhp}`;
+  $("#foeHpV").textContent = BattleIntel.hpText(f);
   $("#youEq").innerHTML = eqLine(y);
-  $("#foeEq").innerHTML = eqLine(f);
+  $("#foeEq").innerHTML = BattleIntel.eqText(f);
   renderTeams(); renderStrip();
   GameUI.battle();
   StatusEffects.sync();
@@ -4955,6 +5011,7 @@ function renderStrip(){
   const box = $("#strip");
   if(!box) return;
   const cell = (u, act) => {
+    if(u.side!==ME){const v=BattleIntel.view(u);if(!v)return '<div class="cell"><div class="cn">？</div><div class="cft">未登場</div></div>';return `<div class="cell${act?" act":""}"><div class="cn">${v.name}${chip(v.type)}</div><div class="cft">${BattleIntel.hpText(u)}${v.dead?" 戦闘不能":""}</div></div>`;}
     const pct = Math.max(0, u.hp/u.maxhp);
     const col = u.dead ? "#3a4266" : pct<.25 ? "var(--red)" : pct<.5 ? "var(--gold)" : "var(--green)";
     const marks = (u.status?`<i class="mk s">${u.status[0]}</i>`:"")
@@ -4978,6 +5035,7 @@ function renderTeams(){
   const box = $("#teamBox");
   if(!box) return;
   const row = (u, isAct, sideLbl, cls) => {
+    if(u.side!==ME){const v=BattleIntel.view(u);return v?`<div class="trow"><span class="who ${cls}">${sideLbl}</span><span class="nmx">${v.name}</span>${chip(v.type)}<span>${BattleIntel.hpText(u)}</span><span class="eq">${BattleIntel.eqText(u)}</span></div>`:'<div class="trow">あいて：？（未登場）</div>';}
     const ab = abilOff(u)
       ? `<span class="no">✦ ${ABILITIES[u.ability].n}（無効）</span><i>無垢の仮面で封じられている</i>`
       : `✦ ${ABILITIES[u.ability].n}<i>${ABILITIES[u.ability].d}</i>`;
@@ -5007,7 +5065,7 @@ function renderTeams(){
 }
 
 function renderCmd(){
-  const y = MY(), f = OP(), box = $("#cmd");
+  const y = MY(), f = BattleIntel.opponent(OP()), box = $("#cmd");
   box.innerHTML = "";
   if(y.restTurns>0||y.combo){
     box.appendChild(el("div","rest-command",y.combo?"けんけんまを続けている…":"反動で動けない…"));
@@ -5514,11 +5572,11 @@ function flash(side){
 /* ---- AI ---- */
 const battleUnitKey=u=>u.side+":"+B[u.side].indexOf(u);
 function aiChoose(){
-  const f = FOE(), y = YOU();
+  const f = FOE(), target=YOU(), y=BattleIntel.opponent(target);
   if(f.combo)return {kind:"move",key:"kenkenma"};
   if(f.restTurns>0)return {kind:"move",key:null};
-  if(statusOnlyActive(f)&&!usableStatus(f).length)return {kind:"move",key:"desperate"};
-  let usable = f.moves.filter(k => f.en >= enCost(f, k) && !moveBlocked(f, k) && !(inRain()&&MOVES[k].fx==="shower"));
+  if(statusOnlyActive(f)&&!usableStatus(f,y).length)return {kind:"move",key:"desperate"};
+  let usable = f.moves.filter(k => f.en >= enCost(f, k,y) && !moveBlocked(f, k) && !(inRain()&&MOVES[k].fx==="shower"));
   // 交代判断: 今の相手に2倍を取られていて、控えに有利な子がいる
   if(!isBound(f) && rng() < .35 && Math.max(...unitTypes(y).map(t=>attackEff(t,f))) > 1){
     const cand = B.foe.map((u,i)=>({u,i}))
@@ -5529,13 +5587,13 @@ function aiChoose(){
   if(f.encore) return {kind:"move", key:f.encore.key};   // 強制行動はAIの学習で上書きしない
   // 同じ相手に夕立を阻止されたら、撃てる攻撃技がある間は夕立を繰り返さない。
   // 相手の今ターンの入力や、まだ見ていない技は参照しない。
-  if(f.showerInterruptedBy===battleUnitKey(y)&&usable.some(k=>MOVES[k].p>0))
+  if(f.showerInterruptedBy===battleUnitKey(target)&&usable.some(k=>MOVES[k].p>0))
     usable=usable.filter(k=>MOVES[k].fx!=="shower");
-  if(f.windInterruptedBy===battleUnitKey(y)&&usable.some(k=>MOVES[k].p>0))
+  if(f.windInterruptedBy===battleUnitKey(target)&&usable.some(k=>MOVES[k].p>0))
     usable=usable.filter(k=>MOVES[k].fx!=="windmantle");
   if(!usable.length) return {kind:"move", key:null};
   // 撃ちたい大技が気力不足で撃てないなら、溜めて次に備えることがある
-  const wanted = f.moves.filter(k => MOVES[k].p >= 80 && enCost(f,k) > f.en);
+  const wanted = f.moves.filter(k => MOVES[k].p >= 80 && enCost(f,k,y) > f.en);
   if(wanted.length && f.en < 40 && f.hp > f.maxhp*0.3 && rng() < .45)
     return {kind:"move", key:null};
   const lowHp = f.hp / f.maxhp;
@@ -5583,7 +5641,7 @@ function aiChoose(){
     } else if(m.fx === "heal"){
       v = lowHp < .45 ? 240 : 10;
     } else if(m.fx === "guard"){
-      v = (lowHp < .3 ? 90 : 15) * (enCost(f,k) > f.en*0.6 ? 0.3 : 1);
+      v = (lowHp < .3 ? 90 : 15) * (enCost(f,k,y) > f.en*0.6 ? 0.3 : 1);
     } else if(m.fx === "atkup" || m.fx === "spatkup"){
       const stat = m.fx === "atkup" ? "atk" : "spatk";
       const category = m.fx === "atkup" ? "physical" : "special";
@@ -5613,7 +5671,7 @@ function aiChoose(){
       v = lowHp > .35 ? 65 : 15;
     } else if(m.fx === "hzRock" || m.fx === "hzSand"){
       const key = m.fx === "hzRock" ? "rock" : "sand";
-      const fresh = B.you.filter(u=>!u.dead).length;      // 相手の控えが多いほど価値が高い
+      const fresh = B.you.length-B.you.filter(u=>BattleIntel.view(u)?.dead).length;      // 相手の控えが多いほど価値が高い
       v = B.hazard.you[key] ? 3 : (55 + fresh*18)*(m.fx==="hzSand"?.5:1);
     } else if(m.fx === "hzClear"){
       v = (B.hazard.foe.rock || B.hazard.foe.sand) ? 80 : 3;
@@ -5629,7 +5687,7 @@ function aiChoose(){
     } else if(m.fx === "perish"){
       v = f.perish ? 3 : 70;
     } else if(m.fx === "swapitem"){
-      if(itemSwapFailure(f,y))v=0;
+      if(fxNullified(m,y,f))v=0;
       else if(abilOff(f)) v = 140;
       else if(EQUIPS[f.equip].tradeDebuff&&!EQUIPS[y.equip].tradeDebuff)v=140;
       else if(EQUIPS[y.equip].tradeDebuff&&!EQUIPS[f.equip].tradeDebuff)v=5;
@@ -5783,7 +5841,7 @@ function lowerRank(target, key, n, source){
   const byFoe = source && source !== target;
   if(byFoe && target.sub > 0){ say(`${nm(target)} の身代わりが守った。`); return false; }
   if(byFoe && hasVs(target,"mirror",source)){
-    window.BattlePresentation?.ability(target,"mirror","能力の低下を防いだ！");
+    BattleIntel.ability(target,"mirror","能力の低下を防いだ！");
     say(`${nm(target)} の鏡膜が能力低下を防いだ！`);
     return false;
   }
@@ -5791,7 +5849,7 @@ function lowerRank(target, key, n, source){
   target.rank[key] = Math.max(-6, target.rank[key] - n);
   say(`${nm(target)} の${RANK_LABEL[key]}が${n>1?"がくんと":""}下がった。`);
   if(byFoe && hasVs(target,"spite",source) && target.rank.atk < 6){
-    window.BattlePresentation?.ability(target,"spite","能力を下げられ、物理攻撃がぐーんと上がった！");
+    BattleIntel.ability(target,"spite","能力を下げられ、物理攻撃がぐーんと上がった！");
     target.rank.atk=Math.min(6,target.rank.atk+2);
     say(`${nm(target)} は反骨で物理攻撃がぐーんと上がった！`);
   }
@@ -5809,16 +5867,18 @@ function rollFx(u, target, m){
 
 /* 場に出たときの特性 */
 function onEnter(u){
-  if(u.hp>0&&!u.dead&&has(u,"snowWarning")){window.BattlePresentation?.ability(u,"snowWarning","雪を降らせている！",{before:B.weather?.kind||null,after:"snow"});say(`${nm(u)} の雪降らし！`);startSnow();}
-  if(u.hp>0&&!u.dead&&has(u,"rainBeast")){window.BattlePresentation?.ability(u,"rainBeast","雨を降らせている！",{before:B.weather?.kind||null,after:"rain"});say(`${nm(u)} の雨獣！`);startRain();}
+  BattleIntel.observe(u);
+  if(u.hp>0&&!u.dead&&has(u,"snowWarning")){BattleIntel.ability(u,"snowWarning","雪を降らせている！",{before:B.weather?.kind||null,after:"snow"});say(`${nm(u)} の雪降らし！`);startSnow();}
+  if(u.hp>0&&!u.dead&&has(u,"rainBeast")){BattleIntel.ability(u,"rainBeast","雨を降らせている！",{before:B.weather?.kind||null,after:"rain"});say(`${nm(u)} の雨獣！`);startRain();}
   if(u.equip === "bell" && (u.itemState.bellUses||0)<2 && u.status){
+    BattleIntel.revealItem(u);
     u.itemState.bellUses=(u.itemState.bellUses||0)+1;
     say(`${nm(u)} の癒しの鈴が鳴り、${u.status}が治った（残り${2-u.itemState.bellUses}回）。`);
     u.status = null; u.statusTurns = 0;
   }
   const foe = u.side === "you" ? FOE() : YOU();
   if(has(u,"pressure") && foe && !foe.dead){
-    window.BattlePresentation?.ability(u,"pressure","威圧を放っている！ 相手の物理攻撃が下がる");
+    BattleIntel.ability(u,"pressure","威圧を放っている！ 相手の物理攻撃が下がる");
     say(`${nm(u)} の威圧！`);
     lowerRank(foe, "atk", 1, u);
   }
@@ -5861,7 +5921,7 @@ const bleedMarker=u=>bleedTotal(u)?`<span class="sub-marker" style="color:#ffadb
 const bleedTotal=u=>(u.bleedLevel||0)+(u.bleedPending||[]).length;
 function applyBleed(u,source){
  if(u.dead||u.hp<=0||u.sub>0||bleedTotal(u)>=5)return false;
- if(hasVs(u,"stoic",source)){window.BattlePresentation?.ability(u,"stoic","流血の発症を遅らせた！");u.bleedPending.push({turn:B.turn});say(`${nm(u)} はやせ我慢している！ 流血の発症を遅らせた。`);}
+ if(hasVs(u,"stoic",source)){BattleIntel.ability(u,"stoic","流血の発症を遅らせた！");u.bleedPending.push({turn:B.turn});say(`${nm(u)} はやせ我慢している！ 流血の発症を遅らせた。`);}
  else {u.bleedLevel++;say(`${nm(u)} は流血した！ 流血レベル${u.bleedLevel}。`);}
  return true;
 }
@@ -5877,7 +5937,7 @@ function inflict(u, st, source=null, bypassSub=false){
   if((u.sub > 0&&!bypassSub) || u.status || u.pendingStatus || u.dead || u.hp <= 0) return false;
   if(hasType(u,STATUS_IMMUNE[st])||(st==="凍結"&&freezeImmune(u))) return false;
   if(hasVs(u,"stoic",source)){
-    window.BattlePresentation?.ability(u,"stoic",`${st}の発症を遅らせた！`);
+    BattleIntel.ability(u,"stoic",`${st}の発症を遅らせた！`);
     u.pendingStatus={status:st,turn:B.turn};
     say(`${nm(u)} はやせ我慢している！`);
     return true; // The attempt was accepted, but its ailment is not active yet.
@@ -5891,7 +5951,7 @@ function inflict(u, st, source=null, bypassSub=false){
 function fxNullified(m, target, source=null){
   if(m.fx==="shower"&&inRain())return true;
   if(blockedByGuard(m,target))return true;
-  if(m.fx==="swapitem"&&source)return !!itemSwapFailure(source,target);
+  if(m.fx==="swapitem"&&source){if(target.publicView&&!target.itemKnown)return source.equip==="none"||!!EQUIPS[source.equip].unremovable||!!source.itemBound;return !!itemSwapFailure(source,target);}
   if(m.fx === "burnsure") return target.sub > 0 || hasType(target,"炎") || !!target.status || !!target.pendingStatus;
   if(m.fx === "seedfx")   return target.sub > 0 || hasType(target,"草") || target.seedTurns > 0;
   if(m.fx === "accdown")  return target.sub > 0;
@@ -5970,6 +6030,7 @@ async function doMove(u, target, key, canFlinch=true){
   if(B!==battle || battle.over)return; return;
   }
   if(EQUIPS[u.equip].noStatus && isStatusMove(m)){
+    BattleIntel.revealItem(u);
     say(`${nm(u)} は ${EQUIPS[u.equip].n} のため ${m.n} を出せなかった！`);
     await sleep(500);
   if(B!==battle || battle.over)return; return;
@@ -5980,10 +6041,12 @@ async function doMove(u, target, key, canFlinch=true){
   if(B!==battle || battle.over)return; return;
   }
   if(EQUIPS[u.equip].choice && u.choiceMove && u.choiceMove!==key){
+    BattleIntel.revealItem(u);
     say(`${nm(u)} は ${EQUIPS[u.equip].n} で ${MOVES[u.choiceMove].n} に固定されていて、${m.n}を出せなかった！`);
     await sleep(500);return;
   }
   if(!continuing && EQUIPS[u.equip].lock && u.lastMove === key){
+    BattleIntel.revealItem(u);
     // 反響で強制された技が連続禁止と噛み合わず、何もできない
     say(`${nm(u)} は ${EQUIPS[u.equip].n} のせいで ${m.n} を続けられず、何もできなかった！`);
     await sleep(560);
@@ -6001,6 +6064,7 @@ async function doMove(u, target, key, canFlinch=true){
   else if(m.fx==="guard")resetMoveRepeat(u);
   else {u.repeatCount=u.repeatMove===key?(u.repeatCount||0)+1:1;u.repeatMove=key;}
   if(EQUIPS[u.equip].choice&&!u.choiceMove)u.choiceMove=key;
+  BattleIntel.move(u,key);
   u.lastMove = key;                          // 外しても「使った」扱い
   if(m.fx !== "guard") u.guardStreak = 0;   // 守る以外を挟めば連続扱いは切れる
   if(!isStatusMove(m)){
@@ -6023,7 +6087,7 @@ async function doMove(u, target, key, canFlinch=true){
     say("しかし 相手がいないため、技は空を切った。");paint();await sleep(450);return;
   }
 
-  if(m.sound&&m.fx!=="perish"&&hasVs(target,"lowVoice",u)){window.BattlePresentation?.ability(target,"lowVoice","相手の音技を無効にした！");say(`${nm(target)} の中低音で音技は効かなかった！`);paint();await sleep(450);return;}
+  if(m.sound&&m.fx!=="perish"&&hasVs(target,"lowVoice",u)){BattleIntel.ability(target,"lowVoice","相手の音技を無効にした！");say(`${nm(target)} の中低音で音技は効かなかった！`);paint();await sleep(450);return;}
   if(blockedByGuard(m,target)){say(`${nm(target)} は技を防いだ！`);paint();await sleep(560);return;}
 
   const wind=target.windMantle&&m.category==="special"&&m.p>0&&!target.guarding;
@@ -6089,7 +6153,7 @@ async function doMove(u, target, key, canFlinch=true){
       if(r.e===0){say(`${nm(target)} には 効果がないようだ…`);paint();await sleep(560);
   if(B!==battle || battle.over)return;return;}
       if(m.t==="水"&&hasVs(target,"steamtank",u)){
-        window.BattlePresentation?.ability(target,"steamtank","流水を吸収した！");
+        BattleIntel.ability(target,"steamtank","流水を吸収した！");
         const healed=Math.min(r.dmg,target.maxhp-target.hp);recoverHP(target,healed);
         popDmg(target.side,"+"+healed,"#63c07d");
         say(`${nm(target)} はスチームタンクで流水を取り込み、回復した (+${healed})`);
@@ -6118,7 +6182,7 @@ async function doMove(u, target, key, canFlinch=true){
         if(target.guarding) say(`${nm(target)} は守りに徹していた。`);
       }
       if(has(u,"glutton") && dealt>0 && u.hp<u.maxhp){
-        window.BattlePresentation?.ability(u,"glutton","攻撃で体力を回復した！");
+        BattleIntel.ability(u,"glutton","攻撃で体力を回復した！");
         const heal=Math.max(1,Math.floor(dealt*.15));recoverHP(u,heal);
         popDmg(u.side,"+"+heal,"#63c07d");say(`${nm(u)} は貪食で体力を得た (+${heal})`);
       }
@@ -6136,7 +6200,7 @@ async function doMove(u, target, key, canFlinch=true){
       }
       if(!shielded)applyContactThorns(u,target,m);
       if(!shielded&&dealt>0&&target.hp>0&&m.t==="炎"&&hasVs(target,"steamtank",u)){
-        if(target.rank.spatk<6){window.BattlePresentation?.ability(target,"steamtank","火炎の熱を蓄え、特攻が上がった！");target.rank.spatk++;say(`${nm(target)} のスチームタンクが熱を蓄えた！ 特攻が上がった！`);}
+        if(target.rank.spatk<6){BattleIntel.ability(target,"steamtank","火炎の熱を蓄え、特攻が上がった！");target.rank.spatk++;say(`${nm(target)} のスチームタンクが熱を蓄えた！ 特攻が上がった！`);}
       }
       // Only status ailments, rank drops, and new parasitic seeds are stopped by a shield.
       // A shield broken by this hit still blocks this hit's status/rank additions.
@@ -6267,14 +6331,15 @@ async function doMove(u, target, key, canFlinch=true){
       else {
         const mine = u.equip, theirs = target.equip;
         u.equip = theirs; target.equip = mine;
+        BattleIntel.revealItem(u);BattleIntel.revealItem(target);
         [u.itemState,target.itemState]=[target.itemState,u.itemState];
         u.choiceMove=null;target.choiceMove=null;
         syncEnergyCap(u);syncEnergyCap(target);
         const nameOf = k => k === "none" ? "何も持たない状態" : EQUIPS[k].n;
         say(`${nm(u)} は持ち物を入れ替えた！`);
         say(`<span class="sys">${u.name} → ${nameOf(theirs)} ／ ${target.side==="foe"?"相手の":""}${target.name} → ${nameOf(mine)}</span>`);
-        if(abilOff(target)) say(`${nm(target)} の ${ABILITIES[target.ability].n} は封じられた！`);
-        if(abilOff(u))      say(`${nm(u)} の ${ABILITIES[u.ability].n} は封じられた！`);
+        if(abilOff(target)){BattleIntel.revealAbility(target);say(`${nm(target)} の ${ABILITIES[target.ability].n} は封じられた！`);}
+        if(abilOff(u)){BattleIntel.revealAbility(u);say(`${nm(u)} の ${ABILITIES[u.ability].n} は封じられた！`);}
       }
     }
     if(m.fx === "encore"){
@@ -6381,6 +6446,7 @@ function applyContactThorns(att,def,m){
     att.drowsy={turn:B.turn,breaker:has(def,"breaker")};say(`${nm(att)} は眠気に誘われた！`);
   }
   if(!isContactMove(m)||def.equip!=="thorn"||def.dead||def.hp<=0||att.dead||att.hp<=0)return false;
+  BattleIntel.revealItem(def);
   const amount=Math.max(1,Math.floor(def.maxhp*.05));
   if(!indirect(att,amount,"毒棘"))return false;
   flash(att.side);popDmg(att.side,"-"+amount,"#b58cf0");say(`毒棘が ${nm(att)} を刺した (-${amount})`);
@@ -6389,7 +6455,7 @@ function applyContactThorns(att,def,m){
 
 function tryCharm(u){
   if(u.hp>0 || u.dead || u.equip!=="charm" || u.charmUsed || u.preHitHp!==u.maxhp) return false;
-  window.BattlePresentation?.item(u,"charm","致命傷を耐え、HP1で踏みとどまった！");
+  BattleIntel.item(u,"charm","致命傷を耐え、HP1で踏みとどまった！");
   u.charmUsed=true;u.hp=1;
   say(`<span class="good">護りの札が</span> ${nm(u)} <span class="good">を踏みとどまらせた！</span>`);
   return true;
@@ -6550,7 +6616,7 @@ async function reflectWind(holder,caster,m){
   if(result.e===0){say(`${nm(caster)} には効果がないようだ…`);paint();return;}
   playFx(holder,caster,reflected,"attack");
   if(m.t==="水"&&hasVs(caster,"steamtank",caster)){
-    window.BattlePresentation?.ability(caster,"steamtank","反射された流水を吸収した！");
+    BattleIntel.ability(caster,"steamtank","反射された流水を吸収した！");
     const heal=Math.min(result.dmg,caster.maxhp-caster.hp);recoverHP(caster,heal);
     popDmg(caster.side,"+"+heal,"#63c07d");say(`${nm(caster)} はスチームタンクで反射された流水を取り込んだ (+${heal})`);
   }else if(caster.sub>0){
@@ -6561,7 +6627,7 @@ async function reflectWind(holder,caster,m){
     const before=caster.hp;hurt(caster,result.dmg);tryCharm(caster);
     const lost=before-Math.max(0,caster.hp);caster.dmgTaken+=lost;if(lost>0)receiveAttack(caster,m);
     flash(caster.side);popDmg(caster.side,"-"+lost,"#d4ecf0");say(`${nm(caster)} は反射された攻撃を受けた (-${lost})`);
-    if(lost>0&&caster.hp>0&&m.t==="炎"&&hasVs(caster,"steamtank",caster)&&caster.rank.spatk<6){window.BattlePresentation?.ability(caster,"steamtank","火炎の熱を蓄え、特攻が上がった！");caster.rank.spatk++;say(`${nm(caster)} のスチームタンクで特攻が上がった！`);}
+    if(lost>0&&caster.hp>0&&m.t==="炎"&&hasVs(caster,"steamtank",caster)&&caster.rank.spatk<6){BattleIntel.ability(caster,"steamtank","火炎の熱を蓄え、特攻が上がった！");caster.rank.spatk++;say(`${nm(caster)} のスチームタンクで特攻が上がった！`);}
   }
   paint();
 }
@@ -6579,7 +6645,7 @@ function applyShower(u){
   if(fraction===0)return;
   const amount=Math.max(1,Math.floor(u.maxhp*Math.abs(fraction)));
   if(fraction<0){
-    const healed=Math.min(amount,u.maxhp-u.hp);if(healed>0&&has(u,"steamtank"))window.BattlePresentation?.ability(u,"steamtank","夕立の流水を吸収して回復した！");say(`${nm(u)} は${has(u,"steamtank")?"スチームタンクで":""}夕立を取り込み、回復した (+${healed})`);recoverHP(u,healed);
+    const healed=Math.min(amount,u.maxhp-u.hp);if(healed>0&&has(u,"steamtank"))BattleIntel.ability(u,"steamtank","夕立の流水を吸収して回復した！");say(`${nm(u)} は${has(u,"steamtank")?"スチームタンクで":""}夕立を取り込み、回復した (+${healed})`);recoverHP(u,healed);
     popDmg(u.side,"+"+healed,"#63c07d");
   }else if(indirect(u,amount,"夕立のダメージ")){
     popDmg(u.side,"-"+amount,"#66b6ee");say(`${nm(u)} は夕立のダメージを受けた (-${amount})`);
@@ -6604,9 +6670,10 @@ async function endTurn(){
     if(drink.endRank&&u.rank[drink.endRank]<6){
       u.rank[drink.endRank]++;
       say(`${nm(u)} は ${drink.n} を飲んだ！ ${RANK_LABEL[drink.endRank]}が上がった！`);
-      u.equip="none";u.itemState={bellUses:0};u.choiceMove=null;shown=true;
+      BattleIntel.revealItem(u);u.equip="none";BattleIntel.revealItem(u,"none");u.itemState={bellUses:0};u.choiceMove=null;shown=true;
     }
     if(u.equip === "berry" && u.hp < u.maxhp){
+      BattleIntel.revealItem(u);
       const h = Math.max(1, Math.floor(u.maxhp*.05));
       const actual=Math.min(h,u.maxhp-u.hp);say(`${nm(u)} は命の実で回復した (+${actual})`);recoverHP(u,h);
       popDmg(u.side, "+"+actual, "#63c07d"); shown = true;paint();await sleep(650);if(B!==battle||battle.over)return;
@@ -6640,7 +6707,7 @@ async function endTurn(){
     if(u.status==="凍結"&&--u.freezeTurns<=0){thaw(u);shown=true;}
     if(u.status && has(u,"quick")){
       if(++u.statusTurns >= 2){
-        window.BattlePresentation?.ability(u,"quick","状態異常が治った！");
+        BattleIntel.ability(u,"quick","状態異常が治った！");
         say(`${nm(u)} の${u.status}は自然に治った。`);
         u.status = null; u.statusTurns = 0; shown = true;
       }
@@ -6789,7 +6856,7 @@ function lobbyStatus(t, bad){
   if(e){ e.textContent = t; e.className = "hint" + (bad ? " err" : ""); }
 }
 
-const BATTLE_RULES_VERSION = "six-creatures-v31";
+const BATTLE_RULES_VERSION = "public-information-v32";
 const rulesMatch = message => !!message && message.rulesVersion === BATTLE_RULES_VERSION;
 function rejectRulesMismatch(){
   NET.send({t:"bye"});
@@ -6920,8 +6987,8 @@ StatusPreview.init();
 BattleMusic.init();
 UpdateNews.start();
 </script>
-<script src="battle-readability.js?v=20261123-04"></script>
-<script src="battle-presentation.js?v=20261123-04"></script>
+<script src="battle-readability.js?v=20261123-05"></script>
+<script src="battle-presentation.js?v=20261123-05"></script>
 </body>
 </html>
 

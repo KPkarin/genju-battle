@@ -27,8 +27,8 @@ function drawHP(s){
  if(!bar||!value)return;
  const hp=Math.max(0,Math.ceil(s.display)),ratio=Math.max(0,Math.min(1,s.display/s.unit.maxhp));
  bar.style.transition='none';bar.style.width=ratio*100+'%';bar.style.background=ratio<.25?'var(--red)':ratio<.5?'var(--gold)':'var(--green)';
- value.textContent=`HP ${hp}/${s.unit.maxhp}`+(s.slot==='you'?`  気力 ${Math.floor(s.unit.en)}`:'');
- bar.setAttribute('role','progressbar');bar.setAttribute('aria-valuemin','0');bar.setAttribute('aria-valuemax',String(s.unit.maxhp));bar.setAttribute('aria-valuenow',String(hp));
+ value.textContent=s.slot==='you'?`HP ${hp}/${s.unit.maxhp}  気力 ${Math.floor(s.unit.en)}`:`HP ${Math.ceil(ratio*100)}%`;
+ bar.setAttribute('role','progressbar');bar.setAttribute('aria-valuemin','0');bar.setAttribute('aria-valuemax',String(s.slot==='you'?s.unit.maxhp:100));bar.setAttribute('aria-valuenow',String(s.slot==='you'?hp:Math.ceil(ratio*100)));
 }
 function tickHP(s,t){if(hpStates.get(s.slot)!==s)return;s.display=sample(s,t);drawHP(s);if(t-s.start>=800){finishHP(s);return;}s.handle=requestAnimationFrame(t=>tickHP(s,t));}
 function syncHP(){

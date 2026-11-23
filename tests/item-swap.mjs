@@ -76,10 +76,11 @@ await run(`(async()=>{
  await doMove(a,d,'swap');assert.equal(a.equip,'plate');assert.equal(d.equip,'mask');assert.equal(abilOff(d),true);assert.equal(abilOff(a),false);assert.equal(d.sub,80);assert.equal(swapFX,1,'valid exchange still bypasses substitute');
  // Recheck at execution even if a previous preview was valid.
  [a,d]=setup();a.equip='belt';d.equip='plate';a.moves=['swap'];renderCmd();assert.ok(!document.querySelector('#cmd').children[0].innerHTML.includes('効果なし'));
- d.itemBound=true;renderCmd();assert.ok(document.querySelector('#cmd').children[0].innerHTML.includes('効果なし'));await doMove(a,d,'swap');assert.equal(a.equip,'belt');assert.equal(d.equip,'plate');
+ d.itemBound=true;renderCmd();assert.ok(!document.querySelector('#cmd').children[0].innerHTML.includes('効果なし'),'preview cannot reveal a private item binding');await doMove(a,d,'swap');assert.equal(a.equip,'belt');assert.equal(d.equip,'plate');
  for(const mode of ['none','fixed','valid']){
   [a,d]=setup();a.type=d.type='無';a.equip=mode==='none'?'none':'belt';d.equip='mask';d.moves=['swap','tackle'];if(mode==='fixed')a.itemBound=true;
-  assert.equal(aiChoose().key,mode==='valid'?'swap':'tackle','AI respects '+mode+' exchange');
+  if(mode==='none')BattleIntel.revealItem(a);
+  assert.equal(aiChoose().key,mode==='none'?'tackle':'swap','AI uses only revealed '+mode+' item information');
  }
  for(const id of Object.keys(CHALLENGES)){
   party=randBuild();startChallenge(id);a=YOU();d=FOE();a.equip='mask';swapFX=0;await doMove(a,d,'swap');assert.equal(d.equip,'none');assert.equal(a.equip,'mask');assert.equal(swapFX,0,'empty-handed boss cannot receive an item');

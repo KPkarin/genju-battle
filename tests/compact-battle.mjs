@@ -154,14 +154,14 @@ for(const perspective of ['you','foe']){
   const stateBefore=w.run('JSON.stringify(B)'),seedBefore=w.run('_seed'),draft=w.storage.get('genju_battle_draft_v1');
   w.click('btnBattleMonsters');
   assert.equal(w.get('uiModal').hidden,false,'monster list opens as a dialog');
-  assert.equal(w.get('modalBody').querySelectorAll('[data-battle-unit]').length,6,'both teams expose all six monsters');
+  assert.equal(w.get('modalBody').querySelectorAll('[data-battle-unit]').length,4,'own team and the one revealed opponent are inspectable');
   assert.ok(card(w,own,0)&&card(w,enemy,0),'canonical team sides remain addressable in either player perspective');
   assert.ok(!w.get('modalBody').textContent.includes('猛火の牙'),'equipment is concealed until detail inspection');
   assert.ok(!w.get('modalBody').textContent.includes('やせ我慢'),'abilities are concealed until detail inspection');
   assert.equal(w.run('JSON.stringify(B)'),stateBefore,'opening the list does not mutate the battle');
   assert.equal(w.run('_seed'),seedBefore,'opening the list consumes no battle RNG');
   assert.equal(w.storage.get('genju_battle_draft_v1'),draft,'inspection never edits the saved party');
-  w.click(card(w,enemy,1));assert.equal(actionCount(w),0,'an enemy card cannot submit a switch');
+  assert.equal(card(w,enemy,1),null,'unseen opponents have no interactive card');w.click(card(w,enemy,0));assert.equal(actionCount(w),0,'an enemy card cannot submit a switch');
   w.run('GameUI.returnBattleMonsters()');
   w.click(card(w,own,1));
   assert.equal(w.get('btnConfirmSwitch').disabled,false,'a living own bench monster can be selected');
@@ -220,7 +220,7 @@ assert.ok(detailText.includes('-1'),'detail view includes negative rank changes'
 const afterHold=actionCount(details);pointer(held,'pointerup');held.click();
 assert.equal(actionCount(details),afterHold,'the release click after a long hold cannot trigger a switch');
 assert.ok(details.get('btnUnitBack'),'release after long hold stays in detail mode');
-details.click('btnUnitBack');assert.equal(details.get('modalBody').querySelectorAll('[data-battle-unit]').length,6,'detail back returns to the team list');
+details.click('btnUnitBack');assert.equal(details.get('modalBody').querySelectorAll('[data-battle-unit]').length,4,'detail back returns to the public team list');
 held=card(details,'you',1);pointer(held,'pointerdown');pointer(held,'pointermove',{clientX:114});await details.advance(600);
 assert.equal(details.get('btnUnitBack'),null,'moving a finger beyond the tolerance cancels long press');pointer(held,'pointerup');
 held=card(details,'foe',0);pointer(held,'pointerdown');pointer(held,'pointercancel');await details.advance(600);
