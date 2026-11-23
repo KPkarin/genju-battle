@@ -1,0 +1,1213 @@
+{
+  "version": 1,
+  "status": "proposal-not-active",
+  "size": 128,
+  "atlas": {
+    "columns": 8,
+    "rows": 6,
+    "width": 1024,
+    "height": 768
+  },
+  "creatures": [
+    {
+      "number": 1,
+      "id": "proposal_001",
+      "name": "ヤドリント",
+      "types": "流水・岩石",
+      "front": "sprites/001-front.png",
+      "back": "sprites/001-back.png",
+      "atlasRect": {
+        "x": 0,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 1,
+      "sourceBounds": [
+        [
+          285,
+          267
+        ],
+        [
+          271,
+          263
+        ]
+      ]
+    },
+    {
+      "number": 2,
+      "id": "proposal_002",
+      "name": "スナドケラ",
+      "types": "大地・野生",
+      "front": "sprites/002-front.png",
+      "back": "sprites/002-back.png",
+      "atlasRect": {
+        "x": 128,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 1,
+      "sourceBounds": [
+        [
+          287,
+          252
+        ],
+        [
+          277,
+          249
+        ]
+      ]
+    },
+    {
+      "number": 3,
+      "id": "proposal_003",
+      "name": "トウロウガ",
+      "types": "火炎・幽玄",
+      "front": "sprites/003-front.png",
+      "back": "sprites/003-back.png",
+      "atlasRect": {
+        "x": 256,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 1,
+      "sourceBounds": [
+        [
+          297,
+          268
+        ],
+        [
+          276,
+          258
+        ]
+      ]
+    },
+    {
+      "number": 4,
+      "id": "proposal_004",
+      "name": "シカナリ",
+      "types": "草木・雷電",
+      "front": "sprites/004-front.png",
+      "back": "sprites/004-back.png",
+      "atlasRect": {
+        "x": 384,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 1,
+      "sourceBounds": [
+        [
+          200,
+          283
+        ],
+        [
+          176,
+          284
+        ]
+      ]
+    },
+    {
+      "number": 5,
+      "id": "proposal_005",
+      "name": "ネジリス",
+      "types": "錬成・野生",
+      "front": "sprites/005-front.png",
+      "back": "sprites/005-back.png",
+      "atlasRect": {
+        "x": 512,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 1,
+      "sourceBounds": [
+        [
+          275,
+          277
+        ],
+        [
+          263,
+          274
+        ]
+      ]
+    },
+    {
+      "number": 6,
+      "id": "proposal_006",
+      "name": "アメフラッパ",
+      "types": "流水・無属性",
+      "front": "sprites/006-front.png",
+      "back": "sprites/006-back.png",
+      "atlasRect": {
+        "x": 640,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 1,
+      "sourceBounds": [
+        [
+          303,
+          253
+        ],
+        [
+          282,
+          252
+        ]
+      ]
+    },
+    {
+      "number": 7,
+      "id": "proposal_007",
+      "name": "カクレンヒョウ",
+      "types": "氷雪・暗闇",
+      "front": "sprites/007-front.png",
+      "back": "sprites/007-back.png",
+      "atlasRect": {
+        "x": 768,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 2,
+      "sourceBounds": [
+        [
+          289,
+          250
+        ],
+        [
+          281,
+          250
+        ]
+      ]
+    },
+    {
+      "number": 8,
+      "id": "proposal_008",
+      "name": "ハスノサジ",
+      "types": "草木・天空",
+      "front": "sprites/008-front.png",
+      "back": "sprites/008-back.png",
+      "atlasRect": {
+        "x": 896,
+        "y": 0,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 2,
+      "sourceBounds": [
+        [
+          232,
+          282
+        ],
+        [
+          206,
+          276
+        ]
+      ]
+    },
+    {
+      "number": 9,
+      "id": "proposal_009",
+      "name": "ハリボルト",
+      "types": "雷電・錬成",
+      "front": "sprites/009-front.png",
+      "back": "sprites/009-back.png",
+      "atlasRect": {
+        "x": 0,
+        "y": 128,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 2,
+      "sourceBounds": [
+        [
+          283,
+          252
+        ],
+        [
+          265,
+          245
+        ]
+      ]
+    },
+    {
+      "number": 10,
+      "id": "proposal_010",
+      "name": "スミナガレ",
+      "types": "流水・暗闇",
+      "front": "sprites/010-front.png",
+      "back": "sprites/010-back.png",
+      "atlasRect": {
+        "x": 128,
+        "y": 128,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 2,
+      "sourceBounds": [
+        [
+          272,
+          289
+        ],
+        [
+          256,
+          289
+        ]
+      ]
+    },
+    {
+      "number": 11,
+      "id": "proposal_011",
+      "name": "エンバクー",
+      "types": "火炎・無属性",
+      "front": "sprites/011-front.png",
+      "back": "sprites/011-back.png",
+      "atlasRect": {
+        "x": 256,
+        "y": 128,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 2,
+      "sourceBounds": [
+        [
+          290,
+          255
+        ],
+        [
+          262,
+          250
+        ]
+      ]
+    },
+    {
+      "number": 12,
+      "id": "proposal_012",
+      "name": "ツボミドロ",
+      "types": "草木・大地",
+      "front": "sprites/012-front.png",
+      "back": "sprites/012-back.png",
+      "atlasRect": {
+        "x": 384,
+        "y": 128,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 2,
+      "sourceBounds": [
+        [
+          292,
+          240
+        ],
+        [
+          274,
+          251
+        ]
+      ]
+    },
+    {
+      "number": 13,
+      "id": "proposal_013",
+      "name": "カガミラージュ",
+      "types": "幽玄・錬成",
+      "front": "sprites/013-front.png",
+      "back": "sprites/013-back.png",
+      "atlasRect": {
+        "x": 512,
+        "y": 128,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 3,
+      "sourceBounds": [
+        [
+          287,
+          255
+        ],
+        [
+          281,
+          248
+        ]
+      ]
+    },
+    {
+      "number": 14,
+      "id": "proposal_014",
+      "name": "ツラヌギ",
+      "types": "氷雪・天空",
+      "front": "sprites/014-front.png",
+      "back": "sprites/014-back.png",
+      "atlasRect": {
+        "x": 640,
+        "y": 128,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 3,
+      "sourceBounds": [
+        [
+          440,
+          565
+        ],
+        [
+          429,
+          559
+        ]
+      ]
+    },
+    {
+      "number": 15,
+      "id": "proposal_015",
+      "name": "カセキネマ",
+      "types": "岩石・幽玄",
+      "front": "sprites/015-front.png",
+      "back": "sprites/015-back.png",
+      "atlasRect": {
+        "x": 768,
+        "y": 128,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 3,
+      "sourceBounds": [
+        [
+          537,
+          508
+        ],
+        [
+          501,
+          494
+        ]
+      ]
+    },
+    {
+      "number": 16,
+      "id": "proposal_016",
+      "name": "ラッカセイラ",
+      "types": "草木・流水",
+      "front": "sprites/016-front.png",
+      "back": "sprites/016-back.png",
+      "atlasRect": {
+        "x": 896,
+        "y": 128,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 3,
+      "sourceBounds": [
+        [
+          292,
+          270
+        ],
+        [
+          267,
+          273
+        ]
+      ]
+    },
+    {
+      "number": 17,
+      "id": "proposal_017",
+      "name": "カネツムリ",
+      "types": "錬成・無属性",
+      "front": "sprites/017-front.png",
+      "back": "sprites/017-back.png",
+      "atlasRect": {
+        "x": 0,
+        "y": 256,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 3,
+      "sourceBounds": [
+        [
+          269,
+          264
+        ],
+        [
+          263,
+          260
+        ]
+      ]
+    },
+    {
+      "number": 18,
+      "id": "proposal_018",
+      "name": "ヨミガエル",
+      "types": "幽玄・野生",
+      "front": "sprites/018-front.png",
+      "back": "sprites/018-back.png",
+      "atlasRect": {
+        "x": 128,
+        "y": 256,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 3,
+      "sourceBounds": [
+        [
+          281,
+          250
+        ],
+        [
+          266,
+          252
+        ]
+      ]
+    },
+    {
+      "number": 19,
+      "id": "proposal_019",
+      "name": "ホタルビン",
+      "types": "火炎・錬成",
+      "front": "sprites/019-front.png",
+      "back": "sprites/019-back.png",
+      "atlasRect": {
+        "x": 256,
+        "y": 256,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 4,
+      "sourceBounds": [
+        [
+          277,
+          245
+        ],
+        [
+          271,
+          242
+        ]
+      ]
+    },
+    {
+      "number": 20,
+      "id": "proposal_020",
+      "name": "セッカラシ",
+      "types": "氷雪・岩石",
+      "front": "sprites/020-front.png",
+      "back": "sprites/020-back.png",
+      "atlasRect": {
+        "x": 384,
+        "y": 256,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 4,
+      "sourceBounds": [
+        [
+          276,
+          245
+        ],
+        [
+          271,
+          244
+        ]
+      ]
+    },
+    {
+      "number": 21,
+      "id": "proposal_021",
+      "name": "ヨルハタ",
+      "types": "暗闇・天空",
+      "front": "sprites/021-front.png",
+      "back": "sprites/021-back.png",
+      "atlasRect": {
+        "x": 512,
+        "y": 256,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 4,
+      "sourceBounds": [
+        [
+          274,
+          258
+        ],
+        [
+          269,
+          251
+        ]
+      ]
+    },
+    {
+      "number": 22,
+      "id": "proposal_022",
+      "name": "タキノボリュウ",
+      "types": "流水・野生",
+      "front": "sprites/022-front.png",
+      "back": "sprites/022-back.png",
+      "atlasRect": {
+        "x": 640,
+        "y": 256,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 4,
+      "sourceBounds": [
+        [
+          284,
+          255
+        ],
+        [
+          279,
+          229
+        ]
+      ]
+    },
+    {
+      "number": 23,
+      "id": "proposal_023",
+      "name": "ジシャモ",
+      "types": "雷電・岩石",
+      "front": "sprites/023-front.png",
+      "back": "sprites/023-back.png",
+      "atlasRect": {
+        "x": 768,
+        "y": 256,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 4,
+      "sourceBounds": [
+        [
+          279,
+          194
+        ],
+        [
+          277,
+          185
+        ]
+      ]
+    },
+    {
+      "number": 24,
+      "id": "proposal_024",
+      "name": "フクロケット",
+      "types": "天空・火炎",
+      "front": "sprites/024-front.png",
+      "back": "sprites/024-back.png",
+      "atlasRect": {
+        "x": 896,
+        "y": 256,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 4,
+      "sourceBounds": [
+        [
+          267,
+          277
+        ],
+        [
+          257,
+          275
+        ]
+      ]
+    },
+    {
+      "number": 25,
+      "id": "proposal_025",
+      "name": "カゼグルマジロ",
+      "types": "天空・錬成",
+      "front": "sprites/025-front.png",
+      "back": "sprites/025-back.png",
+      "atlasRect": {
+        "x": 0,
+        "y": 384,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 5,
+      "sourceBounds": [
+        [
+          259,
+          252
+        ],
+        [
+          230,
+          255
+        ]
+      ]
+    },
+    {
+      "number": 26,
+      "id": "proposal_026",
+      "name": "ウソブキ",
+      "types": "氷雪・無属性",
+      "front": "sprites/026-front.png",
+      "back": "sprites/026-back.png",
+      "atlasRect": {
+        "x": 128,
+        "y": 384,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 5,
+      "sourceBounds": [
+        [
+          258,
+          267
+        ],
+        [
+          191,
+          249
+        ]
+      ]
+    },
+    {
+      "number": 27,
+      "id": "proposal_027",
+      "name": "シャボクラゲ",
+      "types": "流水・幽玄",
+      "front": "sprites/027-front.png",
+      "back": "sprites/027-back.png",
+      "atlasRect": {
+        "x": 256,
+        "y": 384,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 5,
+      "sourceBounds": [
+        [
+          252,
+          278
+        ],
+        [
+          211,
+          271
+        ]
+      ]
+    },
+    {
+      "number": 28,
+      "id": "proposal_028",
+      "name": "ツキノウス",
+      "types": "岩石・無属性",
+      "front": "sprites/028-front.png",
+      "back": "sprites/028-back.png",
+      "atlasRect": {
+        "x": 384,
+        "y": 384,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 5,
+      "sourceBounds": [
+        [
+          273,
+          259
+        ],
+        [
+          256,
+          254
+        ]
+      ]
+    },
+    {
+      "number": 29,
+      "id": "proposal_029",
+      "name": "カブトウロ",
+      "types": "火炎・流水",
+      "front": "sprites/029-front.png",
+      "back": "sprites/029-back.png",
+      "atlasRect": {
+        "x": 512,
+        "y": 384,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 5,
+      "sourceBounds": [
+        [
+          286,
+          213
+        ],
+        [
+          241,
+          233
+        ]
+      ]
+    },
+    {
+      "number": 30,
+      "id": "proposal_030",
+      "name": "モリオルガン",
+      "types": "草木・幽玄",
+      "front": "sprites/030-front.png",
+      "back": "sprites/030-back.png",
+      "atlasRect": {
+        "x": 640,
+        "y": 384,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 5,
+      "sourceBounds": [
+        [
+          267,
+          281
+        ],
+        [
+          258,
+          276
+        ]
+      ]
+    },
+    {
+      "number": 31,
+      "id": "proposal_031",
+      "name": "アブラウリ",
+      "types": "火炎・野生",
+      "front": "sprites/031-front.png",
+      "back": "sprites/031-back.png",
+      "atlasRect": {
+        "x": 768,
+        "y": 384,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 6,
+      "sourceBounds": [
+        [
+          273,
+          229
+        ],
+        [
+          269,
+          232
+        ]
+      ]
+    },
+    {
+      "number": 32,
+      "id": "proposal_032",
+      "name": "カゲロビン",
+      "types": "火炎・天空",
+      "front": "sprites/032-front.png",
+      "back": "sprites/032-back.png",
+      "atlasRect": {
+        "x": 896,
+        "y": 384,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 6,
+      "sourceBounds": [
+        [
+          278,
+          227
+        ],
+        [
+          240,
+          227
+        ]
+      ]
+    },
+    {
+      "number": 33,
+      "id": "proposal_033",
+      "name": "ツルギノコ",
+      "types": "草木・錬成",
+      "front": "sprites/033-front.png",
+      "back": "sprites/033-back.png",
+      "atlasRect": {
+        "x": 0,
+        "y": 512,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 6,
+      "sourceBounds": [
+        [
+          287,
+          259
+        ],
+        [
+          243,
+          236
+        ]
+      ]
+    },
+    {
+      "number": 34,
+      "id": "proposal_034",
+      "name": "ユキノシシ",
+      "types": "氷雪・野生",
+      "front": "sprites/034-front.png",
+      "back": "sprites/034-back.png",
+      "atlasRect": {
+        "x": 128,
+        "y": 512,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 6,
+      "sourceBounds": [
+        [
+          302,
+          243
+        ],
+        [
+          271,
+          246
+        ]
+      ]
+    },
+    {
+      "number": 35,
+      "id": "proposal_035",
+      "name": "オニガワニ",
+      "types": "大地・錬成",
+      "front": "sprites/035-front.png",
+      "back": "sprites/035-back.png",
+      "atlasRect": {
+        "x": 256,
+        "y": 512,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 6,
+      "sourceBounds": [
+        [
+          290,
+          220
+        ],
+        [
+          288,
+          218
+        ]
+      ]
+    },
+    {
+      "number": 36,
+      "id": "proposal_036",
+      "name": "コハクジラ",
+      "types": "岩石・流水",
+      "front": "sprites/036-front.png",
+      "back": "sprites/036-back.png",
+      "atlasRect": {
+        "x": 384,
+        "y": 512,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 6,
+      "sourceBounds": [
+        [
+          295,
+          234
+        ],
+        [
+          282,
+          231
+        ]
+      ]
+    },
+    {
+      "number": 37,
+      "id": "proposal_037",
+      "name": "ツチノコヅチ",
+      "types": "大地",
+      "front": "sprites/037-front.png",
+      "back": "sprites/037-back.png",
+      "atlasRect": {
+        "x": 512,
+        "y": 512,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 7,
+      "sourceBounds": [
+        [
+          283,
+          207
+        ],
+        [
+          267,
+          207
+        ]
+      ]
+    },
+    {
+      "number": 38,
+      "id": "proposal_038",
+      "name": "カラクリオネ",
+      "types": "錬成",
+      "front": "sprites/038-front.png",
+      "back": "sprites/038-back.png",
+      "atlasRect": {
+        "x": 640,
+        "y": 512,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 7,
+      "sourceBounds": [
+        [
+          271,
+          281
+        ],
+        [
+          272,
+          276
+        ]
+      ]
+    },
+    {
+      "number": 39,
+      "id": "proposal_039",
+      "name": "ネムノコアラ",
+      "types": "草木",
+      "front": "sprites/039-front.png",
+      "back": "sprites/039-back.png",
+      "atlasRect": {
+        "x": 768,
+        "y": 512,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 7,
+      "sourceBounds": [
+        [
+          274,
+          261
+        ],
+        [
+          271,
+          261
+        ]
+      ]
+    },
+    {
+      "number": 40,
+      "id": "proposal_040",
+      "name": "ヒバシリスク",
+      "types": "火炎",
+      "front": "sprites/040-front.png",
+      "back": "sprites/040-back.png",
+      "atlasRect": {
+        "x": 896,
+        "y": 512,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 7,
+      "sourceBounds": [
+        [
+          282,
+          256
+        ],
+        [
+          264,
+          254
+        ]
+      ]
+    },
+    {
+      "number": 41,
+      "id": "proposal_041",
+      "name": "アラシジュウ",
+      "types": "天空",
+      "front": "sprites/041-front.png",
+      "back": "sprites/041-back.png",
+      "atlasRect": {
+        "x": 0,
+        "y": 640,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 7,
+      "sourceBounds": [
+        [
+          294,
+          222
+        ],
+        [
+          289,
+          222
+        ]
+      ]
+    },
+    {
+      "number": 42,
+      "id": "proposal_042",
+      "name": "ヒゲモット",
+      "types": "無属性",
+      "front": "sprites/042-front.png",
+      "back": "sprites/042-back.png",
+      "atlasRect": {
+        "x": 128,
+        "y": 640,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 7,
+      "sourceBounds": [
+        [
+          289,
+          242
+        ],
+        [
+          286,
+          238
+        ]
+      ]
+    },
+    {
+      "number": 43,
+      "id": "proposal_043",
+      "name": "ドクショウオ",
+      "types": "暗闇・幽玄",
+      "front": "sprites/043-front.png",
+      "back": "sprites/043-back.png",
+      "atlasRect": {
+        "x": 256,
+        "y": 640,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 8,
+      "sourceBounds": [
+        [
+          284,
+          235
+        ],
+        [
+          269,
+          230
+        ]
+      ]
+    },
+    {
+      "number": 44,
+      "id": "proposal_044",
+      "name": "ツヅラヘビ",
+      "types": "草木・暗闇",
+      "front": "sprites/044-front.png",
+      "back": "sprites/044-back.png",
+      "atlasRect": {
+        "x": 384,
+        "y": 640,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 8,
+      "sourceBounds": [
+        [
+          263,
+          243
+        ],
+        [
+          259,
+          245
+        ]
+      ]
+    },
+    {
+      "number": 45,
+      "id": "proposal_045",
+      "name": "スナモリヤモリ",
+      "types": "岩石・天空",
+      "front": "sprites/045-front.png",
+      "back": "sprites/045-back.png",
+      "atlasRect": {
+        "x": 512,
+        "y": 640,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 8,
+      "sourceBounds": [
+        [
+          287,
+          249
+        ],
+        [
+          277,
+          253
+        ]
+      ]
+    },
+    {
+      "number": 46,
+      "id": "proposal_046",
+      "name": "フブキンギョ",
+      "types": "氷雪・雷電",
+      "front": "sprites/046-front.png",
+      "back": "sprites/046-back.png",
+      "atlasRect": {
+        "x": 640,
+        "y": 640,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 8,
+      "sourceBounds": [
+        [
+          290,
+          242
+        ],
+        [
+          282,
+          241
+        ]
+      ]
+    },
+    {
+      "number": 47,
+      "id": "proposal_047",
+      "name": "クロガネビ",
+      "types": "錬成・火炎",
+      "front": "sprites/047-front.png",
+      "back": "sprites/047-back.png",
+      "atlasRect": {
+        "x": 768,
+        "y": 640,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 8,
+      "sourceBounds": [
+        [
+          294,
+          224
+        ],
+        [
+          287,
+          230
+        ]
+      ]
+    },
+    {
+      "number": 48,
+      "id": "proposal_048",
+      "name": "ユメクイヌ",
+      "types": "幽玄・無属性",
+      "front": "sprites/048-front.png",
+      "back": "sprites/048-back.png",
+      "atlasRect": {
+        "x": 896,
+        "y": 640,
+        "w": 128,
+        "h": 128
+      },
+      "sourceSheet": 8,
+      "sourceBounds": [
+        [
+          301,
+          200
+        ],
+        [
+          290,
+          213
+        ]
+      ]
+    }
+  ]
+}

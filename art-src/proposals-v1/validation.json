@@ -1,0 +1,398 @@
+{
+  "sprites": 96,
+  "creatures": 48,
+  "size": [
+    128,
+    128
+  ],
+  "paletteMax": 40,
+  "alpha": "binary transparent",
+  "edgeClipping": false,
+  "atlasRoundtrip": "96/96 identical",
+  "sha256": [
+    {
+      "file": "sprites/001-front.png",
+      "sha256": "c6083582d3058ca0369465d77499d7c9642f70f289d6b6df89fd9a621f776e6e"
+    },
+    {
+      "file": "sprites/001-back.png",
+      "sha256": "22709f52d1fde869f1129fb37ea301cc6ad901004cc5595d66bc760a737525d5"
+    },
+    {
+      "file": "sprites/002-front.png",
+      "sha256": "973d3c06fd97020406f4b6c16b43fa31a668f426c8c75a92d137af1d12cbee1b"
+    },
+    {
+      "file": "sprites/002-back.png",
+      "sha256": "00cfc4e81df68183ef160eb94e2f0f64dfb675344c35f3aa8dcab9d430d26eae"
+    },
+    {
+      "file": "sprites/003-front.png",
+      "sha256": "4b34cbc8d40f9613a22d0fdff23ff8c81e0e4d5dc707a37cf86499b8cb71e22c"
+    },
+    {
+      "file": "sprites/003-back.png",
+      "sha256": "7c9c5cdc2a8136257e3565c5a64df01e09894cbd82630012adea0fc46e35ee44"
+    },
+    {
+      "file": "sprites/004-front.png",
+      "sha256": "f99e972092128490ec280312bd1824230c3ae73c7a61f93dbee46fb2da0659a0"
+    },
+    {
+      "file": "sprites/004-back.png",
+      "sha256": "c4c06e51db977aac60cdbfdffda6ce24da1b1fa02e27fe73fce04561f373eb98"
+    },
+    {
+      "file": "sprites/005-front.png",
+      "sha256": "6edec8a74320556591b5bb0ce753668de47f695802948dc602f833a2a34a1053"
+    },
+    {
+      "file": "sprites/005-back.png",
+      "sha256": "8756969f68b65892e075df7d9bcf54ee508ad8b6d251253700cb27dd00771610"
+    },
+    {
+      "file": "sprites/006-front.png",
+      "sha256": "76a2a1204b8f1f7aca833bb64bea3ad971371b6b0ac8569a7a0cae96f3bb37a2"
+    },
+    {
+      "file": "sprites/006-back.png",
+      "sha256": "595785132bac3c033f996aec09e67dbf9b39941e7a03b03b95c936b0675d157f"
+    },
+    {
+      "file": "sprites/007-front.png",
+      "sha256": "0a371341d31219b8707cc2c044a1792f8b3eaa6cc75d044a73f0e62d91fc8992"
+    },
+    {
+      "file": "sprites/007-back.png",
+      "sha256": "f36250bc745dc2de5a0f0de1cac3fc8e473879eda136688ba184b4ebb136914a"
+    },
+    {
+      "file": "sprites/008-front.png",
+      "sha256": "10b70c47bf57bf3a651a509dd1cd42b766eb284383844f4c73aafc5d9c0efcdd"
+    },
+    {
+      "file": "sprites/008-back.png",
+      "sha256": "44cecf06dfe43a8fd201f6b1b93cb2933a9c5db9a44bf6e1f184911e5dffad0e"
+    },
+    {
+      "file": "sprites/009-front.png",
+      "sha256": "bf4aba903dc1cb1c14dfeb31bb4d36fff1c9a1f96b4cdc733f3e8e9f24d934e3"
+    },
+    {
+      "file": "sprites/009-back.png",
+      "sha256": "9359020cf0b49a8df940404a6326ad6e3b19888af3cd9a2d6ea9ed795491311d"
+    },
+    {
+      "file": "sprites/010-front.png",
+      "sha256": "b4e4d177ee36a4bcbd8c7f7a8e06563a065280eef67f12591c7c3392b04e9331"
+    },
+    {
+      "file": "sprites/010-back.png",
+      "sha256": "50621607e45e0cf3bab56b97b7ac65bf03ac17e8931cc7564663df49099b030e"
+    },
+    {
+      "file": "sprites/011-front.png",
+      "sha256": "bef98dba9527422acb1f75ce928ec2784e012ef39106af331838e47366f94938"
+    },
+    {
+      "file": "sprites/011-back.png",
+      "sha256": "d2cb50783f33b6b2b02c77e06e24153024476840270dadf748022ca4716c340c"
+    },
+    {
+      "file": "sprites/012-front.png",
+      "sha256": "58abe3d55338c1c9b0889c86c36b18db278e5db4f469eecf76329f4a12c4dce7"
+    },
+    {
+      "file": "sprites/012-back.png",
+      "sha256": "100f8225d725dc5ef3fda98689952d6b0c020e1b5816585c7b5d202060e7f168"
+    },
+    {
+      "file": "sprites/013-front.png",
+      "sha256": "b68c6e01fa0cc6590aa9e50f5ba00b4a3651eac2d7d3a4c7b987cededff6be2a"
+    },
+    {
+      "file": "sprites/013-back.png",
+      "sha256": "87f2a88da46bb312581ebb48e4773a5b5a4be713d148f6c8057cbcef34f075e9"
+    },
+    {
+      "file": "sprites/014-front.png",
+      "sha256": "c1523481bc55a0de6f89fb68273129906bf320544ff93e9e341337b6e4a5f3a4"
+    },
+    {
+      "file": "sprites/014-back.png",
+      "sha256": "6a38ce4cc81377f39a2a1d9ff82047409341b886482b5520fa68843b23b999d5"
+    },
+    {
+      "file": "sprites/015-front.png",
+      "sha256": "f1841120445a673aa6f9e8110b7464b84ae9b7c04f42149236df998cc1a91e19"
+    },
+    {
+      "file": "sprites/015-back.png",
+      "sha256": "b1165b074c66acfb6e4715d77a7558aef9d875a06f083cd4e0c74573dcc4afef"
+    },
+    {
+      "file": "sprites/016-front.png",
+      "sha256": "2f39f87939aa1753dc556bf973c2e9c67c3abc359a722c41473ee3c8d474ee14"
+    },
+    {
+      "file": "sprites/016-back.png",
+      "sha256": "de6184dbd0f20a59ba667623c9504db116c64fd47a8241d07f2c4f9ee608f732"
+    },
+    {
+      "file": "sprites/017-front.png",
+      "sha256": "2d592d2acd6b144a32ccb9c6e149c97d9ce571be435194e1bced7b7ed34c2116"
+    },
+    {
+      "file": "sprites/017-back.png",
+      "sha256": "58003e9b425680fb7336ab9a98fba1b96d9edeb413dac749220053247dad7b71"
+    },
+    {
+      "file": "sprites/018-front.png",
+      "sha256": "ad8e49dfecc3ff4fa89de09fa81170c4a6c514c612d7c4b0348ee148e92a1ca5"
+    },
+    {
+      "file": "sprites/018-back.png",
+      "sha256": "740b538c028246e4b508e279de6f4f7fd9674a0fe489375075c5a642bfda359d"
+    },
+    {
+      "file": "sprites/019-front.png",
+      "sha256": "a0477401222f76f6d90893c0ab641d57098f51fd230b542fce206bade5b2bad0"
+    },
+    {
+      "file": "sprites/019-back.png",
+      "sha256": "a0b1b472d25eb2b288ab0f67f1677f4ba35668afba5bd3eb9761d55d5dd5c932"
+    },
+    {
+      "file": "sprites/020-front.png",
+      "sha256": "508861b008b57b080288a7e9f098f6c28314d2413426018ea9ca4b5e17b3dc4a"
+    },
+    {
+      "file": "sprites/020-back.png",
+      "sha256": "45f9d215d6c59786b5c5fa33bc394901383fa46a6238014853537116614c6bd1"
+    },
+    {
+      "file": "sprites/021-front.png",
+      "sha256": "d25e5aefc446d553f68773469f1060d7ae27b5631abaa358006a8dcacb1093f2"
+    },
+    {
+      "file": "sprites/021-back.png",
+      "sha256": "7a5cab77da1a36f54f415689004e323a7bbe2a04b8b9f1fe6bd453fa5ce8f4f1"
+    },
+    {
+      "file": "sprites/022-front.png",
+      "sha256": "d02d5dbf77d224203443c6f85d966df32694ca5d120af35cfa385f77f592b19b"
+    },
+    {
+      "file": "sprites/022-back.png",
+      "sha256": "7572581e16a4bb7250050ceb69b08e78903bd610613c20bda8aeb6002dd11f14"
+    },
+    {
+      "file": "sprites/023-front.png",
+      "sha256": "b0a6f3b3ffabd1036c19fc8f5aa0542854e6a1c57b923cbc84e93d386f01f100"
+    },
+    {
+      "file": "sprites/023-back.png",
+      "sha256": "f0c7a7658667b2e161d661dad0fffdb8c71ddbdc556c4057a81b192372b04328"
+    },
+    {
+      "file": "sprites/024-front.png",
+      "sha256": "73a7113b47a7e4daffd70c60ced3c2a838e6df7e1385f7ef3426e9b5b3b94474"
+    },
+    {
+      "file": "sprites/024-back.png",
+      "sha256": "aff382b5984f44c22cbf83987b7ba0f4a452f381ad47127609b6e0ca8de75dad"
+    },
+    {
+      "file": "sprites/025-front.png",
+      "sha256": "b5d4b16f9b14336c7e9b169c0b59a66f2913a0a193a1d7376d6129b990a4eb6f"
+    },
+    {
+      "file": "sprites/025-back.png",
+      "sha256": "54bda13254105e512ba26184ef38d081172b4fb568f1242ac97daea10a9d79c7"
+    },
+    {
+      "file": "sprites/026-front.png",
+      "sha256": "7cace40efceda155755787f3e8bd31abd2e126a3ea69ed05b1b390e89128db6d"
+    },
+    {
+      "file": "sprites/026-back.png",
+      "sha256": "9b0d690ff4f16c14ac1df8f7f71e10437a2b22fbea9f0cf9a0261e52a81e674f"
+    },
+    {
+      "file": "sprites/027-front.png",
+      "sha256": "9dc96ca509c81c9fbe3c6637d285a81d5ce4c131c741162014c651406177a7bc"
+    },
+    {
+      "file": "sprites/027-back.png",
+      "sha256": "1ef080796a75dc3f1489024602bb1bda816fb5a2f2a1fc0b95f648f31c56f2c7"
+    },
+    {
+      "file": "sprites/028-front.png",
+      "sha256": "d11223d8d0ddcad1030be255472f6fe71f660f41cd0d2a300cb7e301795c0d93"
+    },
+    {
+      "file": "sprites/028-back.png",
+      "sha256": "88f6ff9ccb83e6dc90e510cf50d87280f4f37635ddd75ffd10da3a7914151f37"
+    },
+    {
+      "file": "sprites/029-front.png",
+      "sha256": "657b9257f20ec8f1b347a6708036d73233f64b29f0c80a93c10e496c8acbd7cd"
+    },
+    {
+      "file": "sprites/029-back.png",
+      "sha256": "1bb20193f07eadb3828d31023d5ea25184000a7682420b2230ac9c4d8a53e972"
+    },
+    {
+      "file": "sprites/030-front.png",
+      "sha256": "450e5fe6c70292225e88c1a988f10b45a80267ce7a9f7fa58195792eda265af8"
+    },
+    {
+      "file": "sprites/030-back.png",
+      "sha256": "08d414cc3716f9cedf2db742d313421483616e0b0464ff3e9ee39f473cbdc951"
+    },
+    {
+      "file": "sprites/031-front.png",
+      "sha256": "34f34d42bd0b7001d6e8848a295d193511c37d7959ee33652a3a57831db233bd"
+    },
+    {
+      "file": "sprites/031-back.png",
+      "sha256": "46b0b0deb6bcd2d2895087a59b0dab7e263bbce37b995ed53073e331989b8c7d"
+    },
+    {
+      "file": "sprites/032-front.png",
+      "sha256": "34462fcfd066e4c524d020cef1bad1abae209f021e98ab6224464980f39f5a59"
+    },
+    {
+      "file": "sprites/032-back.png",
+      "sha256": "b739b7a768e82c4a0c11b735dbd85103b3a77a5cb06fad4ee3ceac8e26e080ab"
+    },
+    {
+      "file": "sprites/033-front.png",
+      "sha256": "937a483b76b4d2537cefa24636aab060921202976fced2ddb7b6671fad1fdc77"
+    },
+    {
+      "file": "sprites/033-back.png",
+      "sha256": "0d674b230fa0da85af43732fb4c8fe9ff4b5a1f6dd94157963293b82099686c1"
+    },
+    {
+      "file": "sprites/034-front.png",
+      "sha256": "f227a629008a066d4ad1069e4d22427293bde3e668b6e997bea660f16eb1981b"
+    },
+    {
+      "file": "sprites/034-back.png",
+      "sha256": "a6742379e1ad04d96b0a5404afe06ce779bc27de694c98120453b5a33cce94bf"
+    },
+    {
+      "file": "sprites/035-front.png",
+      "sha256": "93d5c866adb9ab097b8bc6462a2cdeb1cad0036b982a49fb4da8360e74edda0e"
+    },
+    {
+      "file": "sprites/035-back.png",
+      "sha256": "653e6b6442ef816012a4c2c6e00033d893eb8d4f1cfb5758188ef0f8dad2ff2a"
+    },
+    {
+      "file": "sprites/036-front.png",
+      "sha256": "aed875ac6e2b57c5f3bdecffcda087e5b3dd9ea96610f5e39ab6b4dde0b68982"
+    },
+    {
+      "file": "sprites/036-back.png",
+      "sha256": "10b2670e4b67ba12ac880ca7b0b413ae1e277bb283c2d4e08e6e2b01ef860112"
+    },
+    {
+      "file": "sprites/037-front.png",
+      "sha256": "82ebbb1139ee59df0cdeca9c4e68884d92243f800e55cbf4f37ab4ab8390742a"
+    },
+    {
+      "file": "sprites/037-back.png",
+      "sha256": "fc738d3aae434ecaf1759abf24d9fbd15299209ffe1c96a56bd9d9f98882a9e0"
+    },
+    {
+      "file": "sprites/038-front.png",
+      "sha256": "018cd60464d34dd2dc86cda0c951a5aeb9150bef78fe0b4df8c06a34638b2ab0"
+    },
+    {
+      "file": "sprites/038-back.png",
+      "sha256": "fb57166e7aafe6a75b9bc70fc54bc72e5de4dc573d57ea52ec7cd482c62c5b18"
+    },
+    {
+      "file": "sprites/039-front.png",
+      "sha256": "cfa9adb2a26d08a4e863b4721051fe0fd99ccd371ea3001d4b34193cce6212fa"
+    },
+    {
+      "file": "sprites/039-back.png",
+      "sha256": "70122aa0d0b5de2bfbe3562f538e1be5097f01dfe0d252da741059f8e22c12bc"
+    },
+    {
+      "file": "sprites/040-front.png",
+      "sha256": "9e514203c46c064091638894ad1231821ddda175bf49c6184987bf001b54794e"
+    },
+    {
+      "file": "sprites/040-back.png",
+      "sha256": "6fe0152506e18471daa6054b9ac0c83f5ba0e0d56b4fab215ad8cbd19632c8d1"
+    },
+    {
+      "file": "sprites/041-front.png",
+      "sha256": "7af3190938aabc78d2490addcc8128463ccdb9305a155444d5f814063b58f5b0"
+    },
+    {
+      "file": "sprites/041-back.png",
+      "sha256": "15c22bc9f06ef1a47a6e07030f1d317585fc1c428565ce2f95e6fc170b15a334"
+    },
+    {
+      "file": "sprites/042-front.png",
+      "sha256": "3cdc9d8d425b652a34c906c73128b93f32be8cf34562b561d6dbdad7a4dfe50b"
+    },
+    {
+      "file": "sprites/042-back.png",
+      "sha256": "63d701e42da26fa73626bbb0e8c44e80c65d5a5dc1aa02402bed571b2ee68ade"
+    },
+    {
+      "file": "sprites/043-front.png",
+      "sha256": "41cbe8e77e45bee773d6d5340442c98d9d9c820877f1e6052e23345279cf57f6"
+    },
+    {
+      "file": "sprites/043-back.png",
+      "sha256": "7058f9a391ba3d89c1d4c5520e01358324b4c6643c27a0d692e6bd406f02785b"
+    },
+    {
+      "file": "sprites/044-front.png",
+      "sha256": "cdb9c63689230bb7892d030a83ca5916a3698a8cf1277b14af168a34cf3b7c6c"
+    },
+    {
+      "file": "sprites/044-back.png",
+      "sha256": "724daf78878435f9bd33a8d3c38674ed4502bafc9b9afa09e5c46e672041077f"
+    },
+    {
+      "file": "sprites/045-front.png",
+      "sha256": "50c9046b7d8d78836fb55a9511b359b6c41e48c4e7549ef43e37ee6d6977e44a"
+    },
+    {
+      "file": "sprites/045-back.png",
+      "sha256": "cc5084883b7333a190dba4f7e76b59ac6ef637233b3df472d7a7231e32ed731d"
+    },
+    {
+      "file": "sprites/046-front.png",
+      "sha256": "b8398aa45772690030fb3d147ab00ab45dd5c00790fbacf3b45302d83dc06565"
+    },
+    {
+      "file": "sprites/046-back.png",
+      "sha256": "55debe8474d50c57c33d4e51c9fab478604639db5b73257ad9bc78b30b00fdbc"
+    },
+    {
+      "file": "sprites/047-front.png",
+      "sha256": "91e1d64bf805340f7f768847e4704504ee87446f9707097f8f44071ab3436f2d"
+    },
+    {
+      "file": "sprites/047-back.png",
+      "sha256": "1cf534208c5c60487c8a7a291697b02fad27cb70a78354ce137faf129f236cff"
+    },
+    {
+      "file": "sprites/048-front.png",
+      "sha256": "8475bcfd1cfbeb5e8cb1c0775ed703fb071f474828f2c5b6fda12a20bb34b048"
+    },
+    {
+      "file": "sprites/048-back.png",
+      "sha256": "0a12639696781647e6368b30f3d6fcc35c46979018063f522ce89b12d7642dc2"
+    }
+  ]
+}
